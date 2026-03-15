@@ -1,0 +1,441 @@
+/**
+ * App Component
+ * Main application layout with Header, Sidebar, and Main content area
+ */
+
+import { Button } from './components/ui/button';
+import { useMapStore } from './store/mapStore';
+import { useUIStore } from './store/uiStore';
+import {
+  Menu,
+  Map as MapIcon,
+  Mountain,
+  Building2,
+  Flag,
+  Settings,
+  ZoomIn,
+  ZoomOut,
+  Grid3X3,
+  Layers,
+  Save,
+  FolderOpen,
+  FilePlus,
+  X,
+} from 'lucide-react';
+import type { SidebarTab } from './types/map';
+import { useState } from 'react';
+
+// ============================================================================
+// Header Component
+// ============================================================================
+
+function Header() {
+  const { addToast } = useUIStore();
+
+  const handleNewMap = () => {
+    addToast({
+      title: 'New Map',
+      description: 'Creating new map...',
+      type: 'info',
+    });
+  };
+
+  const handleOpenMap = () => {
+    addToast({
+      title: 'Open Map',
+      description: 'Opening file dialog...',
+      type: 'info',
+    });
+  };
+
+  const handleSaveMap = () => {
+    addToast({
+      title: 'Save Map',
+      description: 'Map saved successfully!',
+      type: 'success',
+    });
+  };
+
+  return (
+    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 sticky top-0 z-50">
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <MapIcon className="h-6 w-6 text-primary" />
+          <h1 className="text-lg font-semibold">TileMap Editor</h1>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleNewMap}
+        >
+          <FilePlus className="h-4 w-4 mr-2" />
+          New
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleOpenMap}
+        >
+          <FolderOpen className="h-4 w-4 mr-2" />
+          Open
+        </Button>
+        <Button
+          variant="default"
+          size="sm"
+          onClick={handleSaveMap}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Save
+        </Button>
+      </div>
+    </header>
+  );
+}
+
+// ============================================================================
+// Sidebar Component
+// ============================================================================
+
+const tabs: { id: SidebarTab; label: string; icon: React.ElementType }[] = [
+  { id: 'terrain', label: 'Terrain', icon: Mountain },
+  { id: 'building', label: 'Buildings', icon: Building2 },
+  { id: 'flag', label: 'Flags', icon: Flag },
+  { id: 'config', label: 'Config', icon: Settings },
+];
+
+function Sidebar() {
+  const { activeTab, setActiveTab } = useUIStore();
+  const { brushSize, setBrushSize, layerVisibility, setLayerVisibility, width, height } = useMapStore();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  if (!sidebarOpen) {
+    return (
+      <div className="w-12 border-r border-border bg-card flex flex-col items-center py-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setSidebarOpen(true)}
+          className="mb-4"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? 'secondary' : 'ghost'}
+            size="icon"
+            onClick={() => setActiveTab(tab.id)}
+            className="mb-2"
+          >
+            <tab.icon className="h-5 w-5" />
+          </Button>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <aside className="w-72 border-r border-border bg-card flex flex-col">
+      {/* Sidebar Header */}
+      <div className="h-12 border-b border-border flex items-center justify-between px-3">
+        <span className="font-medium">Tools</span>
+        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex-1 py-2 px-2 text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
+              activeTab === tab.id
+                ? 'text-primary border-b-2 border-primary'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <tab.icon className="h-4 w-4" />
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {activeTab === 'terrain' && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Brush Size</h3>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  min={1}
+                  max={10}
+                  value={brushSize}
+                  onChange={(e) => setBrushSize(Number(e.target.value))}
+                  className="flex-1"
+                />
+                <span className="text-sm w-8">{brushSize}</span>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium mb-2">Terrain Types</h3>
+              <div className="grid grid-cols-2 gap-2">
+                {['Dirt', 'Stone', 'Crater', 'Empty'].map((terrain) => (
+                  <Button
+                    key={terrain}
+                    variant="outline"
+                    size="sm"
+                    className="justify-start"
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full mr-2"
+                      style={{
+                        backgroundColor:
+                          terrain === 'Dirt'
+                            ? '#228B22'
+                            : terrain === 'Stone'
+                            ? '#808080'
+                            : terrain === 'Crater'
+                            ? '#8B4513'
+                            : 'transparent',
+                        border:
+                          terrain === 'Empty' ? '1px solid currentColor' : 'none',
+                      }}
+                    />
+                    {terrain}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'building' && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Buildings</h3>
+              <p className="text-sm text-muted-foreground">
+                Building selection will be available here.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'flag' && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Flags</h3>
+              <p className="text-sm text-muted-foreground">
+                Flag placement will be available here.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'config' && (
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Map Settings</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm w-16">Width:</span>
+                  <input
+                    type="number"
+                    value={width}
+                    readOnly
+                    className="flex-1 h-9 rounded-md border border-input px-3"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm w-16">Height:</span>
+                  <input
+                    type="number"
+                    value={height}
+                    readOnly
+                    className="flex-1 h-9 rounded-md border border-input px-3"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Layer Visibility */}
+      <div className="border-t border-border p-4">
+        <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
+          <Layers className="h-4 w-4" />
+          Layers
+        </h3>
+        <div className="space-y-2">
+          {[
+            { key: 'grid', label: 'Grid' },
+            { key: 'zones', label: 'Zones' },
+            { key: 'flags', label: 'Flags' },
+            { key: 'occupied', label: 'Occupied' },
+          ].map(({ key, label }) => (
+            <label
+              key={key}
+              className="flex items-center gap-2 text-sm cursor-pointer"
+            >
+              <input
+                type="checkbox"
+                checked={layerVisibility[key as keyof typeof layerVisibility]}
+                onChange={(e) =>
+                  setLayerVisibility(key as keyof typeof layerVisibility, e.target.checked)
+                }
+                className="rounded border-border"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+// ============================================================================
+// Toolbar Component
+// ============================================================================
+
+function Toolbar() {
+  const { viewport, setViewport } = useMapStore();
+
+  return (
+    <div className="absolute top-4 right-4 flex items-center gap-2 bg-card border border-border rounded-lg p-2 shadow-lg">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setViewport({ zoom: Math.min(viewport.zoom + 2, 32) })}
+      >
+        <ZoomIn className="h-4 w-4" />
+      </Button>
+      <span className="text-sm tabular-nums min-w-[3ch] text-center">
+        {viewport.zoom}px
+      </span>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setViewport({ zoom: Math.max(viewport.zoom - 2, 8) })}
+      >
+        <ZoomOut className="h-4 w-4" />
+      </Button>
+      <div className="w-px h-6 bg-border mx-1" />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={() => setViewport({ offsetX: 0, offsetY: 0 })}
+      >
+        <Grid3X3 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
+// ============================================================================
+// Main Canvas Area
+// ============================================================================
+
+function MainCanvas() {
+  const { width, height } = useMapStore();
+
+  return (
+    <div className="flex-1 bg-muted relative overflow-hidden">
+      <Toolbar />
+
+      {/* Canvas Placeholder */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-64 h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center mb-4">
+            <Grid3X3 className="h-16 w-16 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold mb-2">Map Canvas</h2>
+          <p className="text-muted-foreground mb-4">
+            Canvas will be implemented in Phase 2 with Konva
+          </p>
+          <div className="text-sm text-muted-foreground">
+            <p>Map Size: {width} x {height}</p>
+            <p className="mt-2">
+              <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#228B22' }} />
+              Dirt
+              <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#808080' }} />
+              Stone
+              <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#8B4513' }} />
+              Crater
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Toast Display
+// ============================================================================
+
+function ToastDisplay() {
+  const { toasts, removeToast } = useUIStore();
+
+  if (toasts.length === 0) return null;
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 space-y-2">
+      {toasts.map((toast) => (
+        <div
+          key={toast.id}
+          className={`px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 min-w-[200px] ${
+            toast.type === 'success'
+              ? 'bg-green-500 text-white'
+              : toast.type === 'error'
+              ? 'bg-destructive text-destructive-foreground'
+              : toast.type === 'warning'
+              ? 'bg-yellow-500 text-white'
+              : 'bg-primary text-primary-foreground'
+          }`}
+        >
+          <div className="flex-1">
+            <p className="text-sm font-medium">{toast.title}</p>
+            {toast.description && (
+              <p className="text-xs opacity-90">{toast.description}</p>
+            )}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 shrink-0"
+            onClick={() => removeToast(toast.id)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================================================
+// Main App Component
+// ============================================================================
+
+function App() {
+  return (
+    <div className="flex flex-col h-screen bg-background text-foreground">
+      <Header />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <MainCanvas />
+      </div>
+      <ToastDisplay />
+    </div>
+  );
+}
+
+export default App;
