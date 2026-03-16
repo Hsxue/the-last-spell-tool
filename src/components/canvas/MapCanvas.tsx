@@ -136,7 +136,11 @@ export function MapCanvas({ className }: MapCanvasProps) {
     <div
       ref={containerRef}
       className={`w-full h-full bg-muted ${className || ''}`}
-      style={{ cursor: viewport.isPanning ? 'grabbing' : 'grab' }}
+      style={{ 
+        cursor: editorMode === 'terrain' || editorMode === 'eraser' 
+          ? (viewport.isPanning ? 'grabbing' : 'crosshair') 
+          : (viewport.isPanning ? 'grabbing' : 'grab') 
+      }}
     >
       {/* Disable Stage drag when in terrain/eraser mode to allow drawing instead of panning */}
       <Stage
