@@ -4,6 +4,7 @@
  */
 
 import { Button } from './components/ui/button';
+import { MapCanvas } from './components/canvas';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -15,7 +16,6 @@ import {
   Settings,
   ZoomIn,
   ZoomOut,
-  Grid3X3,
   Layers,
   Save,
   FolderOpen,
@@ -357,8 +357,9 @@ function Toolbar() {
         variant="ghost"
         size="icon"
         onClick={() => setViewport({ offsetX: 0, offsetY: 0 })}
+        title="Reset View"
       >
-        <Grid3X3 className="h-4 w-4" />
+        <MapIcon className="h-4 w-4" />
       </Button>
     </div>
   );
@@ -369,37 +370,12 @@ function Toolbar() {
 // ============================================================================
 
 function MapEditorContent() {
-  const { width, height } = useMapStore();
-  
   return (
     <div className="flex-1 flex overflow-hidden">
       <Sidebar />
-      <div className="flex-1 bg-muted relative overflow-hidden">
+      <div className="flex-1 relative">
         <Toolbar />
-
-        {/* Canvas Placeholder */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-64 h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center mb-4">
-              <Grid3X3 className="h-16 w-16 text-muted-foreground" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Map Canvas</h2>
-            <p className="text-muted-foreground mb-4">
-              Canvas will be implemented in Phase 2 with Konva
-            </p>
-            <div className="text-sm text-muted-foreground">
-              <p>Map Size: {width} x {height}</p>
-              <p className="mt-2">
-                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#228B22' }} />
-                Dirt
-                <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#808080' }} />
-                Stone
-                <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#8B4513' }} />
-                Crater
-              </p>
-            </div>
-          </div>
-        </div>
+        <MapCanvas />
       </div>
     </div>
   );
