@@ -1,6 +1,7 @@
 /**
  * MapCanvas - Main canvas container using Konva
  * Provides Stage with zoom, pan, and layered rendering
+ * Includes mouse tracking for coordinate display
  */
 
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -23,8 +24,11 @@ export interface MapCanvasProps {
 }
 
 // ============================================================================
-// Helper Functions
+// Constants
 // ============================================================================
+
+/** Size of each tile in pixels - must match TerrainLayer and GridLayer */
+const TILE_SIZE = 20;
 
 /**
  * Clamp value between min and max
@@ -50,7 +54,26 @@ export function MapCanvas({ className }: MapCanvasProps) {
     layerVisibility,
     setViewport,
     editorMode,
+    setHoveredTile,
   } = useMapStore();
+
+  // Initialize map to center on first mount
+  useEffect(() => {
+    if (containerRef.current && width > 0 && height > 0) {
+      const { clientWidth, clientHeight } = containerRef.current;
+      const mapPixelWidth = width * TILE_SIZE;
+      const mapPixelHeight = height * TILE_SIZE;
+      
+      // Calculate center offset
+      const centerOffsetX = (clientWidth - mapPixelWidth * viewport.zoom) / 2;
+      const centerOffsetY = (clientHeight - mapPixelHeight * viewport.zoom) / 2;
+      
+      setViewport({
+        offsetX: centerOffsetX,
+        offsetY: centerOffsetY,
+      });
+    }
+  }, [width, height, viewport.zoom, setViewport]);
 
   // Update container size on mount and resize
   useEffect(() => {
@@ -88,8 +111,8 @@ export function MapCanvas({ className }: MapCanvasProps) {
       const direction = e.evt.deltaY > 0 ? -1 : 1;
       const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-      // Clamp zoom between 8 and 32
-      const clampedZoom = clamp(newScale, 8, 32);
+      // Clamp zoom between 0.25 and 2
+      const clampedZoom = clamp(newScale, 0.25, 2);
 
       // Calculate new position to zoom towards mouse pointer
       const newPos = {
@@ -123,6 +146,49 @@ export function MapCanvas({ className }: MapCanvasProps) {
     setViewport({ isPanning: true });
   }, [setViewport]);
 
+  // Handle mouse move for coordinate tracking
+  const handleMouseMove = useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      const stage = e.target.getStage();
+      const pos = stage?.getPointerPosition();
+      if (!pos) return;
+
+      // Calculate world coordinates from screen coordinates
+      const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
+      const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
+
+      // Calculate tile coordinates
+      const tileX = Math.floor(worldX / TILE_SIZE);
+      const tileY = Math.floor(worldY / TILE_SIZE);
+
+      // Update hovered tile if within map bounds
+      if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+        setHoveredTile({ x: tileX, y: tileY });
+      } else {
+        setHoveredTile(null);
+      }
+
+      // Dispatch custom event for MapStatusBar
+      const event = new CustomEvent('mousecoords', {
+        detail: {
+          screenX: Math.round(pos.x),
+          screenY: Math.round(pos.y),
+          worldX: Math.round(worldX * 100) / 100,
+          worldY: Math.round(worldY * 100) / 100,
+          tileX,
+          tileY,
+        },
+      });
+      window.dispatchEvent(event);
+    },
+    [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height, setHoveredTile]
+  );
+
+  // Handle mouse leave
+  const handleMouseLeave = useCallback(() => {
+    setHoveredTile(null);
+  }, [setHoveredTile]);
+
   // Prepare map data for layers
   const layerMapData: MapData | null = mapData || {
     width,
@@ -154,16 +220,18 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onWheel={handleWheel}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
       >
         {/* Terrain Layer - Bottom */}
         <Layer>
-          <TerrainLayer mapData={layerMapData} />
+          <TerrainLayer mapData={layerMapData} viewport={viewport} />
         </Layer>
 
         {/* Grid Layer */}
         {layerVisibility.grid && (
           <Layer>
-            <GridLayer width={width} height={height} />
+            <GridLayer width={width} height={height} zoom={viewport.zoom} />
           </Layer>
         )}
 

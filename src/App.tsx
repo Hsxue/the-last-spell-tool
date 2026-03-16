@@ -5,6 +5,7 @@
 
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
+import { MapStatusBar } from './components/MapStatusBar';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -399,9 +400,12 @@ function MapEditorContent() {
   return (
     <div className="flex-1 flex overflow-hidden">
       <Sidebar />
-      <div className="flex-1 relative">
+      <div className="flex-1 relative flex flex-col">
         <Toolbar />
-        <MapCanvas />
+        <div className="flex-1 relative">
+          <MapCanvas />
+        </div>
+        <MapStatusBar />
       </div>
     </div>
   );

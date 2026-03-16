@@ -13,7 +13,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Rect, Group } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
-import type { MapData, TerrainType } from '../../types/map';
+import type { MapData, TerrainType, ViewportState } from '../../types/map';
 import { TERRAIN_COLORS } from '../../types/map';
 import { useMapStore } from '../../store/mapStore';
 
@@ -24,6 +24,8 @@ import { useMapStore } from '../../store/mapStore';
 interface TerrainLayerProps {
   /** Map data containing terrain information */
   mapData: MapData;
+  /** Viewport state for coordinate transformation */
+  viewport: ViewportState;
 }
 
 // ============================================================================
@@ -102,7 +104,7 @@ function getBrushPositions(
  * Renders terrain tiles and handles terrain editing interactions.
  * Uses Konva Group for batch rendering performance.
  */
-export function TerrainLayer({ mapData }: TerrainLayerProps) {
+export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   const { width, height, terrain } = mapData;
 
   // Get editor state from store
@@ -123,27 +125,22 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
    */
   const handlePaint = useCallback(
     (x: number, y: number) => {
-      console.log('handlePaint called:', {x, y, editorMode, selectedTerrain, brushSize});
       
       // Only paint in terrain or eraser mode
       if (editorMode !== 'terrain' && editorMode !== 'eraser') {
-        console.log('handlePaint: Editor mode not terrain/eraser, skipping');
         return;
       }
 
       // Determine terrain type based on mode
       const terrainType: TerrainType = editorMode === 'eraser' ? 'Empty' : selectedTerrain;
-      console.log('handlePaint: Painting terrain type:', terrainType);
 
       // Get all positions to paint based on brush size
       const positions = getBrushPositions(x, y, brushSize, width, height);
-      console.log('handlePaint: Positions to paint:', positions);
 
       // Paint each position
       positions.forEach(([px, py]) => {
         setTerrain(px, py, terrainType);
       });
-      console.log('handlePaint: Finished setting terrain');
     },
     [editorMode, selectedTerrain, brushSize, width, height, setTerrain]
   );
@@ -153,7 +150,6 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
    */
   const handleMouseDown = useCallback(
     (x: number, y: number) => {
-      console.log('handleMouseDown called:', {x, y});
       setIsDrawing(true);
       handlePaint(x, y);
     },
@@ -165,7 +161,6 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
    */
   const handleMouseEnter = useCallback(
     (x: number, y: number) => {
-      console.log('handleMouseEnter called:', {x, y, isDrawing});
       // Update hovered tile position
       setHoveredTile({ x, y });
 
@@ -181,7 +176,6 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
    * Handle mouse up - stop drawing
    */
   const handleMouseUp = useCallback(() => {
-    console.log('handleMouseUp called');
     setIsDrawing(false);
   }, []);
 
@@ -189,7 +183,6 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
    * Handle mouse leave from canvas - stop drawing
    */
   const handleMouseLeave = useCallback(() => {
-    console.log('handleMouseLeave called');
     setIsDrawing(false);
     setHoveredTile(null);
   }, [setHoveredTile]);
@@ -214,12 +207,10 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
           fill={getTerrainColor(terrainType)}
           stroke={undefined}
           strokeWidth={0}
-          onMouseDown={(e: KonvaEventObject<MouseEvent>) => {
-            console.log('Terrain tile rect mousedown at tile coords:', {x, y, screenPt: e.target.getStage()?.getPointerPosition()});
+          onMouseDown={() => {
             handleMouseDown(x, y);
           }}
-          onMouseEnter={(e: KonvaEventObject<MouseEvent>) => {
-            console.log('Terrain tile rect mouseenter at tile coords:', {x, y, screenPt: e.target.getStage()?.getPointerPosition()});
+          onMouseEnter={() => {
             handleMouseEnter(x, y);
           }}
           perfectDrawEnabled={false}
@@ -229,7 +220,7 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
     });
 
     return elements;
-  }, [terrain, handleMouseDown, handleMouseEnter]);
+  }, [terrain]);
 
   // Calculate canvas dimensions in pixels
   const canvasWidth = width * TILE_SIZE;
@@ -257,36 +248,48 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
           const pos = stage?.getPointerPosition();
           if (!pos) return;
           
-          // Convert screen coordinates to tile coordinates
-          const tileX = Math.floor(pos.x / TILE_SIZE);
-          const tileY = Math.floor(pos.y / TILE_SIZE);
+          // 修复：添加 viewport 转换
+          const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
+          const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
+          const tileX = Math.floor(worldX / TILE_SIZE);
+          const tileY = Math.floor(worldY / TILE_SIZE);
           
-          console.log('Invisible layer mouseDown:', {screenX: pos.x, screenY: pos.y, tileX, tileY, editorMode, selectedTerrain});
-          
-          // Use these tile coordinates for painting
-          setIsDrawing(true);
-          handlePaint(tileX, tileY);
-        }}
-        onMouseUp={() => {
-          console.log('Invisible layer mouseUp');
-          handleMouseUp();
-        }}
-        onMouseMove={(e: KonvaEventObject<MouseEvent>) => {
-          if (isDrawing) {
-            const stage = e.target.getStage();
-          const pos = stage?.getPointerPosition();
-            if (!pos) return;
-            
-            // Convert screen coordinates to tile coordinates
-            const tileX = Math.floor(pos.x / TILE_SIZE);
-            const tileY = Math.floor(pos.y / TILE_SIZE);
-            
-            console.log('Invisible layer mouseMove dragging:', {screenX: pos.x, screenY: pos.y, tileX, tileY});
+          // 边界检查
+          if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+            setIsDrawing(true);
             handlePaint(tileX, tileY);
           }
         }}
+        onMouseUp={() => {
+          handleMouseUp();
+        }}
+        onMouseMove={(e: KonvaEventObject<MouseEvent>) => {
+          const stage = e.target.getStage();
+          const pos = stage?.getPointerPosition();
+          if (!pos) return;
+          
+          // 修复：添加 viewport 转换
+          const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
+          const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
+          const tileX = Math.floor(worldX / TILE_SIZE);
+          const tileY = Math.floor(worldY / TILE_SIZE);
+          
+          // 更新悬停的瓦片位置
+          if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+            setHoveredTile({ x: tileX, y: tileY });
+          } else {
+            setHoveredTile(null);
+          }
+          
+          // 如果在绘制中，继续绘制
+          if (isDrawing) {
+            // 边界检查
+            if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+              handlePaint(tileX, tileY);
+            }
+          }
+        }}
         onMouseLeave={() => {
-          console.log('Invisible layer mouseLeave');
           handleMouseLeave();
         }}
         perfectDrawEnabled={false}

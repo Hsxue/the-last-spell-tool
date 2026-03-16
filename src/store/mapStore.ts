@@ -85,7 +85,7 @@ const defaultMapData: MapData = {
 };
 
 const defaultViewport: ViewportState = {
-  zoom: 16,
+  zoom: 1,
   offsetX: 0,
   offsetY: 0,
   isPanning: false,
