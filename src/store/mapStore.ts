@@ -220,11 +220,14 @@ export const useMapStore = create<MapState>()(
           state.mapData = { ...defaultMapData };
         }
         const key = `${x},${y}`;
+        // Create new Map to force React re-render
+        const newTerrain = new Map(state.mapData.terrain);
         if (terrain === 'Empty') {
-          state.mapData.terrain.delete(key);
+          newTerrain.delete(key);
         } else {
-          state.mapData.terrain.set(key, terrain);
+          newTerrain.set(key, terrain);
         }
+        state.mapData.terrain = newTerrain;
       });
     },
 
