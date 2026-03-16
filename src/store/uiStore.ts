@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
-import type { SidebarTab } from '../types/map';
+import type { SidebarTab, FeatureTab } from '../types/map';
 
 // ============================================================================
 // Types
@@ -51,6 +51,9 @@ interface UIState {
   activeTab: SidebarTab;
   sidebarOpen: boolean;
 
+  // Feature tabs - for switching between different sections
+  activeFeatureTab: FeatureTab;
+
   // Panels
   panelState: PanelState;
 
@@ -71,6 +74,7 @@ interface UIState {
 
   // Actions
   setActiveTab: (tab: SidebarTab) => void;
+  setActiveFeatureTab: (tab: FeatureTab) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
 
@@ -138,6 +142,7 @@ export const useUIStore = create<UIState>()(
   immer((set, get) => ({
     // Initial State
     activeTab: 'terrain',
+    activeFeatureTab: 'mapEditor',
     sidebarOpen: true,
     panelState: defaultPanelState,
     toasts: [],
@@ -152,6 +157,12 @@ export const useUIStore = create<UIState>()(
     setActiveTab: (tab) => {
       set((state) => {
         state.activeTab = tab;
+      });
+    },
+
+    setActiveFeatureTab: (tab) => {
+      set((state) => {
+        state.activeFeatureTab = tab;
       });
     },
 

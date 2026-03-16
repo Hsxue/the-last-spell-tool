@@ -1,6 +1,6 @@
 /**
  * App Component
- * Main application layout with Header, Sidebar, and Main content area
+ * Main application layout with Header, FeatureTabs, and Main content area
  */
 
 import { Button } from './components/ui/button';
@@ -21,8 +21,9 @@ import {
   FolderOpen,
   FilePlus,
   X,
+  Sword,
 } from 'lucide-react';
-import type { SidebarTab } from './types/map';
+import type { SidebarTab, FeatureTab } from './types/map';
 import { useState } from 'react';
 
 // ============================================================================
@@ -92,6 +93,30 @@ function Header() {
         </Button>
       </div>
     </header>
+  );
+}
+
+// ============================================================================
+// Feature Tabs Component
+// ============================================================================
+
+const featureTabs: { id: FeatureTab; label: string; icon: React.ElementType }[] = [
+  { id: 'mapEditor', label: '地图编辑器', icon: MapIcon },
+  { id: 'gameConfig', label: '游戏配置', icon: Settings },
+  { id: 'weaponSkill', label: '武器与技能', icon: Sword },
+];
+
+function FeatureTabs() {
+  const { activeFeatureTab, setActiveFeatureTab } = useUIStore();
+  return (
+    <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-2">
+      {featureTabs.map((tab) => (
+        <button key={tab.id} onClick={() => setActiveFeatureTab(tab.id)}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${activeFeatureTab === tab.id ? 'bg-card text-primary border border-b-border border-t-2 border-t-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
+          <tab.icon className="h-4 w-4" />{tab.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -340,39 +365,103 @@ function Toolbar() {
 }
 
 // ============================================================================
-// Main Canvas Area
+// Content Components
 // ============================================================================
 
-function MainCanvas() {
+function MapEditorContent() {
   const { width, height } = useMapStore();
-
+  
   return (
-    <div className="flex-1 bg-muted relative overflow-hidden">
-      <Toolbar />
+    <div className="flex-1 flex overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 bg-muted relative overflow-hidden">
+        <Toolbar />
 
-      {/* Canvas Placeholder */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-64 h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center mb-4">
-            <Grid3X3 className="h-16 w-16 text-muted-foreground" />
-          </div>
-          <h2 className="text-xl font-semibold mb-2">Map Canvas</h2>
-          <p className="text-muted-foreground mb-4">
-            Canvas will be implemented in Phase 2 with Konva
-          </p>
-          <div className="text-sm text-muted-foreground">
-            <p>Map Size: {width} x {height}</p>
-            <p className="mt-2">
-              <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#228B22' }} />
-              Dirt
-              <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#808080' }} />
-              Stone
-              <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#8B4513' }} />
-              Crater
+        {/* Canvas Placeholder */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-64 h-64 border-2 border-dashed border-border rounded-lg flex items-center justify-center mb-4">
+              <Grid3X3 className="h-16 w-16 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Map Canvas</h2>
+            <p className="text-muted-foreground mb-4">
+              Canvas will be implemented in Phase 2 with Konva
             </p>
+            <div className="text-sm text-muted-foreground">
+              <p>Map Size: {width} x {height}</p>
+              <p className="mt-2">
+                <span className="inline-block w-3 h-3 rounded-full mr-2" style={{ backgroundColor: '#228B22' }} />
+                Dirt
+                <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#808080' }} />
+                Stone
+                <span className="inline-block w-3 h-3 rounded-full ml-4 mr-2" style={{ backgroundColor: '#8B4513' }} />
+                Crater
+              </p>
+            </div>
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function GameConfigContent() {
+  return (
+    <div className="flex-1 flex items-center justify-center p-8 bg-muted">
+      <div className="text-center max-w-md">
+        <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Game Configuration</h2>
+        <p className="text-muted-foreground mb-4">
+          Manage game settings, difficulty levels, and configuration files here.
+        </p>
+        <Button variant="outline">
+          Configure General Settings
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function WeaponSkillContent() {
+  return (
+    <div className="flex-1 flex items-center justify-center p-8 bg-muted">
+      <div className="text-center max-w-md">
+        <Sword className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Weapons & Skills</h2>
+        <p className="text-muted-foreground mb-4">
+          Configure weapons, enchantments, and character abilities here.
+        </p>
+        <Button variant="outline">
+          Edit Weapon Templates
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Main Content Area
+// ============================================================================
+
+function MainContent() {
+  const { activeFeatureTab } = useUIStore();
+  
+  const renderContent = () => {
+    switch (activeFeatureTab) {
+      case 'mapEditor':
+        return <MapEditorContent />;
+      case 'gameConfig':
+        return <GameConfigContent />;
+      case 'weaponSkill':
+        return <WeaponSkillContent />;
+      default:
+        return <MapEditorContent />;
+    }
+  };
+
+  return (
+    <div className="flex-1 overflow-hidden">
+      {renderContent()}
     </div>
   );
 }
@@ -383,7 +472,7 @@ function MainCanvas() {
 
 function ToastDisplay() {
   const { toasts, removeToast } = useUIStore();
-
+  
   if (toasts.length === 0) return null;
 
   return (
@@ -429,10 +518,8 @@ function App() {
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
       <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar />
-        <MainCanvas />
-      </div>
+      <FeatureTabs />
+      <MainContent />
       <ToastDisplay />
     </div>
   );
