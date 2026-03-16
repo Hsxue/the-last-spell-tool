@@ -49,6 +49,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
     viewport,
     layerVisibility,
     setViewport,
+    editorMode,
   } = useMapStore();
 
   // Update container size on mount and resize
@@ -137,6 +138,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
       className={`w-full h-full bg-muted ${className || ''}`}
       style={{ cursor: viewport.isPanning ? 'grabbing' : 'grab' }}
     >
+      {/* Disable Stage drag when in terrain/eraser mode to allow drawing instead of panning */}
       <Stage
         width={containerSize.width}
         height={containerSize.height}
@@ -144,7 +146,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         scaleY={viewport.zoom}
         x={viewport.offsetX}
         y={viewport.offsetY}
-        draggable
+        draggable={editorMode !== 'terrain' && editorMode !== 'eraser'}
         onWheel={handleWheel}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
