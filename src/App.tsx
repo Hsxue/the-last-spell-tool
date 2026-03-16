@@ -133,7 +133,17 @@ const tabs: { id: SidebarTab; label: string; icon: React.ElementType }[] = [
 
 function Sidebar() {
   const { activeTab, setActiveTab } = useUIStore();
-  const { brushSize, setBrushSize, layerVisibility, setLayerVisibility, width, height } = useMapStore();
+  const { 
+    brushSize, 
+    setBrushSize, 
+    layerVisibility, 
+    setLayerVisibility, 
+    width, 
+    height,
+    selectedTerrain,
+    setSelectedTerrain,
+    setEditorMode
+  } = useMapStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   if (!sidebarOpen) {
@@ -177,7 +187,19 @@ function Sidebar() {
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => {
+              setActiveTab(tab.id);
+              // Set appropriate mode when switching between tabs
+              if (tab.id === 'terrain') {
+                setEditorMode('terrain');
+              } else if (tab.id === 'building') {
+                setEditorMode('building');
+              } else if (tab.id === 'flag') {
+                setEditorMode('flag');
+              } else {
+                setEditorMode('building'); // Default for other tabs
+              }
+            }}
             className={`flex-1 py-2 px-2 text-sm font-medium transition-colors flex flex-col items-center gap-1 ${
               activeTab === tab.id
                 ? 'text-primary border-b-2 border-primary'
@@ -214,9 +236,13 @@ function Sidebar() {
                 {['Dirt', 'Stone', 'Crater', 'Empty'].map((terrain) => (
                   <Button
                     key={terrain}
-                    variant="outline"
+                    variant={selectedTerrain === terrain ? "default" : "outline"}
                     size="sm"
                     className="justify-start"
+                    onClick={() => {
+                      setSelectedTerrain(terrain as 'Dirt' | 'Stone' | 'Crater' | 'Empty');
+                      setEditorMode('terrain');
+                    }}
                   >
                     <span
                       className="w-3 h-3 rounded-full mr-2"
