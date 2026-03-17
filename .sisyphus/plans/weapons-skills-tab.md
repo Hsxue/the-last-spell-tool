@@ -543,7 +543,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(i18n): add localization loader for 6 languages`
   - Files: `src/lib/localization.ts`
 
-- [ ] 7. Create WeaponTreeView component
+- [x] 7. Create WeaponTreeView component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponTreeView.tsx`
