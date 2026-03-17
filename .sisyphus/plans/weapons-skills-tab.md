@@ -64,9 +64,9 @@ Build a complete Weapons & Skills editor that allows users to create, edit, and 
 
 ### Definition of Done
 - [x] All UI components created and exported from `src/components/ui/index.ts`
-- [ ] WeaponSkillStore functional with all state and actions
-- [ ] TreeView components render category hierarchy with selection
-- [ ] Weapon editor allows editing all properties including levels 0-5
+- [x] WeaponSkillStore functional with all state and actions
+- [x] TreeView components render category hierarchy with selection
+- [x] Weapon editor allows editing all properties including levels 0-5
 - [ ] Skill editor allows editing all 30+ effect types
 - [ ] XML import/export produces valid game-format files
 - [ ] Agent QA scenarios pass for all features (Playwright browser automation)
@@ -1155,7 +1155,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 20. Integrate XML export into SkillEditor
+- [x] 20. Integrate XML export into SkillEditor
 
   **What to do**:
   - Update `src/components/weapon-skill/SkillEditor.tsx`
@@ -1241,7 +1241,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): integrate WeaponSkillTab into App.tsx`
   - Files: `src/App.tsx`
 
-- [ ] 22. Create file import/export handlers (File API)
+- [x] 22. Create file import/export handlers (File API)
 
   **What to do**:
   - Create `src/lib/file-io.ts` with loadXmlFile() and saveXmlFile() functions
