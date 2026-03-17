@@ -662,17 +662,98 @@ Created four new skill form components for Wave 3:
 ```tsx
 <XmlExportButton>
   <StoreIntegration>
-650:     <WeaponSelector />
-651:     <SkillSelector />
-652:     <CurrentViewSelector />
-653:   </StoreIntegration>
-654:   <ExportFunction>
-655:     <BufferGeneration />
-656:     <BlobCreation />
-657:     <DownloadTrigger />
-658:   </ExportFunction>
-659:   <StyledButton>
-660:     <ConditionalText />
-661:   </StyledButton>
-662: </XmlExportButton>
-663: ```
+    <WeaponSelector />
+    <SkillSelector />
+    <CurrentViewSelector />
+  </StoreIntegration>
+  <ExportFunction>
+    <BufferGeneration />
+    <BlobCreation />
+    <DownloadTrigger />
+  </ExportFunction>
+  <StyledButton>
+    <ConditionalText />
+  </StyledButton>
+</XmlExportButton>
+```
+
+## Wave 4 Components Creation (Tasks 20-23) - Wed Mar 18 2026
+
+### Implementation Details
+
+Created four new components for Wave 4:
+
+1. **XmlImportButton** (Task 20):
+     - Created with file input functionality to import XML files
+     - Integrated with useWeaponSkillStore to access current view and add functions
+     - Implemented FileReader to process XML files as ArrayBuffer
+     - Used conditional logic to parse either weapons or skills based on current view
+     - Added proper type assertions for buffer handling
+     - Located at `src/components/weapon-skill/XmlImportButton.tsx`
+
+2. **LanguageSelector** (Task 21):
+     - Created dropdown selector with six supported languages: English, Français, 简体中文, 日本語, Deutsch, Español
+     - Used useState hook to manage selected language state
+     - Implemented options mapping with proper value setting as SupportedLanguage type
+     - Added styling with Tailwind classes (px-2 py-1, text-xs, border, rounded)
+     - Located at `src/components/weapon-skill/LanguageSelector.tsx`
+
+3. **Toolbar** (Task 23):
+     - Created toolbar component combining LanguageSelector, XmlImportButton, and XmlExportButton
+     - Implemented flex layout with gap-2 spacing
+     - Added border-b and bg-gray-50 for visual separation
+     - Used flex-1 div to push buttons to the right side
+     - Located at `src/components/weapon-skill/Toolbar.tsx`
+
+### Key Learnings
+
+- XmlImportButton dynamically handles both weapons and skills import based on current view
+- FileReader API properly processes XML files as ArrayBuffer for parser functions
+- LanguageSelector provides internationalization support with six languages
+- Toolbar component effectively combines multiple UI elements in a cohesive header
+- Proper type assertions ensure compatibility with XML parser functions
+- Flex layout with flex-1 creates responsive toolbar with left-aligned and right-aligned elements
+- Components follow consistent styling approach with Tailwind CSS classes
+
+### Files Created
+- `src/components/weapon-skill/XmlImportButton.tsx`
+- `src/components/weapon-skill/LanguageSelector.tsx`
+- `src/components/weapon-skill/Toolbar.tsx`
+
+### Component Structure
+```tsx
+<XmlImportButton>
+  <StoreIntegration>
+    <CurrentViewSelector />
+    <AddWeaponFunction />
+    <AddSkillFunction />
+  </StoreIntegration>
+  <ImportFunction>
+    <FileReaderProcessing />
+    <BufferParsing />
+    <DataAddition />
+  </ImportFunction>
+  <StyledLabel>
+    <ConditionalText />
+    <HiddenFileInput />
+  </StyledLabel>
+</XmlImportButton>
+
+<LanguageSelector>
+  <StateManagement>
+    <LanguageState />
+  </StateManagement>
+  <StyledSelect>
+    <LanguageOptions />
+  </StyledSelect>
+</LanguageSelector>
+
+<Toolbar>
+  <FlexContainer>
+    <LanguageSelector />
+    <Spacer />
+    <XmlImportButton />
+    <XmlExportButton />
+  </FlexContainer>
+</Toolbar>
+```
