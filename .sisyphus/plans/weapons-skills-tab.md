@@ -1066,7 +1066,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 16)
   - Files: `src/components/weapon-skill/GenericActionForm.tsx`
 
-- [ ] 18. Create CastFXForm and ConditionsForm
+- [x] 18. Create CastFXForm and ConditionsForm
 
   **What to do**:
   - Create `src/components/weapon-skill/CastFXForm.tsx` for: vfx, sound, camShake, casterAnim
@@ -1107,7 +1107,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 14, 15)
   - Files: `src/components/weapon-skill/CastFXForm.tsx, src/components/weapon-skill/ConditionsForm.tsx`
 
-- [ ] 19. Integrate XML export into WeaponEditor
+- [x] 19. Integrate XML export into WeaponEditor
 
   **What to do**:
   - Update `src/components/weapon-skill/WeaponEditor.tsx`

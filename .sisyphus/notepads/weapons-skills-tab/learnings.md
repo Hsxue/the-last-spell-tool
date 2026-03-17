@@ -608,52 +608,71 @@ Created four new skill form components for Wave 3:
 </CastFXForm>
 ```
 
-## GenericActionForm Component Creation (Task 17) - Wed Mar 18 2026
+## XML Export Button Component Creation (Task 19) - Wed Mar 18 2026
 
 ### Implementation Details
 
 1. **Component Structure**:
-   - Created GenericActionForm component in `src/components/weapon-skill/GenericActionForm.tsx`
-   - Implemented with Action Type input and Parameters textarea
-   - Used border-t class to visually separate from other components
-   - Included proper spacing with p-4 and space-y-3 classes
+   - Created XmlExportButton component in `src/components/weapon-skill/XmlExportButton.tsx`
+   - Integrated with useWeaponSkillStore to access weapons, skills, and current view state
+   - Implemented dual functionality for exporting either weapons or skills based on current view
+   - Used conditional rendering to determine export type (weapons.xml or skills.xml)
 
-2. **UI Elements**:
-   - Added heading "Generic Action" with text-sm font-semibold styling
-   - Created form section with Action Type text input
-   - Added Parameters textarea with 3 rows and placeholder for key=value pairs
-   - Used text-xs class for consistent small text sizing
-   - Added border, rounded, px-2, and py-1 classes for consistent input styling
+2. **Store Integration**:
+   - Connected to useWeaponSkillStore to access state.weapons, state.skills, and state.currentView
+   - Used separate selectors for each state property to retrieve necessary data
+   - Leveraged state.currentView to determine which data to export
 
-3. **Placeholder Content**:
-   - Added informational text "Task 17 - GenericActionForm placeholder"
-   - Used text-xs text-gray-400 classes for subtle placeholder indication
+3. **Export Functionality**:
+   - Integrated with exportWeaponsToBuffer and exportSkillsToBuffer functions from respective parsers
+   - Implemented dynamic export based on current view (weapons vs skills)
+   - Created Blob with application/octet-stream type for proper binary handling
+   - Generated download link with appropriate filename based on export type
 
-4. **Build Verification**:
+4. **UI Elements**:
+   - Added styled button with blue background and white text
+   - Applied px-3 py-1 padding and text-xs sizing for consistency
+   - Added hover effect (bg-blue-600) for better UX
+   - Included conditional button text showing "Export Weapons XML" or "Export Skills XML"
+
+5. **File Handling**:
+   - Used Blob API to create downloadable file from buffer data
+   - Created object URL and temporary anchor element for download trigger
+   - Revoked object URL after download to prevent memory leaks
+   - Handled both weapon and skill export flows with single component
+
+6. **Build Verification**:
    - Component successfully compiles with `npm run build`
-   - No TypeScript or import errors after adding the new component
+   - Fixed initial error by importing from both weapon-xml-parser and skill-xml-parser
+   - Addressed type issue with Blob constructor by using type assertion
 
 ### Key Learnings
 
-- Created a generic form component for action configuration
-- Used consistent styling approach with other form components in the application
-- Implemented proper form structure with labels and inputs
-- Maintained the same text-xs sizing for consistency across forms
-- Added proper spacing and borders for visual separation
+- Created export component that dynamically handles both weapons and skills based on current view
+- Properly integrated with existing XML parser functions for both weapons and skills
+- Implemented safe file download using Blob API with object URL management
+- Used type assertion to resolve TypeScript compatibility issues with Uint8Array
+- Followed consistent styling approach with other buttons in the application
+- Leveraged state management to determine export behavior dynamically
 
 ### Files Created
-- `src/components/weapon-skill/GenericActionForm.tsx`
+- `src/components/weapon-skill/XmlExportButton.tsx`
 
 ### Component Structure
 ```tsx
-<GenericActionForm>
-  <FormContainer>
-    <Heading />
-    <FormFields>
-      <ActionTypeInput />
-      <ParametersTextarea />
-    </FormFields>
-    <PlaceholderText />
-  </FormContainer>
-</GenericActionForm>
-```
+<XmlExportButton>
+  <StoreIntegration>
+650:     <WeaponSelector />
+651:     <SkillSelector />
+652:     <CurrentViewSelector />
+653:   </StoreIntegration>
+654:   <ExportFunction>
+655:     <BufferGeneration />
+656:     <BlobCreation />
+657:     <DownloadTrigger />
+658:   </ExportFunction>
+659:   <StyledButton>
+660:     <ConditionalText />
+661:   </StyledButton>
+662: </XmlExportButton>
+663: ```
