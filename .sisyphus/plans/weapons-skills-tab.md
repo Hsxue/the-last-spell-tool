@@ -1515,8 +1515,8 @@ npm run lint        # Expected: No linting errors
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present (UTF-16 XML, custom TreeView, all levels 0-5, all effect types, category grouping)
-- [ ] All "Must NOT Have" absent (no IndexedDB, no unit tests, no drag-drop, no React Hook Form)
-- [ ] All QA scenarios pass (evidence files in .sisyphus/evidence/)
-- [ ] Final Verification Wave F1-F4 all APPROVE
+- [x] All "Must Have" present (UTF-16 XML, custom TreeView, all levels 0-5, all effect types, category grouping)
+- [x] All "Must NOT Have" absent (no IndexedDB, no unit tests, no drag-drop, no React Hook Form)
+- [x] All QA scenarios pass (evidence files in .sisyphus/evidence/)
+- [x] Final Verification Wave F1-F4 all APPROVE
 - [ ] User explicitly okayed the completed work
