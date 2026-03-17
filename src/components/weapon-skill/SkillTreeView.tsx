@@ -1,26 +1,20 @@
 import { useState } from 'react';
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 
-type WeaponCategory = 'MeleeWeapon' | 'RangeWeapon' | 'MagicWeapon';
+type SkillCategory = 'MeleeWeapons' | 'RangeWeapons' | 'MagicWeapons' | 'General';
 
-interface Weapon {
+interface Skill {
   id: string;
   category: string;
 }
 
-interface WeaponSkillState {
-  weapons: Weapon[];
-  selectedWeaponId: string | null;
-  setSelectedWeapon: (id: string) => void;
-}
+export function SkillTreeView() {
+  const skills = useWeaponSkillStore((state: any) => state.skills);
+  const selectedId = useWeaponSkillStore((state: any) => state.selectedSkillId);
+  const setSelected = useWeaponSkillStore((state: any) => state.setSelectedSkill);
+  const [expanded, setExpanded] = useState<Set<SkillCategory>>(new Set(['MeleeWeapons']));
 
-export function WeaponTreeView() {
-  const weapons = useWeaponSkillStore((state: WeaponSkillState) => state.weapons);
-  const selectedId = useWeaponSkillStore((state: WeaponSkillState) => state.selectedWeaponId);
-  const setSelected = useWeaponSkillStore((state: WeaponSkillState) => state.setSelectedWeapon);
-  const [expanded, setExpanded] = useState<Set<WeaponCategory>>(new Set(['MeleeWeapon']));
-
-  const toggleCategory = (category: WeaponCategory) => {
+  const toggleCategory = (category: SkillCategory) => {
     setExpanded((prev) => {
       const next = new Set(prev);
       if (next.has(category)) {
@@ -32,14 +26,14 @@ export function WeaponTreeView() {
     });
   };
 
-  const categories: WeaponCategory[] = ['MeleeWeapon', 'RangeWeapon', 'MagicWeapon'];
+  const categories: SkillCategory[] = ['MeleeWeapons', 'RangeWeapons', 'MagicWeapons', 'General'];
 
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4 space-y-2">
         {categories.map((category) => {
           const isExpanded = expanded.has(category);
-          const categoryWeapons = weapons.filter((w: Weapon) => w.category === category);
+          const categorySkills = skills.filter((s: Skill) => s.category === category);
           
           return (
             <div key={category} className="border rounded-md mb-2">
@@ -49,11 +43,11 @@ export function WeaponTreeView() {
                   onClick={() => toggleCategory(category)}
                 >
                   {isExpanded ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M6 9l6 6 6-6"/>
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="m9 18 6-6-6-6"/>
                     </svg>
                   )}
@@ -63,21 +57,21 @@ export function WeaponTreeView() {
               {isExpanded && (
                 <div className="py-2 px-2">
                   <div className="space-y-1">
-                    {categoryWeapons.map((weapon: Weapon) => (
+                    {categorySkills.map((skill: Skill) => (
                       <button
-                        key={weapon.id}
+                        key={skill.id}
                         className={`w-full text-left px-3 py-1 text-xs rounded ${
-                          selectedId === weapon.id 
+                          selectedId === skill.id 
                             ? 'bg-blue-500 text-white' 
                             : 'hover:bg-gray-100'
                         }`}
-                        onClick={() => setSelected(weapon.id)}
+                        onClick={() => setSelected(skill.id)}
                       >
-                        {weapon.id}
+                        {skill.id}
                       </button>
                     ))}
-                    {categoryWeapons.length === 0 && (
-                      <p className="text-xs text-gray-500 pl-8">No weapons</p>
+                    {categorySkills.length === 0 && (
+                      <p className="text-xs text-gray-500 pl-8">No skills</p>
                     )}
                   </div>
                 </div>

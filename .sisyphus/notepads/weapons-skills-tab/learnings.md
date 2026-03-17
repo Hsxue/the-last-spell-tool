@@ -275,3 +275,6 @@
 # Learnings
 
 - WeaponTreeView was created with Card/ScrollArea/Button pattern
+- SkillTreeView was created following the same pattern as WeaponTreeView, organizing skills by category (MeleeWeapons, RangeWeapons, MagicWeapons, General)
+- Both tree views use expandable/collapsible sections with SVG icons for better UX
+- Proper import path adjustments were needed to reference the weaponSkillStore correctly from components/weapon-skill directory

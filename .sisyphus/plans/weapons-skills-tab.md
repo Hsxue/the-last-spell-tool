@@ -608,7 +608,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponTreeView.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 8. Create SkillTreeView component
+- [x] 8. Create SkillTreeView component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillTreeView.tsx`
