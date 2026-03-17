@@ -652,7 +652,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
   **Commit**: YES (groups with 7)
 
-- [ ] 9. Create WeaponSkillTab container component
+- [x] 9. Create WeaponSkillTab container component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponSkillTab.tsx`
