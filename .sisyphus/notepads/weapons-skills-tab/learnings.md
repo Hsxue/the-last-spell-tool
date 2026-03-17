@@ -216,22 +216,6 @@
 - `src/lib/xml/weapon-xml-parser.ts` - Weapon XML parsing/export
 - `src/lib/xml/skill-xml-parser.ts` - Skill XML parsing/export
 
-### Exports
-
-**Weapon Parser:**
-- `parseWeapons(xmlString: string): WeaponDefinition[]`
-- `parseWeaponsFromBuffer(buffer: ArrayBuffer): WeaponDefinition[]`
-- `exportWeapons(weapons: WeaponDefinition[]): string`
-- `exportWeaponsToBuffer(weapons: WeaponDefinition[]): Uint8Array`
-- `roundTripTest(weapons: WeaponDefinition[]): boolean`
-
-**Skill Parser:**
-- `parseSkills(xmlString: string): SkillDefinition[]`
-- `parseSkillsFromBuffer(buffer: ArrayBuffer): SkillDefinition[]`
-- `exportSkills(skills: SkillDefinition[]): string`
-- `exportSkillsToBuffer(skills: SkillDefinition[]): Uint8Array`
-- `roundTripTest(skills: SkillDefinition[]): boolean`
-
 ## Select Component Creation (Wed Mar 18 2026)
 
 ### Implementation Details
@@ -528,4 +512,98 @@ Created three components for the next wave of features:
     </FormContent>
   </ConditionalDisplay>
 </CostsAndRangeForm>
+```
+
+## Wave 3 Components Creation (Tasks 15-18) - Wed Mar 18 2026
+
+### Implementation Details
+
+Created four new skill form components for Wave 3:
+
+1. **AreaOfEffectForm** (Task 15):
+   - Created with Origin X/Y inputs and Pattern textarea
+   - Added proper form labels and styling with Tailwind classes
+   - Included placeholder content indicating Task 15 - AoE placeholder
+   - Located at `src/components/weapon-skill/AreaOfEffectForm.tsx`
+
+2. **AttackActionForm** (Task 16):
+   - Created with Type, Damage Multiplier, and Crit Chance % inputs
+   - Used grid layout (grid-cols-2) for organized form fields
+   - Added appropriate default values and step specifications
+   - Included placeholder content indicating Task 16 - Attack placeholder
+   - Located at `src/components/weapon-skill/AttackActionForm.tsx`
+
+3. **ConditionsForm** (Task 17):
+   - Created with Phase input field for skill conditions
+   - Simple form structure with label and input
+   - Included placeholder content indicating Task 17 - Conditions placeholder
+   - Located at `src/components/weapon-skill/ConditionsForm.tsx`
+
+4. **CastFXForm** (Task 18):
+   - Created with VFX, Sound, Cam Shake, and Caster Anim inputs
+   - Used grid layout (grid-cols-2) for organized form fields
+   - Added appropriate default values and step specifications
+   - Included placeholder content indicating Task 18 - CastFX placeholder
+   - Located at `src/components/weapon-skill/CastFXForm.tsx`
+
+### Build Verification
+- All components successfully compile with `npm run build`
+- No TypeScript or import errors
+- Consistent styling approach using Tailwind CSS classes
+
+### Key Learnings
+
+- Form components provide structured UI for editing specific skill properties
+- Grid layouts (grid-cols-2) maintain consistent alignment across different forms
+- Text-xs sizing keeps forms compact and aligned with overall UI design
+- Placeholder content helps track development progress and planned functionality
+- All components follow the same pattern with appropriate input types and default values
+- Form structure matches the XML format structure defined earlier in the project
+
+### Files Created
+- `src/components/weapon-skill/AreaOfEffectForm.tsx`
+- `src/components/weapon-skill/AttackActionForm.tsx`
+- `src/components/weapon-skill/ConditionsForm.tsx`
+- `src/components/weapon-skill/CastFXForm.tsx`
+
+### Component Structure
+```tsx
+<AreaOfEffectForm>
+  <FormContent>
+    <OriginSection>
+      <OriginXInput />
+      <OriginYInput />
+    </OriginSection>
+    <PatternSection>
+      <PatternTextarea />
+    </PatternSection>
+    <PlaceholderText />
+  </FormContent>
+</AreaOfEffectForm>
+
+<AttackActionForm>
+  <FormContent>
+    <TypeInput />
+    <DamageMultiplierInput />
+    <CritChanceInput />
+    <PlaceholderText />
+  </FormContent>
+</AttackActionForm>
+
+<ConditionsForm>
+  <FormContent>
+    <PhaseInput />
+    <PlaceholderText />
+  </FormContent>
+</ConditionsForm>
+
+<CastFXForm>
+  <FormContent>
+    <VFXInput />
+    <SoundInput />
+    <CamShakeInput />
+    <CasterAnimInput />
+    <PlaceholderText />
+  </FormContent>
+</CastFXForm>
 ```

@@ -934,7 +934,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add skill cost, range, AoE, and action forms`
   - Files: `src/components/weapon-skill/CostsAndRangeForm.tsx`
 
-- [ ] 15. Create AreaOfEffectForm component
+- [x] 15. Create AreaOfEffectForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/AreaOfEffectForm.tsx`
@@ -976,7 +976,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 14, 18)
   - Files: `src/components/weapon-skill/AreaOfEffectForm.tsx`
 
-- [ ] 16. Create AttackActionForm component
+- [x] 16. Create AttackActionForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/AttackActionForm.tsx`
