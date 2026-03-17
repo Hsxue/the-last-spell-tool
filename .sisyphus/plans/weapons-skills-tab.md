@@ -63,7 +63,7 @@ Build a complete Weapons & Skills editor that allows users to create, edit, and 
 - Updated `App.tsx` WeaponSkillContent component
 
 ### Definition of Done
-- [ ] All UI components created and exported from `src/components/ui/index.ts`
+- [x] All UI components created and exported from `src/components/ui/index.ts`
 - [ ] WeaponSkillStore functional with all state and actions
 - [ ] TreeView components render category hierarchy with selection
 - [ ] Weapon editor allows editing all properties including levels 0-5
