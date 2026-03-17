@@ -521,30 +521,30 @@ Created three components for the next wave of features:
 Created four new skill form components for Wave 3:
 
 1. **AreaOfEffectForm** (Task 15):
-   - Created with Origin X/Y inputs and Pattern textarea
-   - Added proper form labels and styling with Tailwind classes
-   - Included placeholder content indicating Task 15 - AoE placeholder
-   - Located at `src/components/weapon-skill/AreaOfEffectForm.tsx`
+    - Created with Origin X/Y inputs and Pattern textarea
+    - Added proper form labels and styling with Tailwind classes
+    - Included placeholder content indicating Task 15 - AoE placeholder
+    - Located at `src/components/weapon-skill/AreaOfEffectForm.tsx`
 
 2. **AttackActionForm** (Task 16):
-   - Created with Type, Damage Multiplier, and Crit Chance % inputs
-   - Used grid layout (grid-cols-2) for organized form fields
-   - Added appropriate default values and step specifications
-   - Included placeholder content indicating Task 16 - Attack placeholder
-   - Located at `src/components/weapon-skill/AttackActionForm.tsx`
+    - Created with Type, Damage Multiplier, and Crit Chance % inputs
+    - Used grid layout (grid-cols-2) for organized form fields
+    - Added appropriate default values and step specifications
+    - Included placeholder content indicating Task 16 - Attack placeholder
+    - Located at `src/components/weapon-skill/AttackActionForm.tsx`
 
 3. **ConditionsForm** (Task 17):
-   - Created with Phase input field for skill conditions
-   - Simple form structure with label and input
-   - Included placeholder content indicating Task 17 - Conditions placeholder
-   - Located at `src/components/weapon-skill/ConditionsForm.tsx`
+    - Created with Phase input field for skill conditions
+    - Simple form structure with label and input
+    - Included placeholder content indicating Task 17 - Conditions placeholder
+    - Located at `src/components/weapon-skill/ConditionsForm.tsx`
 
 4. **CastFXForm** (Task 18):
-   - Created with VFX, Sound, Cam Shake, and Caster Anim inputs
-   - Used grid layout (grid-cols-2) for organized form fields
-   - Added appropriate default values and step specifications
-   - Included placeholder content indicating Task 18 - CastFX placeholder
-   - Located at `src/components/weapon-skill/CastFXForm.tsx`
+    - Created with VFX, Sound, Cam Shake, and Caster Anim inputs
+    - Used grid layout (grid-cols-2) for organized form fields
+    - Added appropriate default values and step specifications
+    - Included placeholder content indicating Task 18 - CastFX placeholder
+    - Located at `src/components/weapon-skill/CastFXForm.tsx`
 
 ### Build Verification
 - All components successfully compile with `npm run build`
@@ -606,4 +606,54 @@ Created four new skill form components for Wave 3:
     <PlaceholderText />
   </FormContent>
 </CastFXForm>
+```
+
+## GenericActionForm Component Creation (Task 17) - Wed Mar 18 2026
+
+### Implementation Details
+
+1. **Component Structure**:
+   - Created GenericActionForm component in `src/components/weapon-skill/GenericActionForm.tsx`
+   - Implemented with Action Type input and Parameters textarea
+   - Used border-t class to visually separate from other components
+   - Included proper spacing with p-4 and space-y-3 classes
+
+2. **UI Elements**:
+   - Added heading "Generic Action" with text-sm font-semibold styling
+   - Created form section with Action Type text input
+   - Added Parameters textarea with 3 rows and placeholder for key=value pairs
+   - Used text-xs class for consistent small text sizing
+   - Added border, rounded, px-2, and py-1 classes for consistent input styling
+
+3. **Placeholder Content**:
+   - Added informational text "Task 17 - GenericActionForm placeholder"
+   - Used text-xs text-gray-400 classes for subtle placeholder indication
+
+4. **Build Verification**:
+   - Component successfully compiles with `npm run build`
+   - No TypeScript or import errors after adding the new component
+
+### Key Learnings
+
+- Created a generic form component for action configuration
+- Used consistent styling approach with other form components in the application
+- Implemented proper form structure with labels and inputs
+- Maintained the same text-xs sizing for consistency across forms
+- Added proper spacing and borders for visual separation
+
+### Files Created
+- `src/components/weapon-skill/GenericActionForm.tsx`
+
+### Component Structure
+```tsx
+<GenericActionForm>
+  <FormContainer>
+    <Heading />
+    <FormFields>
+      <ActionTypeInput />
+      <ParametersTextarea />
+    </FormFields>
+    <PlaceholderText />
+  </FormContainer>
+</GenericActionForm>
 ```

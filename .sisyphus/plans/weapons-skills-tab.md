@@ -1021,7 +1021,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add AttackActionForm and GenericActionForm components`
   - Files: `src/components/weapon-skill/AttackActionForm.tsx`
 
-- [ ] 17. Create GenericActionForm component
+- [x] 17. Create GenericActionForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/GenericActionForm.tsx`
