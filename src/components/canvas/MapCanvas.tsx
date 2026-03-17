@@ -224,19 +224,19 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onMouseLeave={handleMouseLeave}
       >
         {/* Terrain Layer - Bottom */}
-        <Layer>
+        <Layer imageSmoothingEnabled={false}>
           <TerrainLayer mapData={layerMapData} viewport={viewport} />
         </Layer>
 
         {/* Grid Layer */}
         {layerVisibility.grid && (
-          <Layer>
+          <Layer imageSmoothingEnabled={false}>
             <GridLayer width={width} height={height} zoom={viewport.zoom} />
           </Layer>
         )}
 
         {/* Building Layer */}
-        <Layer>
+        <Layer imageSmoothingEnabled={false}>
           <BuildingLayer
             buildings={layerMapData.buildings}
             showPreview={layerVisibility.occupied}
@@ -245,7 +245,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
 
         {/* Flag Layer - Top */}
         {layerVisibility.flags && (
-          <Layer>
+          <Layer imageSmoothingEnabled={false}>
             <FlagLayer flags={layerMapData.flags} />
           </Layer>
         )}

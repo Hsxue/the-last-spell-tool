@@ -10,8 +10,9 @@
  * - Performance optimized with Konva Group batch rendering
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Rect, Group } from 'react-konva';
+import type { Group as KonvaGroup } from 'konva/lib/Group';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import type { MapData, TerrainType, ViewportState } from '../../types/map';
 import { TERRAIN_COLORS } from '../../types/map';
@@ -107,6 +108,12 @@ function getBrushPositions(
 export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   const { width, height, terrain } = mapData;
 
+  // Refs for terrain groups to enable separate caching
+  // staticTerrainRef: rarely changes (only when terrain store updates)
+  // dynamicTerrainRef: frequently changes during drawing (pendingTerrain updates)
+  const staticTerrainRef = useRef<KonvaGroup>(null);
+  const dynamicTerrainRef = useRef<KonvaGroup>(null);
+
   // Get editor state from store
   const {
     editorMode,
@@ -119,13 +126,19 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   // Track if user is currently drawing (mouse held down)
   const [isDrawing, setIsDrawing] = useState(false);
 
+  // Local batch state for terrain changes - accumulate during drag, commit on mouseUp
+  const [pendingTerrain, setPendingTerrain] = useState<Map<string, TerrainType>>(new Map());
+
+  // Throttle cache update tracking for dynamic layer (pendingTerrain)
+  const lastCacheUpdateTimeRef = useRef<number>(0);
+  const CACHE_THROTTLE_MS = 100; // Throttle interval: 100ms
+
   /**
    * Handle terrain painting at specific coordinates
-   * Applies brush size and respects editor mode
+   * Accumulates changes to local pendingTerrain state, batch committed on mouseUp
    */
   const handlePaint = useCallback(
     (x: number, y: number) => {
-      
       // Only paint in terrain or eraser mode
       if (editorMode !== 'terrain' && editorMode !== 'eraser') {
         return;
@@ -137,69 +150,83 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
       // Get all positions to paint based on brush size
       const positions = getBrushPositions(x, y, brushSize, width, height);
 
-      // Paint each position
+      // Accumulate to pending terrain instead of immediate store update
       positions.forEach(([px, py]) => {
-        setTerrain(px, py, terrainType);
+        const key = `${px},${py}`;
+        setPendingTerrain(prev => {
+          const next = new Map(prev);
+          if (terrainType === 'Empty') {
+            next.delete(key);
+          } else {
+            next.set(key, terrainType);
+          }
+          return next;
+        });
       });
     },
-    [editorMode, selectedTerrain, brushSize, width, height, setTerrain]
+    [editorMode, selectedTerrain, brushSize, width, height]
   );
 
   /**
-   * Handle mouse down on a terrain tile
-   */
-  const handleMouseDown = useCallback(
-    (x: number, y: number) => {
-      setIsDrawing(true);
-      handlePaint(x, y);
-    },
-    [handlePaint]
-  );
-
-  /**
-   * Handle mouse enter on a terrain tile (for drag drawing)
-   */
-  const handleMouseEnter = useCallback(
-    (x: number, y: number) => {
-      // Update hovered tile position
-      setHoveredTile({ x, y });
-
-      // Paint if currently drawing
-      if (isDrawing) {
-        handlePaint(x, y);
-      }
-    },
-    [isDrawing, handlePaint, setHoveredTile]
-  );
-
-  /**
-   * Handle mouse up - stop drawing
+   * Handle mouse up - stop drawing and batch commit pending terrain changes
    */
   const handleMouseUp = useCallback(() => {
+    // Batch commit all pending terrain changes to store
+    if (pendingTerrain.size > 0) {
+      pendingTerrain.forEach((terrain, key) => {
+        const [x, y] = parsePositionKey(key);
+        setTerrain(x, y, terrain);
+      });
+      setPendingTerrain(new Map());
+    }
+
+    // Immediately update dynamic layer cache (ensure final state is correct)
+    dynamicTerrainRef.current?.clearCache();
+    dynamicTerrainRef.current?.cache();
+    dynamicTerrainRef.current?.getLayer()?.batchDraw();
+
     setIsDrawing(false);
-  }, []);
+  }, [pendingTerrain, setTerrain]);
 
   /**
-   * Handle mouse leave from canvas - stop drawing
+   * Handle mouse leave from canvas - stop drawing and commit pending changes
    */
   const handleMouseLeave = useCallback(() => {
+    // Batch commit all pending terrain changes before leaving
+    if (pendingTerrain.size > 0) {
+      pendingTerrain.forEach((terrain, key) => {
+        const [x, y] = parsePositionKey(key);
+        setTerrain(x, y, terrain);
+      });
+      setPendingTerrain(new Map());
+    }
     setIsDrawing(false);
     setHoveredTile(null);
-  }, [setHoveredTile]);
+  }, [pendingTerrain, setTerrain, setHoveredTile]);
 
   /**
-   * Memoized terrain rendering elements
-   * Converts terrain Map into Konva Rect components
+   * Pre-computed terrain data array from store terrain (static layer)
+   * Converts Map entries to array with pre-calculated x, y positions
+   * Only recalculates when terrain store changes (rare)
    */
-  const terrainElements = useMemo(() => {
-    const elements: React.ReactNode[] = [];
-
-    terrain.forEach((terrainType, key) => {
+  const terrainData = useMemo(() => {
+    return Array.from(terrain.entries()).map(([key, terrainType]) => {
       const [x, y] = parsePositionKey(key);
+      return { key, x, y, terrainType };
+    });
+  }, [terrain]);
 
-      elements.push(
+  /**
+   * Dynamic terrain elements from pendingTerrain (preview layer)
+   * Only renders tiles being drawn (<50 typically), not all 2500 tiles
+   * Recalculates frequently during drawing but with minimal overhead
+   */
+  const pendingElements = useMemo(() => {
+    return Array.from(pendingTerrain.entries()).map(([key, terrainType]) => {
+      const [x, y] = parsePositionKey(key);
+      return (
         <Rect
-          key={`terrain-${key}`}
+          key={`pending-${key}`}
           x={x * TILE_SIZE}
           y={y * TILE_SIZE}
           width={TILE_SIZE}
@@ -207,20 +234,77 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
           fill={getTerrainColor(terrainType)}
           stroke={undefined}
           strokeWidth={0}
-          onMouseDown={() => {
-            handleMouseDown(x, y);
-          }}
-          onMouseEnter={() => {
-            handleMouseEnter(x, y);
-          }}
           perfectDrawEnabled={false}
-          listening={true}
+          listening={false}
+          hitStrokeWidth={0}
         />
       );
     });
+  }, [pendingTerrain]);
 
-    return elements;
-  }, [terrain]);
+  /**
+   * Memoized terrain rendering elements (static layer)
+   * Converts terrain data array into Konva Rect components
+   */
+  const terrainElements = useMemo(() => {
+    return terrainData.map(({ key, x, y, terrainType }) => (
+      <Rect
+        key={`terrain-${key}`}
+        x={x * TILE_SIZE}
+        y={y * TILE_SIZE}
+        width={TILE_SIZE}
+        height={TILE_SIZE}
+        fill={getTerrainColor(terrainType)}
+        stroke={undefined}
+        strokeWidth={0}
+        perfectDrawEnabled={false}
+        listening={false}
+        hitStrokeWidth={0}
+      />
+    ));
+  }, [terrainData]);
+
+  // Cache static terrain layer (rarely changes)
+  // Only rebuilds when terrain store actually changes
+  useEffect(() => {
+    if (!staticTerrainRef.current || terrainData.length === 0) return;
+
+    const frameId = requestAnimationFrame(() => {
+      staticTerrainRef.current?.clearCache();
+      staticTerrainRef.current?.cache();
+      staticTerrainRef.current?.getLayer()?.batchDraw();
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [terrainData]);
+
+  // Cache dynamic terrain layer (frequently changes during drawing)
+  // Uses throttling to prevent excessive cache updates
+  useEffect(() => {
+    if (!dynamicTerrainRef.current) return;
+
+    const now = performance.now();
+    const timeSinceLastCache = now - lastCacheUpdateTimeRef.current;
+
+    // If less than CACHE_THROTTLE_MS since last cache update, schedule delayed update
+    if (timeSinceLastCache < CACHE_THROTTLE_MS) {
+      const timeoutId = setTimeout(() => {
+        lastCacheUpdateTimeRef.current = performance.now();
+        dynamicTerrainRef.current?.clearCache();
+        dynamicTerrainRef.current?.cache();
+        dynamicTerrainRef.current?.getLayer()?.batchDraw();
+      }, CACHE_THROTTLE_MS - timeSinceLastCache);
+      return () => clearTimeout(timeoutId);
+    }
+
+    // Otherwise update immediately
+    lastCacheUpdateTimeRef.current = now;
+    const frameId = requestAnimationFrame(() => {
+      dynamicTerrainRef.current?.clearCache();
+      dynamicTerrainRef.current?.cache();
+      dynamicTerrainRef.current?.getLayer()?.batchDraw();
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [pendingTerrain]);
 
   // Calculate canvas dimensions in pixels
   const canvasWidth = width * TILE_SIZE;
@@ -228,8 +312,15 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
 
   return (
     <Group>
-      {/* Render all terrain tiles */}
-      {terrainElements}
+      {/* Static terrain layer (from store - rarely changes) */}
+      <Group ref={staticTerrainRef}>
+        {terrainElements}
+      </Group>
+
+      {/* Dynamic terrain layer (pending changes - frequently updates) */}
+      <Group ref={dynamicTerrainRef}>
+        {pendingElements}
+      </Group>
 
       {/*
         Invisible interaction layer for:
