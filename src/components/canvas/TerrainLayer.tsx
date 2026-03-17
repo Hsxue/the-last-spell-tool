@@ -17,6 +17,7 @@ import type { KonvaEventObject } from 'konva/lib/Node';
 import type { MapData, TerrainType, ViewportState } from '../../types/map';
 import { TERRAIN_COLORS } from '../../types/map';
 import { useMapStore } from '../../store/mapStore';
+import { getVisibleTileRange, isTileVisible } from '../../lib/viewportCulling';
 
 // ============================================================================
 // Props Interface
@@ -217,12 +218,41 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   }, [terrain]);
 
   /**
+   * Calculate visible tile range based on viewport
+   * Used for culling terrain elements outside the viewport
+   */
+  const visibleRange = useMemo(() => {
+    // Convert ViewportState to Viewport interface
+    // We need to calculate the visible area in world coordinates
+    const viewportPixels = {
+      x: -viewport.offsetX / viewport.zoom,
+      y: -viewport.offsetY / viewport.zoom,
+      width: window.innerWidth / viewport.zoom,
+      height: window.innerHeight / viewport.zoom,
+    };
+
+    return getVisibleTileRange(
+      viewportPixels,
+      width * TILE_SIZE,
+      height * TILE_SIZE,
+      TILE_SIZE
+    );
+  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
+
+  /**
    * Dynamic terrain elements from pendingTerrain (preview layer)
    * Only renders tiles being drawn (<50 typically), not all 2500 tiles
+   * Uses viewport culling to only render visible tiles
    * Recalculates frequently during drawing but with minimal overhead
    */
   const pendingElements = useMemo(() => {
-    return Array.from(pendingTerrain.entries()).map(([key, terrainType]) => {
+    // Filter to only visible tiles
+    const visiblePendingEntries = Array.from(pendingTerrain.entries()).filter(([key]) => {
+      const [x, y] = parsePositionKey(key);
+      return isTileVisible(x, y, visibleRange);
+    });
+
+    return visiblePendingEntries.map(([key, terrainType]) => {
       const [x, y] = parsePositionKey(key);
       return (
         <Rect
@@ -240,14 +270,23 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
         />
       );
     });
-  }, [pendingTerrain]);
+  }, [pendingTerrain, visibleRange]);
 
   /**
    * Memoized terrain rendering elements (static layer)
    * Converts terrain data array into Konva Rect components
+   * Uses viewport culling to only render visible tiles
    */
   const terrainElements = useMemo(() => {
-    return terrainData.map(({ key, x, y, terrainType }) => (
+    // Filter to only visible tiles
+    const visibleTerrainData = terrainData.filter(({ x, y }) =>
+      isTileVisible(x, y, visibleRange)
+    );
+
+    // Log rendered tile count for verification
+    console.log(`[TerrainLayer] Rendering ${visibleTerrainData.length} / ${terrainData.length} terrain tiles (viewport culling)`);
+
+    return visibleTerrainData.map(({ key, x, y, terrainType }) => (
       <Rect
         key={`terrain-${key}`}
         x={x * TILE_SIZE}
@@ -262,10 +301,10 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
         hitStrokeWidth={0}
       />
     ));
-  }, [terrainData]);
+  }, [terrainData, visibleRange]);
 
   // Cache static terrain layer (rarely changes)
-  // Only rebuilds when terrain store actually changes
+  // Only rebuilds when terrain store or visible range changes
   useEffect(() => {
     if (!staticTerrainRef.current || terrainData.length === 0) return;
 
@@ -275,7 +314,7 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
       staticTerrainRef.current?.getLayer()?.batchDraw();
     });
     return () => cancelAnimationFrame(frameId);
-  }, [terrainData]);
+  }, [terrainData, visibleRange]);
 
   // Cache dynamic terrain layer (frequently changes during drawing)
   // Uses throttling to prevent excessive cache updates
