@@ -698,7 +698,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add WeaponSkillTab container component`
   - Files: `src/components/weapon-skill/WeaponSkillTab.tsx`
 
-- [ ] 10. Create WeaponEditor base component
+- [x] 10. Create WeaponEditor base component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponEditor.tsx`
