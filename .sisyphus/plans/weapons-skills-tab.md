@@ -747,7 +747,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 11. Create WeaponLevelForm component
+- [x] 11. Create WeaponLevelForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponLevelForm.tsx`
@@ -793,7 +793,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 10)
   - Files: `src/components/weapon-skill/WeaponLevelForm.tsx`
 
-- [ ] 12. Create SkillEditor base component
+- [x] 12. Create SkillEditor base component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillEditor.tsx`
@@ -846,7 +846,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/SkillEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 13. Create SkillBasicInfoForm component
+- [x] 13. Create SkillBasicInfoForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillBasicInfoForm.tsx`

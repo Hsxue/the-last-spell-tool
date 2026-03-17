@@ -398,3 +398,70 @@
   </ConditionalDisplay>
 </WeaponEditor>
 ```
+
+## Wave 2 Components Creation - Wed Mar 18 2026
+
+### Implementation Details
+
+Created three components for the next wave of features:
+
+1. **WeaponLevelForm**:
+   - Uses useWeaponSkillStore to access selected weapon
+   - Displays placeholder content for level configuration (Task 11)
+   - Shows informative message when no weapon is selected
+   - Located at `src/components/weapon-skill/WeaponLevelForm.tsx`
+
+2. **SkillEditor**:
+   - Connects to useWeaponSkillStore to access selected skill
+   - Renders skill ID as heading and placeholder for editor functionality (Task 12)
+   - Displays "Select a skill first" when no skill is selected
+   - Located at `src/components/weapon-skill/SkillEditor.tsx`
+
+3. **SkillBasicInfoForm**:
+   - Simple form component for skill basic information (Task 13)
+   - Contains placeholder content indicating upcoming functionality
+   - Located at `src/components/weapon-skill/SkillBasicInfoForm.tsx`
+
+### Key Learnings
+
+- Created all three Wave 2 components as specified
+- Each component follows the same pattern of using useWeaponSkillStore hook
+- Proper conditional rendering when no item is selected
+- All components successfully compile with `npm run build`
+- Consistent styling approach using Tailwind CSS classes
+- Components are ready for future implementation of actual functionality
+
+### Files Created
+- `src/components/weapon-skill/WeaponLevelForm.tsx`
+- `src/components/weapon-skill/SkillEditor.tsx`
+- `src/components/weapon-skill/SkillBasicInfoForm.tsx`
+
+### Component Structure
+```tsx
+<WeaponLevelForm>
+  <ConditionalDisplay>
+    <NoWeaponSelectedMessage />
+    <LevelConfigurationContent>
+      <Heading />
+      <PlaceholderText />
+    </LevelConfigurationContent>
+  </ConditionalDisplay>
+</WeaponLevelForm>
+
+<SkillEditor>
+  <ConditionalDisplay>
+    <NoSkillSelectedMessage />
+    <SkillEditorContent>
+      <SkillHeading />
+      <PlaceholderText />
+    </SkillEditorContent>
+  </ConditionalDisplay>
+</SkillEditor>
+
+<SkillBasicInfoForm>
+  <BasicInfoContent>
+    <Heading />
+    <PlaceholderText />
+  </BasicInfoContent>
+</SkillBasicInfoForm>
+```
