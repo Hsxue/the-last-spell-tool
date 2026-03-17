@@ -70,9 +70,7 @@ class PerformanceMonitorService {
       this.frameCount = 0;
       this.lastTimestamp = now;
       
-      if (true) {
-        console.log(`Render time: ${Math.round(this.renderTime)}ms, FPS: ${this.fps}`);
-      }
+      console.log(`Render time: ${Math.round(this.renderTime)}ms, FPS: ${this.fps}`);
     }
 
     this.animationFrameId = requestAnimationFrame(this.animateLoop);
@@ -89,8 +87,8 @@ class PerformanceMonitorService {
   public getMetrics(): Metrics {
     let memoryInfo: MemoryInfo | undefined;
     
-    if (true && typeof performance !== 'undefined') {
-      // @ts-ignore: memory API exists in some browsers but not typed by default
+    if (typeof performance !== 'undefined') {
+      // @ts-expect-error: memory API exists in some browsers but not typed by default
       const mem = performance.memory as { usedJSHeapSize: number; totalJSHeapSize: number } | undefined;
       if (mem) {
         memoryInfo = {
@@ -137,9 +135,7 @@ export function getMetrics(): Metrics {
  * Displays FPS indicator and can be toggled with P key
  */
 export function PerformanceMonitor(): null {
-  if (!true) {
-    return null;
-  }
+  // Always enabled for performance monitoring
 
   // Create overlay element if it doesn't exist
   if (typeof window !== 'undefined' && !document.getElementById('perf-overlay')) {
