@@ -465,3 +465,67 @@ Created three components for the next wave of features:
   </BasicInfoContent>
 </SkillBasicInfoForm>
 ```
+
+## CostsAndRangeForm Component Creation - Wed Mar 18 2026
+
+### Implementation Details
+
+1. **Component Structure**:
+   - Created CostsAndRangeForm functional component for skill cost and range configuration
+   - Used useWeaponSkillStore hook to access selected skill data
+   - Implemented conditional rendering based on whether a skill is selected
+
+2. **Store Integration**:
+   - Connected to useWeaponSkillStore to access state.skills and state.selectedSkillId
+   - Created a selector function to find the selected skill by ID
+   - Handled case where no skill is selected with informative message
+
+3. **UI Elements**:
+   - Created form sections for Costs (AP Cost, Mana Cost, Health Cost, Uses/Turn)
+   - Created form section for Range (Min and Max values)
+   - Used grid layout (grid-cols-2) for organized form fields
+   - Utilized Input and Label components from UI library with text-xs sizing
+   - Added default values from selected skill properties with fallbacks
+
+4. **Import Path Correction**:
+   - Initially had incorrect import path ('@/components/ui')
+   - Corrected to relative path ('../ui') after verifying the actual file structure
+   - Verified that Input and Label components are properly exported from the UI index file
+
+5. **Build Verification**:
+   - Component successfully compiles with `npm run build`
+   - Fixed import path resolved TypeScript error about missing module
+   - Component follows consistent styling approach with other forms in the application
+
+### Key Learnings
+
+- Proper import path resolution is essential for component compilation
+- Form components should include appropriate default values from data models
+- Grid layouts (grid-cols-2) provide good organization for form fields
+- Conditional rendering handles different UI states when no item is selected
+- Using text-xs sizing keeps forms compact and aligned with UI design
+- Consistent use of UI components (Input, Label) maintains visual coherence
+
+### Files Created
+- `src/components/weapon-skill/CostsAndRangeForm.tsx`
+
+### Component Structure
+```tsx
+<CostsAndRangeForm>
+  <ConditionalDisplay>
+    <NoSkillSelectedMessage />
+    <FormContent>
+      <CostsSection>
+        <APCostInput />
+        <ManaCostInput />
+        <HealthCostInput />
+        <UsesPerTurnInput />
+      </CostsSection>
+      <RangeSection>
+        <MinRangeInput />
+        <MaxRangeInput />
+      </RangeSection>
+    </FormContent>
+  </ConditionalDisplay>
+</CostsAndRangeForm>
+```

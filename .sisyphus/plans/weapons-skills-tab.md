@@ -889,7 +889,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 12)
   - Files: `src/components/weapon-skill/SkillBasicInfoForm.tsx`
 
-- [ ] 14. Create CostsAndRangeForm component
+- [x] 14. Create CostsAndRangeForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/CostsAndRangeForm.tsx`
