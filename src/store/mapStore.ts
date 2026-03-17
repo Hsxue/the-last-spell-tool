@@ -62,6 +62,7 @@ interface MapState {
 
   // Map Data Mutations
   setTerrain: (x: number, y: number, terrain: TerrainType) => void;
+  setTerrainBatch: (terrainMap: Map<string, TerrainType>) => void;
   addBuilding: (building: Building) => void;
   removeBuilding: (x: number, y: number) => void;
   addFlag: (flag: TileFlag) => void;
@@ -227,6 +228,29 @@ export const useMapStore = create<MapState>()(
         } else {
           newTerrain.set(key, terrain);
         }
+        state.mapData.terrain = newTerrain;
+      });
+    },
+
+    /**
+     * Batch set multiple terrain tiles at once
+     * More efficient than calling setTerrain multiple times
+     * @param terrainMap - Map of "x,y" keys to terrain types
+     */
+    setTerrainBatch: (terrainMap: Map<string, TerrainType>) => {
+      set((state) => {
+        if (!state.mapData) {
+          state.mapData = { ...defaultMapData };
+        }
+        // Create new Map with all changes applied at once
+        const newTerrain = new Map(state.mapData.terrain);
+        terrainMap.forEach((terrain, key) => {
+          if (terrain === 'Empty') {
+            newTerrain.delete(key);
+          } else {
+            newTerrain.set(key, terrain);
+          }
+        });
         state.mapData.terrain = newTerrain;
       });
     },

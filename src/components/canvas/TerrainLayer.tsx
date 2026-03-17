@@ -120,7 +120,7 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
     editorMode,
     selectedTerrain,
     brushSize,
-    setTerrain,
+    setTerrainBatch,
     setHoveredTile,
   } = useMapStore();
 
@@ -130,13 +130,17 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   // Local batch state for terrain changes - accumulate during drag, commit on mouseUp
   const [pendingTerrain, setPendingTerrain] = useState<Map<string, TerrainType>>(new Map());
 
-  // Throttle cache update tracking for dynamic layer (pendingTerrain)
-  const lastCacheUpdateTimeRef = useRef<number>(0);
-  const CACHE_THROTTLE_MS = 100; // Throttle interval: 100ms
+  // Flag to prevent cache update during commit (avoid flash on mouseUp)
+  const isCommittingRef = useRef<boolean>(false);
+
+  // Ref to accumulate paint positions during drag (avoid excessive state updates)
+  const paintBatchRef = useRef<Set<string>>(new Set());
+  const pendingBatchRef = useRef<Map<string, TerrainType>>(new Map());
+  const rafIdRef = useRef<number | null>(null);
 
   /**
    * Handle terrain painting at specific coordinates
-   * Accumulates changes to local pendingTerrain state, batch committed on mouseUp
+   * Accumulates positions to ref, then batch updates pendingTerrain via RAF
    */
   const handlePaint = useCallback(
     (x: number, y: number) => {
@@ -151,59 +155,142 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
       // Get all positions to paint based on brush size
       const positions = getBrushPositions(x, y, brushSize, width, height);
 
-      // Accumulate to pending terrain instead of immediate store update
+      // Accumulate positions to ref (no state update yet)
       positions.forEach(([px, py]) => {
         const key = `${px},${py}`;
-        setPendingTerrain(prev => {
-          const next = new Map(prev);
-          if (terrainType === 'Empty') {
-            next.delete(key);
-          } else {
-            next.set(key, terrainType);
-          }
-          return next;
-        });
+        paintBatchRef.current.add(key);
+        pendingBatchRef.current.set(key, terrainType);
       });
+
+      // Schedule batch update via requestAnimationFrame
+      if (rafIdRef.current === null) {
+        rafIdRef.current = requestAnimationFrame(() => {
+          rafIdRef.current = null;
+          
+          // Build new pendingTerrain from batch
+          setPendingTerrain(prev => {
+            const next = new Map(prev);
+            pendingBatchRef.current.forEach((terrainType, key) => {
+              if (terrainType === 'Empty') {
+                next.delete(key);
+              } else {
+                next.set(key, terrainType);
+              }
+            });
+            return next;
+          });
+          
+          // Clear batch refs
+          paintBatchRef.current.clear();
+          pendingBatchRef.current.clear();
+        });
+      }
     },
     [editorMode, selectedTerrain, brushSize, width, height]
   );
 
   /**
    * Handle mouse up - stop drawing and batch commit pending terrain changes
+   * Uses async batch commit to avoid UI blocking
    */
   const handleMouseUp = useCallback(() => {
-    // Batch commit all pending terrain changes to store
-    if (pendingTerrain.size > 0) {
-      pendingTerrain.forEach((terrain, key) => {
-        const [x, y] = parsePositionKey(key);
-        setTerrain(x, y, terrain);
+    // Cancel any pending RAF update
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    
+    // Flush any remaining batch to pendingTerrain first
+    if (pendingBatchRef.current.size > 0) {
+      setPendingTerrain(prev => {
+        const next = new Map(prev);
+        pendingBatchRef.current.forEach((terrainType, key) => {
+          if (terrainType === 'Empty') {
+            next.delete(key);
+          } else {
+            next.set(key, terrainType);
+          }
+        });
+        return next;
       });
+      pendingBatchRef.current.clear();
+      paintBatchRef.current.clear();
+    }
+    
+    // Batch commit all pending terrain changes to store asynchronously
+    // This avoids blocking the UI during large brush strokes
+    if (pendingTerrain.size > 0) {
+      // Set committing flag to prevent dynamic layer cache update during commit
+      isCommittingRef.current = true;
+      
+      // Use setTerrainBatch for efficient single-update commit
+      setTerrainBatch(new Map(pendingTerrain));
+      
+      // Clear pending terrain immediately (visual already shown via dynamic layer)
       setPendingTerrain(new Map());
+      
+      // Reset committing flag after store update propagates
+      // Dynamic layer will hide, static layer will show from store
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          isCommittingRef.current = false;
+        }, 16); // Wait ~1 frame for store update
+      });
     }
 
-    // Immediately update dynamic layer cache (ensure final state is correct)
-    dynamicTerrainRef.current?.clearCache();
-    dynamicTerrainRef.current?.cache();
-    dynamicTerrainRef.current?.getLayer()?.batchDraw();
-
     setIsDrawing(false);
-  }, [pendingTerrain, setTerrain]);
+  }, [pendingTerrain, setTerrainBatch]);
 
   /**
    * Handle mouse leave from canvas - stop drawing and commit pending changes
+   * Uses async batch commit to avoid UI blocking
    */
   const handleMouseLeave = useCallback(() => {
-    // Batch commit all pending terrain changes before leaving
-    if (pendingTerrain.size > 0) {
-      pendingTerrain.forEach((terrain, key) => {
-        const [x, y] = parsePositionKey(key);
-        setTerrain(x, y, terrain);
-      });
-      setPendingTerrain(new Map());
+    // Cancel any pending RAF update
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
     }
+    
+    // Flush any remaining batch to pendingTerrain first
+    if (pendingBatchRef.current.size > 0) {
+      setPendingTerrain(prev => {
+        const next = new Map(prev);
+        pendingBatchRef.current.forEach((terrainType, key) => {
+          if (terrainType === 'Empty') {
+            next.delete(key);
+          } else {
+            next.set(key, terrainType);
+          }
+        });
+        return next;
+      });
+      pendingBatchRef.current.clear();
+      paintBatchRef.current.clear();
+    }
+    
+    // Batch commit all pending terrain changes to store asynchronously
+    if (pendingTerrain.size > 0) {
+      // Set committing flag to prevent dynamic layer cache update during commit
+      isCommittingRef.current = true;
+      
+      // Use setTerrainBatch for efficient single-update commit
+      setTerrainBatch(new Map(pendingTerrain));
+      
+      // Clear pending terrain
+      setPendingTerrain(new Map());
+      
+      // Reset committing flag after store update propagates
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          isCommittingRef.current = false;
+        }, 16);
+      });
+    }
+    
     setIsDrawing(false);
     setHoveredTile(null);
-  }, [pendingTerrain, setTerrain, setHoveredTile]);
+  }, [pendingTerrain, setTerrainBatch, setHoveredTile]);
 
   /**
    * Pre-computed terrain data array from store terrain (static layer)
@@ -317,26 +404,10 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   }, [terrainData, visibleRange]);
 
   // Cache dynamic terrain layer (frequently changes during drawing)
-  // Uses throttling to prevent excessive cache updates
+  // Direct cache update without throttling for immediate visual feedback
   useEffect(() => {
-    if (!dynamicTerrainRef.current) return;
+    if (!dynamicTerrainRef.current || isCommittingRef.current) return;
 
-    const now = performance.now();
-    const timeSinceLastCache = now - lastCacheUpdateTimeRef.current;
-
-    // If less than CACHE_THROTTLE_MS since last cache update, schedule delayed update
-    if (timeSinceLastCache < CACHE_THROTTLE_MS) {
-      const timeoutId = setTimeout(() => {
-        lastCacheUpdateTimeRef.current = performance.now();
-        dynamicTerrainRef.current?.clearCache();
-        dynamicTerrainRef.current?.cache();
-        dynamicTerrainRef.current?.getLayer()?.batchDraw();
-      }, CACHE_THROTTLE_MS - timeSinceLastCache);
-      return () => clearTimeout(timeoutId);
-    }
-
-    // Otherwise update immediately
-    lastCacheUpdateTimeRef.current = now;
     const frameId = requestAnimationFrame(() => {
       dynamicTerrainRef.current?.clearCache();
       dynamicTerrainRef.current?.cache();
