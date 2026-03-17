@@ -215,3 +215,25 @@ export interface LocalizationData {
   /** Translations: key -> {language -> text} */
   translations: Map<string, Map<SupportedLanguage, string>>;
 }
+
+/** TextAsset/Loc_TLS format interface */
+export interface TranslationFileFormat {
+  key: string;
+  en?: string;  // English (fallback)
+  fr?: string;  // Français
+  zh?: string;  // 简体中文
+  ja?: string;  // 日本語
+  de?: string;  // Deutsch
+  es?: string;  // Español
+}
+
+/** TextAsset/Loc_TLS format interface */
+export interface TranslationFileFormat {
+  key: string;
+  en?: string;  // English (fallback)
+  fr?: string;  // Français
+  zh?: string;  // 简体中文
+  ja?: string;  // 日本語
+  de?: string;  // Deutsch
+  es?: string;  // Español
+}

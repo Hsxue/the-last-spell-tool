@@ -1,0 +1,229 @@
+/**
+ * Weapon & Skill Store - Zustand store for weapon and skill state management
+ * Handles weapon definitions, skill definitions, and editing state
+ */
+
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+import type {
+  WeaponDefinition,
+  SkillDefinition,
+  WeaponSkillView,
+} from '../types/weapon-skill';
+
+// ============================================================================
+// State Interface
+// ============================================================================
+
+interface WeaponSkillState {
+  // View State
+  currentView: WeaponSkillView;
+  selectedWeaponId: string | null;
+  selectedSkillId: string | null;
+  editingWeaponLevel: number | null;
+
+  // Data
+  weapons: WeaponDefinition[];
+  skills: SkillDefinition[];
+
+  // UI State
+  hasUnsavedChanges: boolean;
+  errors: string[];
+
+  // Actions - View State
+  setCurrentView: (view: WeaponSkillView) => void;
+  setSelectedWeapon: (weaponId: string | null) => void;
+  setSelectedSkill: (skillId: string | null) => void;
+  setEditingLevel: (level: number | null) => void;
+
+  // Actions - Data Mutations
+  addWeapon: (weapon: WeaponDefinition) => void;
+  updateWeapon: (weapon: WeaponDefinition) => void;
+  removeWeapon: (weaponId: string) => void;
+  addSkill: (skill: SkillDefinition) => void;
+  updateSkill: (skill: SkillDefinition) => void;
+  removeSkill: (skillId: string) => void;
+
+  // Actions - UI State
+  setHasUnsavedChanges: (hasChanges: boolean) => void;
+  addError: (error: string) => void;
+  clearErrors: () => void;
+}
+
+// ============================================================================
+// Default State
+// ============================================================================
+
+const defaultState: Omit<
+  WeaponSkillState,
+  | 'setCurrentView'
+  | 'setSelectedWeapon'
+  | 'setSelectedSkill'
+  | 'setEditingLevel'
+  | 'addWeapon'
+  | 'updateWeapon'
+  | 'removeWeapon'
+  | 'addSkill'
+  | 'updateSkill'
+  | 'removeSkill'
+  | 'setHasUnsavedChanges'
+  | 'addError'
+  | 'clearErrors'
+> = {
+  currentView: 'weapons',
+  selectedWeaponId: null,
+  selectedSkillId: null,
+  editingWeaponLevel: null,
+  weapons: [],
+  skills: [],
+  hasUnsavedChanges: false,
+  errors: [],
+};
+
+// ============================================================================
+// Store Creation
+// ============================================================================
+
+export const useWeaponSkillStore = create<WeaponSkillState>()(
+  immer((set) => ({
+    // Initial State
+    ...defaultState,
+
+    // Actions - View State
+    setCurrentView: (view) => {
+      set((state) => {
+        state.currentView = view;
+      });
+    },
+
+    setSelectedWeapon: (weaponId) => {
+      set((state) => {
+        state.selectedWeaponId = weaponId;
+      });
+    },
+
+    setSelectedSkill: (skillId) => {
+      set((state) => {
+        state.selectedSkillId = skillId;
+      });
+    },
+
+    setEditingLevel: (level) => {
+      set((state) => {
+        state.editingWeaponLevel = level;
+      });
+    },
+
+    // Actions - Data Mutations
+    addWeapon: (weapon) => {
+      set((state) => {
+        state.weapons.push(weapon);
+        state.hasUnsavedChanges = true;
+      });
+    },
+
+    updateWeapon: (weapon) => {
+      set((state) => {
+        const index = state.weapons.findIndex((w) => w.id === weapon.id);
+        if (index !== -1) {
+          state.weapons[index] = weapon;
+          state.hasUnsavedChanges = true;
+        }
+      });
+    },
+
+    removeWeapon: (weaponId) => {
+      set((state) => {
+        state.weapons = state.weapons.filter((w) => w.id !== weaponId);
+        state.hasUnsavedChanges = true;
+        if (state.selectedWeaponId === weaponId) {
+          state.selectedWeaponId = null;
+        }
+      });
+    },
+
+    addSkill: (skill) => {
+      set((state) => {
+        state.skills.push(skill);
+        state.hasUnsavedChanges = true;
+      });
+    },
+
+    updateSkill: (skill) => {
+      set((state) => {
+        const index = state.skills.findIndex((s) => s.id === skill.id);
+        if (index !== -1) {
+          state.skills[index] = skill;
+          state.hasUnsavedChanges = true;
+        }
+      });
+    },
+
+    removeSkill: (skillId) => {
+      set((state) => {
+        state.skills = state.skills.filter((s) => s.id !== skillId);
+        state.hasUnsavedChanges = true;
+        if (state.selectedSkillId === skillId) {
+          state.selectedSkillId = null;
+        }
+      });
+    },
+
+    // Actions - UI State
+    setHasUnsavedChanges: (hasChanges) => {
+      set((state) => {
+        state.hasUnsavedChanges = hasChanges;
+      });
+    },
+
+    addError: (error) => {
+      set((state) => {
+        state.errors.push(error);
+      });
+    },
+
+    clearErrors: () => {
+      set((state) => {
+        state.errors = [];
+      });
+    },
+  }))
+);
+
+// ============================================================================
+// Selectors
+// ============================================================================
+
+export const selectWeaponById = (weaponId: string) => {
+  return (state: WeaponSkillState) => {
+    return state.weapons.find((w) => w.id === weaponId) || null;
+  };
+};
+
+export const selectSkillById = (skillId: string) => {
+  return (state: WeaponSkillState) => {
+    return state.skills.find((s) => s.id === skillId) || null;
+  };
+};
+
+export const selectWeaponsByCategory = (category: string) => {
+  return (state: WeaponSkillState) => {
+    return state.weapons.filter((w) => w.category === category);
+  };
+};
+
+export const selectSkillsByCategory = (category: string) => {
+  return (state: WeaponSkillState) => {
+    return state.skills.filter((s) => s.category === category);
+  };
+};
+
+export const selectSelectedWeapon = (state: WeaponSkillState) => {
+  if (!state.selectedWeaponId) return null;
+  return selectWeaponById(state.selectedWeaponId)(state);
+};
+
+export const selectSelectedSkill = (state: WeaponSkillState) => {
+  if (!state.selectedSkillId) return null;
+  return selectSkillById(state.selectedSkillId)(state);
+};
