@@ -67,9 +67,9 @@ Build a complete Weapons & Skills editor that allows users to create, edit, and 
 - [x] WeaponSkillStore functional with all state and actions
 - [x] TreeView components render category hierarchy with selection
 - [x] Weapon editor allows editing all properties including levels 0-5
-- [ ] Skill editor allows editing all 30+ effect types
-- [ ] XML import/export produces valid game-format files
-- [ ] Agent QA scenarios pass for all features (Playwright browser automation)
+- [x] Skill editor allows editing all 30+ effect types
+- [x] XML import/export produces valid game-format files
+- [x] Agent QA scenarios pass for all features (Playwright browser automation)
 
 ### Must Have
 - UTF-16 encoding for XML export (game compatibility)
@@ -1199,7 +1199,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 19)
   - Files: `src/components/weapon-skill/SkillEditor.tsx`
 
-- [ ] 21. Update App.tsx to use WeaponSkillTab
+- [x] 21. Update App.tsx to use WeaponSkillTab
 
   **What to do**:
   - Update `src/App.tsx` WeaponSkillContent component
@@ -1298,7 +1298,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/lib/file-io.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 23. Add localization display support
+- [x] 23. Add localization display support
 
   **What to do**:
   - Update WeaponTreeView and SkillTreeView to use localization
@@ -1342,7 +1342,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(i18n): add localization display to weapon/skill editors`
   - Files: `src/components/weapon-skill/WeaponTreeView.tsx, src/components/weapon-skill/SkillTreeView.tsx, src/components/weapon-skill/WeaponSkillTab.tsx`
 
-- [ ] 24. End-to-end integration testing
+- [x] 24. End-to-end integration testing
 
   **What to do**:
   - Create comprehensive Playwright test scenarios
@@ -1399,7 +1399,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
   **Commit**: NO (testing only)
 
-- [ ] 25. Polish and edge case handling
+- [x] 25. Polish and edge case handling
 
   **What to do**:
   - Add loading states for file operations
