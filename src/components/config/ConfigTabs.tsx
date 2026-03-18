@@ -1,5 +1,7 @@
 import React from 'react';
 import { useConfigStore } from '@/store/configStore';
+import type { ConfigTab } from '@/types/config';
+import { ConfigToolbar } from './ConfigToolbar';
 import BasicConfigTab from './BasicConfigTab';
 import SpawnConfigTab from './SpawnConfigTab';
 import ResourcesConfigTab from './ResourcesConfigTab';
@@ -14,7 +16,7 @@ export const ConfigTabs: React.FC = () => {
   const { ui, setActiveTab } = useConfigStore();
 
   // Tab configurations with Chinese labels using the exact ConfigTab values
-  const tabConfigurations = [
+  const tabConfigurations: Array<{ value: ConfigTab; label: string }> = [
     { value: 'basic', label: '基础配置' },
     { value: 'spawn', label: '生成配置' },
     { value: 'waves', label: '敌人波次' },
@@ -28,7 +30,13 @@ export const ConfigTabs: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="flex-shrink-0 p-2 border-b">
+      {/* Toolbar at the top */}
+      <div className="flex-shrink-0 p-2 bg-background border-b">
+        <ConfigToolbar className="" />
+      </div>
+      
+      {/* Tab navigation */}
+      <div className="flex-shrink-0 p-2 border-b bg-muted/30">
         <div className="grid w-full grid-cols-9 gap-1">
           {tabConfigurations.map(({ value, label }) => (
             <button
@@ -39,7 +47,7 @@ export const ConfigTabs: React.FC = () => {
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-muted/80'
               }`}
-              onClick={() => setActiveTab(value as any)}
+              onClick={() => setActiveTab(value)}
             >
               {label}
             </button>
