@@ -1,5 +1,6 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 import { useState, useEffect } from 'react';
+import { WeaponLevelDetailEditor } from './WeaponLevelDetailEditor';
 
 export function WeaponEditorFull() {
   const selectedWeapon = useWeaponSkillStore((state: any) => {
@@ -8,6 +9,7 @@ export function WeaponEditorFull() {
   });
   const updateWeapon = useWeaponSkillStore((state: any) => state.updateWeapon);
   const [editedWeapon, setEditedWeapon] = useState<any>(null);
+  const [editingLevel, setEditingLevel] = useState<number | null>(null);
 
   // 当 selectedWeapon 变化时更新 editedWeapon
   useEffect(() => {
@@ -92,6 +94,7 @@ export function WeaponEditorFull() {
           {[0,1,2,3,4,5].map((level) => (
             <button
               key={level}
+              onClick={() => setEditingLevel(level)}
               className={`px-3 py-2 text-xs rounded border ${
                 selectedWeapon.levels?.[level] 
                   ? 'bg-blue-500 text-white' 
@@ -102,8 +105,15 @@ export function WeaponEditorFull() {
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-400">点击级别进行详细配置 (任务 5-6 实现)</p>
       </div>
+
+      {/* 级别详细编辑器 */}
+      {editingLevel !== null && (
+        <WeaponLevelDetailEditor 
+          level={editingLevel} 
+          onClose={() => setEditingLevel(null)} 
+        />
+      )}
 
       {/* 保存按钮 */}
       <div className="pt-4 border-t">
