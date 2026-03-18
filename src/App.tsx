@@ -6,8 +6,11 @@
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
 import { MapStatusBar } from './components/MapStatusBar';
+import BuildingSidebar from './components/sidebar/BuildingSidebar';
+import FlagSidebar from './components/sidebar/FlagSidebar';
+import { ConfigTabs } from './components/config';
 import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
-import { ConfigTab } from './components/weapon-skill/ConfigTab';
+import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -114,9 +117,17 @@ function FeatureTabs() {
   return (
     <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-2">
       {featureTabs.map((tab) => (
-        <button key={tab.id} onClick={() => setActiveFeatureTab(tab.id)}
-          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${activeFeatureTab === tab.id ? 'bg-card text-primary border border-b-border border-t-2 border-t-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
-          <tab.icon className="h-4 w-4" />{tab.label}
+        <button 
+          key={tab.id} 
+          onClick={() => setActiveFeatureTab(tab.id)}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-medium transition-colors rounded-t-lg ${
+            activeFeatureTab === tab.id 
+              ? 'bg-card text-primary border border-b-border border-t-2 border-t-primary' 
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+          }`}
+        >
+          <tab.icon className="h-4 w-4" />
+          {tab.label}
         </button>
       ))}
     </div>
@@ -145,7 +156,16 @@ function Sidebar() {
     height,
     selectedTerrain,
     setSelectedTerrain,
-    setEditorMode
+    setEditorMode,
+    selectedBuilding,
+    setSelectedBuilding,
+    selectedFlag,
+    setSelectedFlag,
+    buildingHealth,
+    setBuildingHealth,
+    setIsRemoving,
+    removeMode,
+    setRemoveMode
   } = useMapStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -176,7 +196,7 @@ function Sidebar() {
   }
 
   return (
-    <aside className="w-72 border-r border-border bg-card flex flex-col">
+    <aside className="w-72 border-r border-border bg-card flex flex-col h-screen">
       {/* Sidebar Header */}
       <div className="h-12 border-b border-border flex items-center justify-between px-3">
         <span className="font-medium">Tools</span>
@@ -271,24 +291,37 @@ function Sidebar() {
         )}
 
         {activeTab === 'building' && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Buildings</h3>
-              <p className="text-sm text-muted-foreground">
-                Building selection will be available here.
-              </p>
-            </div>
+          <div className="h-full overflow-hidden">
+            <BuildingSidebar 
+              buildingBlueprints={BUILDING_BLUEPRINTS.map(bp => ({ 
+                id: bp.id, 
+                name: bp.id.replace(/([A-Z])/g, ' $1').trim(),
+                category: bp.category 
+              }))} 
+              selectedBuilding={selectedBuilding} 
+              setSelectedBuilding={setSelectedBuilding} 
+              buildingHealth={buildingHealth ?? 100}
+              setBuildingHealth={setBuildingHealth}
+              removeMode={removeMode === 'building'}
+              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'building' : null)}
+              setIsRemoving={setIsRemoving}
+            />
           </div>
         )}
 
         {activeTab === 'flag' && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Flags</h3>
-              <p className="text-sm text-muted-foreground">
-                Flag placement will be available here.
-              </p>
-            </div>
+          <div className="h-full overflow-hidden">
+            <FlagSidebar
+              selectedFlag={selectedFlag}
+              setSelectedFlag={setSelectedFlag}
+              flagLayerVisible={layerVisibility.flags}
+              zoneLayerVisible={layerVisibility.zones}
+              setFlagLayerVisible={(visible) => setLayerVisibility('flags', visible)}
+              setZoneLayerVisible={(visible) => setLayerVisibility('zones', visible)}
+              removeMode={removeMode === 'flag'}
+              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'flag' : null)}
+              setIsRemoving={setIsRemoving}
+            />
           </div>
         )}
 
@@ -331,6 +364,7 @@ function Sidebar() {
           {[
             { key: 'grid', label: 'Grid' },
             { key: 'zones', label: 'Zones' },
+            { key: 'buildings', label: 'Buildings' },
             { key: 'flags', label: 'Flags' },
             { key: 'occupied', label: 'Occupied' },
           ].map(({ key, label }) => (
@@ -414,7 +448,7 @@ function MapEditorContent() {
 }
 
 function GameConfigContent() {
-  return <ConfigTab />;
+  return <ConfigTabs />;
 }
 
 function WeaponSkillContent() {
