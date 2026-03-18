@@ -7,17 +7,17 @@ export function WeaponEditorFull() {
     return state.weapons.find((w: any) => w.id === state.selectedWeaponId);
   });
   const updateWeapon = useWeaponSkillStore((state: any) => state.updateWeapon);
-
   const [editedWeapon, setEditedWeapon] = useState<any>(null);
 
-  // Sync editedWeapon with selectedWeapon when it changes
+  // 当 selectedWeapon 变化时更新 editedWeapon
   useEffect(() => {
     if (selectedWeapon) {
-      setEditedWeapon(selectedWeapon);
+      setEditedWeapon({...selectedWeapon}); // 创建副本避免直接引用
     }
   }, [selectedWeapon]);
 
-  if (!selectedWeapon) {
+  // 没有选中武器或数据未加载时显示空状态
+  if (!selectedWeapon || !editedWeapon) {
     return (
       <div className="p-8 text-center text-gray-500">
         <p className="text-sm">选择武器以编辑</p>
