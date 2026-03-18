@@ -1,5 +1,5 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export function WeaponEditorFull() {
   const selectedWeapon = useWeaponSkillStore((state: any) => {
@@ -8,7 +8,14 @@ export function WeaponEditorFull() {
   });
   const updateWeapon = useWeaponSkillStore((state: any) => state.updateWeapon);
 
-  const [editedWeapon, setEditedWeapon] = useState<any>(selectedWeapon);
+  const [editedWeapon, setEditedWeapon] = useState<any>(null);
+
+  // Sync editedWeapon with selectedWeapon when it changes
+  useEffect(() => {
+    if (selectedWeapon) {
+      setEditedWeapon(selectedWeapon);
+    }
+  }, [selectedWeapon]);
 
   if (!selectedWeapon) {
     return (
