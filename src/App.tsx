@@ -66,7 +66,7 @@ function Header() {
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 sticky top-0 z-50">
       <div className="flex items-center gap-4 h-full">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 h-full">
           <MapIcon className="h-6 w-6 text-primary" />
           <h1 className="text-lg font-semibold">TileMap Editor</h1>
         </div>
