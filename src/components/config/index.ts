@@ -1,0 +1,10 @@
+export { ConfigTabs } from './ConfigTabs';
+export { BasicConfigTab } from './BasicConfigTab';
+export { ResourcesConfigTab } from './ResourcesConfigTab';
+export { CorruptionConfigTab } from './CorruptionConfigTab';
+export { FogConfigTab } from './FogConfigTab';
+export { SpawnConfigTab } from './SpawnConfigTab';
+export { WavesConfigTab } from './WavesConfigTab';
+export { ElitesConfigTab } from './ElitesConfigTab';
+export { DirectionsConfigTab } from './DirectionsConfigTab';
+export { WaveDefinitionsTab } from './WaveDefinitionsTab';

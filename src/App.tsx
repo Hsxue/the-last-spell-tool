@@ -6,6 +6,7 @@
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
 import { MapStatusBar } from './components/MapStatusBar';
+import { ConfigTabs } from './components/config';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -412,20 +413,7 @@ function MapEditorContent() {
 }
 
 function GameConfigContent() {
-  return (
-    <div className="flex-1 flex items-center justify-center p-8 bg-muted">
-      <div className="text-center max-w-md">
-        <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Game Configuration</h2>
-        <p className="text-muted-foreground mb-4">
-          Manage game settings, difficulty levels, and configuration files here.
-        </p>
-        <Button variant="outline">
-          Configure General Settings
-        </Button>
-      </div>
-    </div>
-  );
+  return <ConfigTabs />;
 }
 
 function WeaponSkillContent() {
