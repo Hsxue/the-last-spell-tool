@@ -254,9 +254,10 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
   }, [buildings, visibleRange, viewport.zoom]);
 
   /**
-   * Preview building element when in building mode
+   * Memoize placement validation with minimal dependencies to avoid
+   * recalculation on every mouse move
    */
-  const previewElement = useMemo(() => {
+  const placementValidation = useMemo(() => {
     if (!showBuildingPreview || editorMode !== 'building' || !selectedBuilding || !hoveredTile) {
       return null;
     }
@@ -264,14 +265,28 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
     const blueprint = blueprintLookup.get(selectedBuilding);
     if (!blueprint) return null;
 
-    const isValid = isPlacementValid(
-      hoveredTile.x,
-      hoveredTile.y,
-      blueprint,
-      width,
-      height,
-      occupiedTiles
-    );
+    return {
+      isValid: isPlacementValid(
+        hoveredTile.x,
+        hoveredTile.y,
+        blueprint,
+        width,
+        height,
+        occupiedTiles
+      ),
+      blueprint
+    };
+  }, [showBuildingPreview, editorMode, selectedBuilding, hoveredTile?.x, hoveredTile?.y, width, height, occupiedTiles.size]);
+
+  /**
+   * Preview building element when in building mode
+   */
+  const previewElement = useMemo(() => {
+    if (!placementValidation || !hoveredTile) {
+      return null;
+    }
+
+    const { isValid, blueprint } = placementValidation;
 
     const baseX = hoveredTile.x - blueprint.originX;
     const baseY = hoveredTile.y - blueprint.originY;
@@ -322,7 +337,12 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
     );
 
     return (
-      <Group key="building-preview">
+      <Group 
+        key="building-preview" 
+        cache={true} 
+        hitGraphListening={false}
+        shouldSkipBatching={() => true}
+      >
         {previewElements}
       </Group>
     );
