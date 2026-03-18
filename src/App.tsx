@@ -196,7 +196,7 @@ function Sidebar() {
   }
 
   return (
-    <aside className="w-72 border-r border-border bg-card flex flex-col h-screen">
+    <aside className="w-72 border-r border-border bg-card flex flex-col h-full">
       {/* Sidebar Header */}
       <div className="h-12 border-b border-border flex items-center justify-between px-3">
         <span className="font-medium">Tools</span>
@@ -434,9 +434,9 @@ function Toolbar() {
 
 function MapEditorContent() {
   return (
-    <div className="flex-1 flex overflow-hidden">
+    <div className="flex-1 flex overflow-hidden h-full">
       <Sidebar />
-      <div className="flex-1 relative flex flex-col">
+      <div className="flex-1 relative flex flex-col h-full">
         <Toolbar />
         <div className="flex-1 relative">
           <MapCanvas />
@@ -535,7 +535,7 @@ function App() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <Header />
       <FeatureTabs />
-      <div className="flex-1 overflow-hidden min-h-0">
+      <div className="flex-1 overflow-hidden">
         <MainContent />
       </div>
       <ToastDisplay />
