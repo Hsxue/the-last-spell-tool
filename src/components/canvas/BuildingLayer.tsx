@@ -361,14 +361,9 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
     if (!buildingsRef.current || buildingElements.length === 0) return;
 
     const frameId = requestAnimationFrame(() => {
-      try {
-        buildingsRef.current?.clearCache();
-        buildingsRef.current?.cache();
-        buildingsRef.current?.getLayer()?.batchDraw();
-      } catch (error) {
-        // Silently ignore cache errors (e.g., when node has 0 dimensions)
-        console.debug('[BuildingLayer] Caching skipped:', error);
-      }
+      buildingsRef.current?.clearCache();
+      buildingsRef.current?.cache();
+      buildingsRef.current?.getLayer()?.batchDraw();
     });
     return () => cancelAnimationFrame(frameId);
   }, [buildingElements]);
