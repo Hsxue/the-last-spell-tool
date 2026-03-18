@@ -337,7 +337,7 @@
 
 ### 波次最终：集成和验证
 
-- [ ] 16. 集成到 WeaponSkillTab
+- [x] 16. 集成到 WeaponSkillTab
 
   **做什么**:
   - 替换"coming soon"占位符为实际编辑器

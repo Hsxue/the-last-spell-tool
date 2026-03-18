@@ -4,6 +4,7 @@ import { SkillTreeView } from './SkillTreeView';
 import { WeaponEditorFull } from './WeaponEditorFull';
 import { SkillEditorFull } from './SkillEditorFull';
 import { WeaponSkillActions } from './WeaponSkillActions';
+import { Toolbar } from './Toolbar';
 
 type TabType = 'weapons' | 'skills';
 
@@ -12,6 +13,9 @@ export function WeaponSkillTab() {
 
   return (
     <div className="flex flex-col h-full">
+      {/* 工具栏 - 包含新建按钮 */}
+      <Toolbar />
+      
       {/* Tab Header */}
       <div className="flex border-b">
         <button
