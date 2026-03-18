@@ -408,7 +408,7 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   // Cache dynamic terrain layer (frequently changes during drawing)
   // Direct cache update without throttling for immediate visual feedback
   useEffect(() => {
-    if (!dynamicTerrainRef.current || isCommittingRef.current) return;
+    if (!dynamicTerrainRef.current || isCommittingRef.current || pendingTerrain.size === 0) return;
 
     const frameId = requestAnimationFrame(() => {
       dynamicTerrainRef.current?.clearCache();
