@@ -28,31 +28,23 @@ interface BuildingSidebarProps {
 
 const CATEGORIES = [
   'All',
-  'House',
-  'Resource',
-  'Defense',
-  'Utility',
-  'Industrial',
-  'Storage',
-  'Infrastructure',
-  'Military',
-  'Research',
+  'Wall',
+  'Tower',
+  'Trap',
   'Special',
-  'Decorative'
+  'Decor',
+  'Building',
+  'Brazier'
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  House: '#FF6B6B',
-  Resource: '#4ECDC4',
-  Defense: '#FFA07A',
-  Utility: '#98D8C8',
-  Industrial: '#F7DC6F',
-  Storage: '#BB8FCE',
-  Infrastructure: '#85C1E9',
-  Military: '#F1948A',
-  Research: '#85C1E9',
-  Special: '#F7DC6F',
-  Decorative: '#FAD7A0',
+  Wall: '#FF6B6B',
+  Tower: '#FF9F43',
+  Trap: '#9B59B6',
+  Special: '#FF69B4',
+  Decor: '#F1C40F',
+  Building: '#3498DB',
+  Brazier: '#E74C3C',
   All: '#95A5A6'
 };
 
@@ -89,14 +81,6 @@ const BuildingSidebar: React.FC<BuildingSidebarProps> = ({
     
     return grouped;
   }, [buildingBlueprints]);
-
-  // Filter buildings based on selected category
-  const filteredBuildings = useMemo(() => {
-    if (selectedCategory === 'All') {
-      return buildingBlueprints;
-    }
-    return buildingsByCategory[selectedCategory] || [];
-  }, [buildingBlueprints, buildingsByCategory, selectedCategory]);
 
   // Calculate building counts by category
   const categoryCounts = useMemo(() => {
@@ -211,35 +195,6 @@ const BuildingSidebar: React.FC<BuildingSidebarProps> = ({
             </div>
           );
         })}
-        
-        {/* Show "All" view if it's the selected category */
-        selectedCategory === 'All' && (
-          <>
-            {filteredBuildings.map(building => {
-              // Find the category of this building to get the right color
-              const buildingCategory = building.category;
-              const categoryColor = CATEGORY_COLORS[buildingCategory] || '#95A5A6';
-              
-              return (
-                <div
-                  key={building.id}
-                  className={`p-2 mb-1 rounded cursor-pointer flex items-center ${
-                    selectedBuilding === building.id
-                      ? 'bg-blue-600'
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  }`}
-                  onClick={() => setSelectedBuilding(building.id === selectedBuilding ? null : building.id)}
-                >
-                  <span 
-                    className="inline-block w-3 h-3 rounded-full mr-2" 
-                    style={{ backgroundColor: categoryColor }}
-                  ></span>
-                  <span className="text-sm">{building.name}</span>
-                </div>
-              );
-            })}
-          </>
-        )}
       </div>
     </div>
   );

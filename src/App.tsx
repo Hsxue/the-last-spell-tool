@@ -5,7 +5,6 @@
 
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
-import { MapStatusBar } from './components/MapStatusBar';
 import BuildingSidebar from './components/sidebar/BuildingSidebar';
 import FlagSidebar from './components/sidebar/FlagSidebar';
 import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
@@ -431,7 +430,7 @@ function MapEditorContent() {
         <div className="flex-1 relative">
           <MapCanvas />
         </div>
-        <MapStatusBar />
+        {/* <MapStatusBar /> */}
       </div>
     </div>
   );
