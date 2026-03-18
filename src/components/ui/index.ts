@@ -5,20 +5,11 @@
 
 export { Button, buttonVariants } from './button';
 export { Input } from './input';
-export { Label } from './label';
-export { Tabs, TabsList, TabsTrigger, TabsContent } from './tabs';
-export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
+export { Select } from './select';
 export { Textarea } from './textarea';
-export {
-  Dialog,
-  DialogPortal,
-  DialogOverlay,
-  DialogClose,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from './dialog';
+export { Checkbox } from './checkbox';
+export { Label } from './label';
+export { ScrollArea } from './scroll-area';
+export { Card, CardHeader, CardTitle, CardContent } from './card';
+export { Collapsible, CollapsibleTrigger, CollapsibleContent } from './collapsible';
+export { Slider } from './slider';

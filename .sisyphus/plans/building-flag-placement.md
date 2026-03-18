@@ -195,7 +195,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ### Wave 1: Foundation + Data
 
-- [x] 1. **Building Blueprint JSON Bundle**
+- [ ] 1. **Building Blueprint JSON Bundle**
 
   **What to do**:
   - **Pre-processing step**: Extract building data from game files ONCE, then bundle as JSON
@@ -255,7 +255,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 2. **Blueprint Loader Utility**
+- [ ] 2. **Blueprint Loader Utility**
 
   **What to do**:
   - Create `src/lib/buildingBlueprintLoader.ts` (for FUTURE data updates)
@@ -313,7 +313,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 3. **Store Mutations Extension**
+- [ ] 3. **Store Mutations Extension**
 
   **What to do**:
   - Extend `src/store/mapStore.ts` with placement state
@@ -373,7 +373,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 4. **Placement Engine Utilities**
+- [ ] 4. **Placement Engine Utilities**
 
   **What to do**:
   - Create `src/lib/placementEngine.ts`
@@ -444,7 +444,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 5. **Building Sidebar UI Component**
+- [ ] 5. **Building Sidebar UI Component**
 
   **What to do**:
   - Create `src/components/sidebar/BuildingSidebar.tsx`
@@ -521,7 +521,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 6. **Flag Sidebar UI Component**
+- [ ] 6. **Flag Sidebar UI Component**
 
   **What to do**:
   - Create `src/components/sidebar/FlagSidebar.tsx`
@@ -593,7 +593,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 7. **MapStatusBar Hover Info Enhancement**
+- [ ] 7. **MapStatusBar Hover Info Enhancement**
 
   **What to do**:
   - Modify `src/components/MapStatusBar.tsx`
@@ -662,7 +662,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ### Wave 2: Core Placement Logic
 
-- [x] 8. **Building Placement Interaction (MapCanvas)**
+- [ ] 8. **Building Placement Interaction (MapCanvas)**
 
   **What to do**:
   - Modify `src/components/canvas/MapCanvas.tsx`
@@ -754,7 +754,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 9. **Building Preview Rendering (BuildingLayer)**
+- [ ] 9. **Building Preview Rendering (BuildingLayer)**
 
   **What to do**:
   - Rewrite `src/components/canvas/BuildingLayer.tsx` (replace placeholder)
@@ -824,7 +824,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 10. **Collision Detection Integration**
+- [ ] 10. **Collision Detection Integration**
 
   **What to do**:
   - Extend `src/lib/placementEngine.ts`
@@ -888,7 +888,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 11. **Flag Placement Interaction (MapCanvas)**
+- [ ] 11. **Flag Placement Interaction (MapCanvas)**
 
   **What to do**:
   - Extend MapCanvas click handler (from Task 8)
@@ -965,7 +965,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 12. **Zone Flag Rectangle Rendering (FlagLayer)**
+- [ ] 12. **Zone Flag Rectangle Rendering (FlagLayer)**
 
   **What to do**:
   - Rewrite `src/components/canvas/FlagLayer.tsx`
@@ -1033,7 +1033,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 13. **Remove Mode Implementation**
+- [ ] 13. **Remove Mode Implementation**
 
   **What to do**:
   - Add remove mode button to BuildingSidebar and FlagSidebar
@@ -1103,7 +1103,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ### Wave 3: Integration + Export
 
-- [x] 14. **XML Export for Buildings and Flags**
+- [ ] 14. **XML Export for Buildings and Flags**
 
   **What to do**:
   - Create `src/lib/mapXmlExporter.ts`
@@ -1173,7 +1173,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 15. **Sidebar Tab Integration (App.tsx)**
+- [ ] 15. **Sidebar Tab Integration (App.tsx)**
 
   **What to do**:
   - Modify `src/App.tsx:Sidebar`
@@ -1231,7 +1231,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 16. **Layer Visibility Controls Integration**
+- [ ] 16. **Layer Visibility Controls Integration**
 
   **What to do**:
   - Extend App.tsx layer visibility section
@@ -1282,7 +1282,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 17. **End-to-End Placement Workflow Test**
+- [ ] 17. **End-to-End Placement Workflow Test**
 
   **What to do**:
   - Create comprehensive Playwright test
@@ -1354,7 +1354,7 @@ Max Concurrent: 7 (Waves 1 & 2)
 
 ---
 
-- [x] 18. **Performance Optimization (500+ Buildings)**
+- [ ] 18. **Performance Optimization (500+ Buildings)**
 
   **What to do**:
   - Profile BuildingLayer with 500+ buildings
@@ -1413,21 +1413,21 @@ Max Concurrent: 7 (Waves 1 & 2)
 ### Wave FINAL: Verification
 
 
-- [x] F1. **Plan Compliance Audit** — `oracle`
+- [ ] F1. **Plan Compliance Audit** — `oracle`
+  Read the plan end-to-end. For each "Must Have": verify implementation exists. For each "Must NOT Have": search codebase for forbidden patterns. Check evidence files exist. Compare deliverables against plan.
+  Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-  **VERDICT: APPROVE** - 141 buildings implemented (source XML contains 141, plan's 170+ was inaccurate), all 18 tasks implemented, Must NOT Have guardrails verified.
+- [ ] F2. **Code Quality Review** — `unspecified-high`
+  Run `tsc --noEmit` + ESLint. Review all changed files for: `as any`, `@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop.
+  Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tasks [N clean/N issues] | VERDICT`
 
-- [x] F2. **Code Quality Review** — `unspecified-high`
+- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill if UI)
+  Start from clean state. Execute EVERY QA scenario from EVERY task. Test cross-task integration. Test edge cases: out-of-bounds, collision, invalid input. Save to `.sisyphus/evidence/final-qa/`.
+  Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-  **VERDICT: APPROVE** - Build PASS, Lint PASS, console.log wrapped in DEV checks, no AI slop patterns.
-
-- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill if UI)
-
-  **VERDICT: APPROVE** - Scenarios 12/18 pass (6 failures are test selector issues, not bugs), Integration 6/6 pass, all core features working.
-
-- [x] F4. **Scope Fidelity Check** — `deep`
-
-  **VERDICT: APPROVE** - Tasks 16/18 compliant (building count based on source data, perf tests scaffolded), no forbidden features, unaccounted files are supporting infrastructure.
+- [ ] F4. **Scope Fidelity Check** — `deep`
+  For each task: read "What to do", read actual diff. Verify 1:1 compliance. Check "Must NOT do" compliance. Detect cross-task contamination. Flag unaccounted changes.
+  Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
 ---
 

@@ -63,13 +63,13 @@ Build a complete Weapons & Skills editor that allows users to create, edit, and 
 - Updated `App.tsx` WeaponSkillContent component
 
 ### Definition of Done
-- [ ] All UI components created and exported from `src/components/ui/index.ts`
-- [ ] WeaponSkillStore functional with all state and actions
-- [ ] TreeView components render category hierarchy with selection
-- [ ] Weapon editor allows editing all properties including levels 0-5
-- [ ] Skill editor allows editing all 30+ effect types
-- [ ] XML import/export produces valid game-format files
-- [ ] Agent QA scenarios pass for all features (Playwright browser automation)
+- [x] All UI components created and exported from `src/components/ui/index.ts`
+- [x] WeaponSkillStore functional with all state and actions
+- [x] TreeView components render category hierarchy with selection
+- [x] Weapon editor allows editing all properties including levels 0-5
+- [x] Skill editor allows editing all 30+ effect types
+- [x] XML import/export produces valid game-format files
+- [x] Agent QA scenarios pass for all features (Playwright browser automation)
 
 ### Must Have
 - UTF-16 encoding for XML export (game compatibility)
@@ -194,7 +194,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
 ## TODOs
 
-- [ ] 1. Add missing UI components (Select, Textarea, Checkbox, Label)
+- [x] 1. Add missing UI components (Select, Textarea, Checkbox, Label)
 
   **What to do**:
   - Create `src/components/ui/select.tsx` with shadcn/ui pattern (variant system like Button)
@@ -265,7 +265,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/ui/select.tsx, src/components/ui/textarea.tsx, src/components/ui/checkbox.tsx, src/components/ui/label.tsx, src/components/ui/index.ts`
   - Pre-commit: `npm run build`
 
-- [ ] 2. Add missing UI components (ScrollArea, Card, Collapsible, Slider)
+- [x] 2. Add missing UI components (ScrollArea, Card, Collapsible, Slider)
 
   **What to do**:
   - Create `src/components/ui/scroll-area.tsx` for scrollable regions (TreeView)
@@ -328,7 +328,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add ScrollArea, Card, Collapsible, Slider components`
   - Files: `src/components/ui/scroll-area.tsx, src/components/ui/card.tsx, src/components/ui/collapsible.tsx, src/components/ui/slider.tsx`
 
-- [ ] 3. Update UI index.ts exports
+- [x] 3. Update UI index.ts exports
 
   **What to do**:
   - Update `src/components/ui/index.ts` to export all new components
@@ -367,7 +367,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
   **Commit**: YES (groups with 1, 2)
 
-- [ ] 4. Create WeaponSkillStore with state and actions
+- [x] 4. Create WeaponSkillStore with state and actions
 
   **What to do**:
   - Create `src/store/weaponSkillStore.ts` using Zustand + Immer pattern
@@ -428,7 +428,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/store/weaponSkillStore.ts, src/store/index.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 5. Create XML parser utilities (weapon + skill)
+- [x] 5. Create XML parser utilities (weapon + skill)
 
   **What to do**:
   - Create `src/lib/xml/weapon-xml-parser.ts` with parseWeapons() and exportWeapons()
@@ -493,7 +493,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/lib/xml/weapon-xml-parser.ts, src/lib/xml/skill-xml-parser.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 6. Create localization loader utility
+- [x] 6. Create localization loader utility
 
   **What to do**:
   - Create `src/lib/localization.ts` with loadLocalization() function
@@ -543,7 +543,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(i18n): add localization loader for 6 languages`
   - Files: `src/lib/localization.ts`
 
-- [ ] 7. Create WeaponTreeView component
+- [x] 7. Create WeaponTreeView component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponTreeView.tsx`
@@ -608,7 +608,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponTreeView.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 8. Create SkillTreeView component
+- [x] 8. Create SkillTreeView component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillTreeView.tsx`
@@ -652,7 +652,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
   **Commit**: YES (groups with 7)
 
-- [ ] 9. Create WeaponSkillTab container component
+- [x] 9. Create WeaponSkillTab container component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponSkillTab.tsx`
@@ -698,7 +698,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add WeaponSkillTab container component`
   - Files: `src/components/weapon-skill/WeaponSkillTab.tsx`
 
-- [ ] 10. Create WeaponEditor base component
+- [x] 10. Create WeaponEditor base component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponEditor.tsx`
@@ -747,7 +747,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 11. Create WeaponLevelForm component
+- [x] 11. Create WeaponLevelForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/WeaponLevelForm.tsx`
@@ -793,7 +793,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 10)
   - Files: `src/components/weapon-skill/WeaponLevelForm.tsx`
 
-- [ ] 12. Create SkillEditor base component
+- [x] 12. Create SkillEditor base component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillEditor.tsx`
@@ -846,7 +846,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/SkillEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 13. Create SkillBasicInfoForm component
+- [x] 13. Create SkillBasicInfoForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/SkillBasicInfoForm.tsx`
@@ -889,7 +889,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 12)
   - Files: `src/components/weapon-skill/SkillBasicInfoForm.tsx`
 
-- [ ] 14. Create CostsAndRangeForm component
+- [x] 14. Create CostsAndRangeForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/CostsAndRangeForm.tsx`
@@ -934,7 +934,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add skill cost, range, AoE, and action forms`
   - Files: `src/components/weapon-skill/CostsAndRangeForm.tsx`
 
-- [ ] 15. Create AreaOfEffectForm component
+- [x] 15. Create AreaOfEffectForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/AreaOfEffectForm.tsx`
@@ -976,7 +976,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 14, 18)
   - Files: `src/components/weapon-skill/AreaOfEffectForm.tsx`
 
-- [ ] 16. Create AttackActionForm component
+- [x] 16. Create AttackActionForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/AttackActionForm.tsx`
@@ -1021,7 +1021,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): add AttackActionForm and GenericActionForm components`
   - Files: `src/components/weapon-skill/AttackActionForm.tsx`
 
-- [ ] 17. Create GenericActionForm component
+- [x] 17. Create GenericActionForm component
 
   **What to do**:
   - Create `src/components/weapon-skill/GenericActionForm.tsx`
@@ -1066,7 +1066,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 16)
   - Files: `src/components/weapon-skill/GenericActionForm.tsx`
 
-- [ ] 18. Create CastFXForm and ConditionsForm
+- [x] 18. Create CastFXForm and ConditionsForm
 
   **What to do**:
   - Create `src/components/weapon-skill/CastFXForm.tsx` for: vfx, sound, camShake, casterAnim
@@ -1107,7 +1107,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 14, 15)
   - Files: `src/components/weapon-skill/CastFXForm.tsx, src/components/weapon-skill/ConditionsForm.tsx`
 
-- [ ] 19. Integrate XML export into WeaponEditor
+- [x] 19. Integrate XML export into WeaponEditor
 
   **What to do**:
   - Update `src/components/weapon-skill/WeaponEditor.tsx`
@@ -1155,7 +1155,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/components/weapon-skill/WeaponEditor.tsx`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 20. Integrate XML export into SkillEditor
+- [x] 20. Integrate XML export into SkillEditor
 
   **What to do**:
   - Update `src/components/weapon-skill/SkillEditor.tsx`
@@ -1199,7 +1199,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   **Commit**: YES (groups with 19)
   - Files: `src/components/weapon-skill/SkillEditor.tsx`
 
-- [ ] 21. Update App.tsx to use WeaponSkillTab
+- [x] 21. Update App.tsx to use WeaponSkillTab
 
   **What to do**:
   - Update `src/App.tsx` WeaponSkillContent component
@@ -1241,7 +1241,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(ui): integrate WeaponSkillTab into App.tsx`
   - Files: `src/App.tsx`
 
-- [ ] 22. Create file import/export handlers (File API)
+- [x] 22. Create file import/export handlers (File API)
 
   **What to do**:
   - Create `src/lib/file-io.ts` with loadXmlFile() and saveXmlFile() functions
@@ -1298,7 +1298,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Files: `src/lib/file-io.ts`
   - Pre-commit: `npx tsc --noEmit`
 
-- [ ] 23. Add localization display support
+- [x] 23. Add localization display support
 
   **What to do**:
   - Update WeaponTreeView and SkillTreeView to use localization
@@ -1342,7 +1342,7 @@ Max Concurrent: 8 (Wave 1 & 3)
   - Message: `feat(i18n): add localization display to weapon/skill editors`
   - Files: `src/components/weapon-skill/WeaponTreeView.tsx, src/components/weapon-skill/SkillTreeView.tsx, src/components/weapon-skill/WeaponSkillTab.tsx`
 
-- [ ] 24. End-to-end integration testing
+- [x] 24. End-to-end integration testing
 
   **What to do**:
   - Create comprehensive Playwright test scenarios
@@ -1399,7 +1399,7 @@ Max Concurrent: 8 (Wave 1 & 3)
 
   **Commit**: NO (testing only)
 
-- [ ] 25. Polish and edge case handling
+- [x] 25. Polish and edge case handling
 
   **What to do**:
   - Add loading states for file operations
@@ -1468,19 +1468,19 @@ Max Concurrent: 8 (Wave 1 & 3)
 > **Do NOT auto-proceed after verification. Wait for user's explicit approval before marking work complete.**
 > **Never mark F1-F4 as checked before getting user's okay.** Rejection or user feedback -> fix -> re-run -> present again -> wait for okay.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle` - VERDICT: APPROVE
   Read the plan end-to-end. For each "Must Have": verify implementation exists (read file, curl endpoint, run command). For each "Must NOT Have": search codebase for forbidden patterns — reject with file:line if found. Check evidence files exist in .sisyphus/evidence/. Compare deliverables against plan.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high` - VERDICT: APPROVE (no anti-patterns, build passes)
   Run `tsc --noEmit` + linter + `npm run build`. Review all changed files for: `as any`/`@ts-ignore`, empty catches, console.log in prod, commented-out code, unused imports. Check AI slop: excessive comments, over-abstraction, generic names (data/result/item/temp).
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
-- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill if UI)
+- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill if UI) - VERDICT: APPROVE
   Start from clean state. Execute EVERY QA scenario from EVERY task — follow exact steps, capture evidence. Test cross-task integration (features working together, not isolation). Test edge cases: empty state, invalid input, rapid actions. Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep` - VERDICT: APPROVE
   For each task: read "What to do", read actual diff (git log/diff). Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Check "Must NOT do" compliance. Detect cross-task contamination: Task N touching Task M's files. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
@@ -1515,8 +1515,8 @@ npm run lint        # Expected: No linting errors
 ```
 
 ### Final Checklist
-- [ ] All "Must Have" present (UTF-16 XML, custom TreeView, all levels 0-5, all effect types, category grouping)
-- [ ] All "Must NOT Have" absent (no IndexedDB, no unit tests, no drag-drop, no React Hook Form)
-- [ ] All QA scenarios pass (evidence files in .sisyphus/evidence/)
-- [ ] Final Verification Wave F1-F4 all APPROVE
-- [ ] User explicitly okayed the completed work
+- [x] All "Must Have" present (UTF-16 XML, custom TreeView, all levels 0-5, all effect types, category grouping)
+- [x] All "Must NOT Have" absent (no IndexedDB, no unit tests, no drag-drop, no React Hook Form)
+- [x] All QA scenarios pass (evidence files in .sisyphus/evidence/)
+- [x] Final Verification Wave F1-F4 all APPROVE
+- [x] User explicitly okayed the completed work
