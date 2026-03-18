@@ -138,7 +138,7 @@
 
 ### 波次 1: 新建对话框
 
-- [ ] 1. 创建 NewWeaponDialog 组件
+- [x] 1. 创建 NewWeaponDialog 组件
 
   **做什么**:
   - 创建 `src/components/weapon-skill/NewWeaponDialog.tsx`
@@ -184,7 +184,7 @@
   - 消息：`feat: 新建武器/技能对话框`
   - 文件：`src/components/weapon-skill/NewWeaponDialog.tsx`
 
-- [ ] 2. 创建 NewSkillDialog 组件
+- [x] 2. 创建 NewSkillDialog 组件
 
   **做什么**:
   - 创建 `src/components/weapon-skill/NewSkillDialog.tsx`
@@ -196,7 +196,7 @@
   - 表单有类别、名称、效果类型字段
   - 提交后新技能添加到 store
 
-- [ ] 3. 添加新建按钮到工具栏
+- [x] 3. 添加新建按钮到工具栏
 
   **做什么**:
   - 在 `Toolbar.tsx` 添加"新建"按钮

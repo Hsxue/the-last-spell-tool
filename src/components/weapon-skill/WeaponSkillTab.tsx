@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { WeaponTreeView } from './WeaponTreeView';
 import { SkillTreeView } from './SkillTreeView';
+import { WeaponEditorFull } from './WeaponEditorFull';
+import { SkillEditorFull } from './SkillEditorFull';
+import { WeaponSkillActions } from './WeaponSkillActions';
 
 type TabType = 'weapons' | 'skills';
 
@@ -19,7 +22,7 @@ export function WeaponSkillTab() {
           }`}
           onClick={() => setActiveTab('weapons')}
         >
-          Weapons
+          武器
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${
@@ -29,7 +32,7 @@ export function WeaponSkillTab() {
           }`}
           onClick={() => setActiveTab('skills')}
         >
-          Skills
+          技能
         </button>
       </div>
       
@@ -41,8 +44,11 @@ export function WeaponSkillTab() {
               <div className="border-r">
                 <WeaponTreeView />
               </div>
-              <div>
-                <p className="p-4 text-sm text-gray-500">Weapon Editor (coming soon)</p>
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <WeaponEditorFull />
+                </div>
+                <WeaponSkillActions />
               </div>
             </div>
           </div>
@@ -52,8 +58,11 @@ export function WeaponSkillTab() {
               <div className="border-r">
                 <SkillTreeView />
               </div>
-              <div>
-                <p className="p-4 text-sm text-gray-500">Skill Editor (coming soon)</p>
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <SkillEditorFull />
+                </div>
+                <WeaponSkillActions />
               </div>
             </div>
           </div>
