@@ -1,5 +1,6 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 import { useState } from 'react';
+import { SkillEffectForms } from './SkillEffectForms';
 
 export function SkillEditorFull() {
   const selectedSkill = useWeaponSkillStore((state: any) => {
@@ -9,6 +10,10 @@ export function SkillEditorFull() {
   const updateSkill = useWeaponSkillStore((state: any) => state.updateSkill);
 
   const [editedSkill, setEditedSkill] = useState<any>(selectedSkill);
+
+  const handleSkillEffectChange = (updates: any) => {
+    setEditedSkill({ ...editedSkill, ...updates });
+  };
 
   if (!selectedSkill) {
     return (
@@ -137,6 +142,12 @@ export function SkillEditorFull() {
         
         <p className="text-xs text-gray-400">更多效果配置 (任务 8 实现)</p>
       </div>
+
+      {/* 效果表单 */}
+      <SkillEffectForms 
+        skill={editedSkill} 
+        onChange={handleSkillEffectChange} 
+      />
 
       {/* 保存按钮 */}
       <div className="pt-4 border-t">
