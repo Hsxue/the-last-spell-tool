@@ -240,7 +240,7 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
 
   // Cache the flag group for performance
   useEffect(() => {
-    if (!groupRef.current) return;
+    if (!groupRef.current || (zoneFlagElements.length === 0 && specialFlagElements.length === 0)) return;
 
     const frameId = requestAnimationFrame(() => {
       groupRef.current?.clearCache();

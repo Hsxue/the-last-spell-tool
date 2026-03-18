@@ -358,12 +358,17 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
 
   // Cache static buildings layer
   useEffect(() => {
-    if (!buildingsRef.current) return;
+    if (!buildingsRef.current || buildingElements.length === 0) return;
 
     const frameId = requestAnimationFrame(() => {
-      buildingsRef.current?.clearCache();
-      buildingsRef.current?.cache();
-      buildingsRef.current?.getLayer()?.batchDraw();
+      try {
+        buildingsRef.current?.clearCache();
+        buildingsRef.current?.cache();
+        buildingsRef.current?.getLayer()?.batchDraw();
+      } catch (error) {
+        // Silently ignore cache errors (e.g., when node has 0 dimensions)
+        console.debug('[BuildingLayer] Caching skipped:', error);
+      }
     });
     return () => cancelAnimationFrame(frameId);
   }, [buildingElements]);
