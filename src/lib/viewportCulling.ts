@@ -96,3 +96,59 @@ export function getVisibleTileKeys(
   
   return keys;
 }
+
+/**
+ * Gets all visible grid lines based on the viewport and zoom level.
+ * Applies zoom-based density filtering to reduce rendering overhead.
+ * 
+ * @param viewport - The current viewport in world coordinates
+ * @param mapWidth - Total width of the map in tiles
+ * @param mapHeight - Total height of the map in tiles
+ * @param tileSize - Size of each tile in pixels
+ * @param zoom - Current zoom level
+ * @returns Object containing arrays of visible vertical and horizontal line positions
+ */
+export function getVisibleGridLines(
+  viewport: Viewport,
+  mapWidth: number,
+  mapHeight: number,
+  tileSize: number,
+  zoom: number
+): { verticalLines: number[]; horizontalLines: number[] } {
+  // Zoom-based density filtering
+  const GRID_ZOOM_HIDE_THRESHOLD = 0.2;
+  const GRID_ZOOM_MAJOR_ONLY_THRESHOLD = 0.5;
+  const GRID_MAJOR_LINE_STEP = 5;
+
+  // Hide all grid lines when zoomed out too far
+  if (zoom < GRID_ZOOM_HIDE_THRESHOLD) {
+    return { verticalLines: [], horizontalLines: [] };
+  }
+
+  // Determine line step based on zoom level
+  const lineStep = zoom < GRID_ZOOM_MAJOR_ONLY_THRESHOLD ? GRID_MAJOR_LINE_STEP : 1;
+
+  // Calculate visible range in tile coordinates
+  const minX = Math.floor(viewport.x / tileSize);
+  const maxX = Math.floor((viewport.x + viewport.width) / tileSize);
+  const minY = Math.floor(viewport.y / tileSize);
+  const maxY = Math.floor((viewport.y + viewport.height) / tileSize);
+
+  // Generate visible vertical line positions (with density filtering)
+  const verticalLines: number[] = [];
+  for (let x = 0; x <= mapWidth; x += lineStep) {
+    if (x >= minX && x <= maxX) {
+      verticalLines.push(x);
+    }
+  }
+
+  // Generate visible horizontal line positions (with density filtering)
+  const horizontalLines: number[] = [];
+  for (let y = 0; y <= mapHeight; y += lineStep) {
+    if (y >= minY && y <= maxY) {
+      horizontalLines.push(y);
+    }
+  }
+
+  return { verticalLines, horizontalLines };
+}

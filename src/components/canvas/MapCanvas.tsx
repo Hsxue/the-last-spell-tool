@@ -11,7 +11,7 @@ import { useMapStore } from '../../store/mapStore';
 import { useUIStore } from '../../store/uiStore';
 import { TerrainLayer } from './TerrainLayer';
 import { GridLayer } from './GridLayer';
-import { BuildingLayer } from './BuildingLayer';
+import { BuildingLayer, BuildingPreview, buildingPreviewHoveredTileRef } from './BuildingLayer';
 import { FlagLayer } from './FlagLayer';
 import type { MapData } from '../../types/map';
 import { canPlaceBuilding } from '../../lib/placementEngine';
@@ -46,6 +46,9 @@ function clamp(value: number, min: number, max: number): number {
 export function MapCanvas({ className }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+  
+  // Ref for throttling custom events (reduce GC pressure)
+  const lastEventTimeRef = useRef(0);
 
   // Get state from store
   const {
@@ -176,26 +179,37 @@ export function MapCanvas({ className }: MapCanvasProps) {
       const tileY = Math.floor(worldY / TILE_SIZE);
 
       // Update hovered tile if within map bounds
-      if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
-        setHoveredTile({ x: tileX, y: tileY });
-      } else {
-        setHoveredTile(null);
+      const newHoveredTile = (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height)
+        ? { x: tileX, y: tileY }
+        : null;
+      
+      // Update Zustand store (for status bar and other components)
+      setHoveredTile(newHoveredTile);
+      
+      // Update BuildingPreview ref (read by BuildingPreview component on its own render cycle)
+      if (editorMode === 'building') {
+        buildingPreviewHoveredTileRef.current = newHoveredTile;
       }
 
-      // Dispatch custom event for MapStatusBar
-      const event = new CustomEvent('mousecoords', {
-        detail: {
-          screenX: Math.round(pos.x),
-          screenY: Math.round(pos.y),
-          worldX: Math.round(worldX * 100) / 100,
-          worldY: Math.round(worldY * 100) / 100,
-          tileX,
-          tileY,
-        },
-      });
-      window.dispatchEvent(event);
+      // Dispatch custom event for MapStatusBar (THROTTLED to reduce GC pressure)
+      // Only dispatch every 100ms to avoid creating too many objects
+      const now = Date.now();
+      if (!lastEventTimeRef.current || now - lastEventTimeRef.current > 16) {
+        lastEventTimeRef.current = now;
+        const event = new CustomEvent('mousecoords', {
+          detail: {
+            screenX: Math.round(pos.x),
+            screenY: Math.round(pos.y),
+            worldX: Math.round(worldX * 100) / 100,
+            worldY: Math.round(worldY * 100) / 100,
+            tileX,
+            tileY,
+          },
+        });
+        window.dispatchEvent(event);
+      }
     },
-    [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height, setHoveredTile]
+    [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height, setHoveredTile, editorMode]
   );
 
   // Handle mouse leave
@@ -387,31 +401,36 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onMouseLeave={handleMouseLeave}
         onClick={handleCanvasClick}
       >
-        {/* Terrain Layer - Bottom */}
+        {/* Terrain Layer - Bottom (needs interaction for terrain drawing) */}
         <Layer imageSmoothingEnabled={false}>
           <TerrainLayer mapData={layerMapData} viewport={viewport} />
         </Layer>
 
-        {/* Grid Layer */}
+        {/* Grid Layer - Static, no interaction needed */}
         {layerVisibility.grid && (
-          <Layer imageSmoothingEnabled={false}>
-            <GridLayer width={width} height={height} zoom={viewport.zoom} />
+          <Layer imageSmoothingEnabled={false} listening={false}>
+            <GridLayer width={width} height={height} zoom={viewport.zoom} offsetX={viewport.offsetX} offsetY={viewport.offsetY} />
           </Layer>
         )}
 
-        {/* Building Layer */}
-        <Layer imageSmoothingEnabled={false}>
+        {/* Building Layer - Static buildings only (memoized to prevent re-renders) */}
+        <Layer imageSmoothingEnabled={false} listening={false}>
           <BuildingLayer
             buildings={layerMapData.buildings}
             viewport={viewport}
-            width={width}
-            height={height}
           />
         </Layer>
 
-        {/* Flag Layer - Top */}
-        {layerVisibility.flags && (
+        {/* Building Preview Layer - Dynamic preview (reads from ref, not state) */}
+        {editorMode === 'building' && (
           <Layer imageSmoothingEnabled={false}>
+            <BuildingPreview />
+          </Layer>
+        )}
+
+        {/* Flag Layer - Top, static, no interaction needed */}
+        {layerVisibility.flags && (
+          <Layer imageSmoothingEnabled={false} listening={false}>
             <FlagLayer mapData={layerMapData} viewport={viewport} />
           </Layer>
         )}

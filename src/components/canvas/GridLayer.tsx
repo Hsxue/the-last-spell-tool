@@ -1,9 +1,13 @@
 /**
  * GridLayer - Renders grid lines for the tile map
  * Provides visual reference for tile boundaries
+ * Features: viewport culling, zoom-based density filtering
  */
 
 import { Line, Group } from 'react-konva';
+import { useMemo } from 'react';
+import React from 'react';
+import { getVisibleGridLines, type Viewport } from '../../lib/viewportCulling';
 
 // ============================================================================
 // Constants
@@ -21,10 +25,14 @@ interface GridLayerProps {
   width: number;
   /** Map height in tiles */
   height: number;
-  /** Current zoom level for adaptive stroke width */
+  /** Current zoom level for adaptive stroke width and density filtering */
   zoom: number;
   /** Grid line color (default: rgba border color) */
   strokeColor?: string;
+  /** Current viewport offset in screen coordinates */
+  offsetX: number;
+  /** Current viewport offset in screen coordinates */
+  offsetY: number;
 }
 
 // ============================================================================
@@ -40,52 +48,62 @@ const BASE_STROKE_WIDTH = 1;
 // Main Component
 // ============================================================================
 
-export function GridLayer({
+export const GridLayer = React.memo(function GridLayer({
   width,
   height,
   zoom,
   strokeColor = DEFAULT_STROKE_COLOR,
+  offsetX,
+  offsetY,
 }: GridLayerProps) {
   // Calculate stroke width based on zoom to maintain consistent visibility
-  // At zoom=1, stroke should be visible (0.05 pixels minimum)
-  // At higher zoom, stroke becomes thinner relative to the view
   const strokeWidth = Math.max(0.02, BASE_STROKE_WIDTH / zoom);
-  // Generate vertical lines
-  const verticalLines = [];
-  for (let x = 0; x <= width; x++) {
-    const xPos = x * TILE_SIZE;
-    verticalLines.push(
-      <Line
-        key={`v-${x}`}
-        points={[xPos, 0, xPos, height * TILE_SIZE]}
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
-        perfectDrawEnabled={false}
-        listening={false}
-      />
-    );
-  }
 
-  // Generate horizontal lines
-  const horizontalLines = [];
-  for (let y = 0; y <= height; y++) {
-    const yPos = y * TILE_SIZE;
-    horizontalLines.push(
-      <Line
-        key={`h-${y}`}
-        points={[0, yPos, width * TILE_SIZE, yPos]}
-        stroke={strokeColor}
-        strokeWidth={strokeWidth}
-        perfectDrawEnabled={false}
-        listening={false}
-      />
-    );
+  // Convert screen-space offsets to world coordinates
+  const viewport: Viewport = useMemo(() => ({
+    x: -offsetX / zoom,
+    y: -offsetY / zoom,
+    width: window.innerWidth / zoom,
+    height: window.innerHeight / zoom,
+  }), [offsetX, offsetY, zoom]);
+
+  // Calculate visible grid lines with zoom-based density filtering
+  const { verticalLines, horizontalLines } = useMemo(() => {
+    return getVisibleGridLines(viewport, width, height, TILE_SIZE, zoom);
+  }, [viewport, width, height, zoom]);
+
+  // Log rendering statistics in development mode
+  if (import.meta.env.DEV) {
+    const totalPossibleLines = (width + 1) + (height + 1);
+    const renderedLines = verticalLines.length + horizontalLines.length;
+    const reductionPercent = ((totalPossibleLines - renderedLines) / totalPossibleLines * 100).toFixed(1);
+    console.log(`[GridLayer] Rendering ${renderedLines} / ${totalPossibleLines} lines (${reductionPercent}% reduction)`);
   }
 
   return (
     <Group>
-      {verticalLines}
-      {horizontalLines}
+      {/* Vertical grid lines */}
+      {verticalLines.map((x) => (
+        <Line
+          key={`v-${x}`}
+          points={[x * TILE_SIZE, 0, x * TILE_SIZE, height * TILE_SIZE]}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          perfectDrawEnabled={false}
+          listening={false}
+        />
+      ))}
+      {/* Horizontal grid lines */}
+      {horizontalLines.map((y) => (
+        <Line
+          key={`h-${y}`}
+          points={[0, y * TILE_SIZE, width * TILE_SIZE, y * TILE_SIZE]}
+          stroke={strokeColor}
+          strokeWidth={strokeWidth}
+          perfectDrawEnabled={false}
+          listening={false}
+        />
+      ))}
     </Group>
   );
-}
+});

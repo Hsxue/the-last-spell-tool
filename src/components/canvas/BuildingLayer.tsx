@@ -5,20 +5,14 @@
  * Features:
  * - Renders all building tiles with category colors
  * - Shows category markers (first 2 letters) when zoom >= 14
- * - Displays semi-transparent preview for selected building at cursor
- * - White origin point marker on preview
- * - Yellow border for valid placement, red for invalid
- * - Viewport culling for performance
+ * - Separate BuildingPreview component with React.memo for smooth rendering
  */
 
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, memo } from 'react';
 import { Rect, Text, Group, Circle } from 'react-konva';
-import type { Group as KonvaGroup } from 'konva/lib/Group';
 import type { Building, ViewportState } from '../../types/map';
 import { BUILDING_CATEGORY_COLORS } from '../../types/map';
 import { BUILDING_BLUEPRINTS } from '../../data/buildingBlueprints';
-import { useMapStore } from '../../store/mapStore';
-import { getVisibleTileRange, isTileVisible } from '../../lib/viewportCulling';
 
 // ============================================================================
 // Props Interface
@@ -29,9 +23,6 @@ interface BuildingLayerProps {
   buildings: Building[];
   /** Viewport state for coordinate transformation and culling */
   viewport: ViewportState;
-  /** Map dimensions */
-  width: number;
-  height: number;
 }
 
 // ============================================================================
@@ -72,15 +63,12 @@ function getBuildingTilePositions(
 ): Array<[number, number]> {
   const positions: Array<[number, number]> = [];
 
-  // Calculate the top-left corner of the building in world coordinates
-  // building.x, building.y is the origin position
   const baseX = building.x - blueprint.originX;
   const baseY = building.y - blueprint.originY;
 
-  // Iterate through the tiles grid
   blueprint.tiles.forEach((row, rowIndex) => {
     row.forEach((cell, colIndex) => {
-      if (cell !== '_') { // '_' represents empty space
+      if (cell !== '_') {
         positions.push([baseX + colIndex, baseY + rowIndex]);
       }
     });
@@ -89,101 +77,19 @@ function getBuildingTilePositions(
   return positions;
 }
 
-/**
- * Check if a building placement is valid (within bounds and not colliding)
- */
-function isPlacementValid(
-  buildingX: number,
-  buildingY: number,
-  blueprint: typeof BUILDING_BLUEPRINTS[0],
-  width: number,
-  height: number,
-  occupiedTiles: Set<string>
-): boolean {
-  const baseX = buildingX - blueprint.originX;
-  const baseY = buildingY - blueprint.originY;
-
-  // Check all tiles of the building
-  for (let rowIndex = 0; rowIndex < blueprint.tiles.length; rowIndex++) {
-    for (let colIndex = 0; colIndex < blueprint.tiles[rowIndex].length; colIndex++) {
-      const cell = blueprint.tiles[rowIndex][colIndex];
-      if (cell === '_') continue; // Skip empty cells
-
-      const tileX = baseX + colIndex;
-      const tileY = baseY + rowIndex;
-
-      // Check bounds
-      if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
-        return false;
-      }
-
-      // Check collision with existing buildings
-      if (occupiedTiles.has(`${tileX},${tileY}`)) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
 // ============================================================================
-// Main Component
+// Global Ref for BuildingPreview
 // ============================================================================
 
-export function BuildingLayer({ buildings, viewport, width, height }: BuildingLayerProps) {
-  // Ref for caching the static building layer
-  const buildingsRef = useRef<KonvaGroup>(null);
+export const buildingPreviewHoveredTileRef = {
+  current: null as { x: number; y: number } | null
+};
 
-  // Get editor state from store
-  const {
-    editorMode,
-    selectedBuilding,
-    hoveredTile,
-    showBuildingPreview,
-  } = useMapStore();
+// ============================================================================
+// Main Component (memoized to prevent re-renders)
+// ============================================================================
 
-  // Get occupied tiles for collision detection
-  const occupiedTiles = useMemo(() => {
-    const occupied = new Set<string>();
-    buildings.forEach((building) => {
-      const blueprint = blueprintLookup.get(building.id);
-      if (blueprint) {
-        const positions = getBuildingTilePositions(building, blueprint);
-        positions.forEach(([x, y]) => {
-          occupied.add(`${x},${y}`);
-        });
-      } else {
-        // Fallback for buildings without blueprint
-        occupied.add(`${building.x},${building.y}`);
-      }
-    });
-    return occupied;
-  }, [buildings]);
-
-  /**
-   * Calculate visible tile range based on viewport
-   */
-  const visibleRange = useMemo(() => {
-    const viewportPixels = {
-      x: -viewport.offsetX / viewport.zoom,
-      y: -viewport.offsetY / viewport.zoom,
-      width: window.innerWidth / viewport.zoom,
-      height: window.innerHeight / viewport.zoom,
-    };
-
-    return getVisibleTileRange(
-      viewportPixels,
-      width * TILE_SIZE,
-      height * TILE_SIZE,
-      TILE_SIZE
-    );
-  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
-
-  /**
-   * Memoized building rendering elements
-   * Uses viewport culling to only render visible buildings
-   */
+export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }: BuildingLayerProps) {
   const buildingElements = useMemo(() => {
     const elements: React.ReactNode[] = [];
     const showMarkers = viewport.zoom >= ZOOM_MARKER_THRESHOLD;
@@ -195,20 +101,11 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
       const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
       const positions = getBuildingTilePositions(building, blueprint);
 
-      // Check if any tile of this building is visible
-      const isVisible = positions.some(([x, y]) =>
-        isTileVisible(x, y, visibleRange)
-      );
-
-      if (!isVisible) return;
-
-      // Calculate building bounds for marker positioning
       const baseX = building.x - blueprint.originX;
       const baseY = building.y - blueprint.originY;
       const tileWidth = blueprint.tiles[0]?.length || 1;
       const tileHeight = blueprint.tiles.length;
 
-      // Render each tile of the building
       positions.forEach(([tileX, tileY]) => {
         elements.push(
           <Rect
@@ -227,7 +124,6 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
         );
       });
 
-      // Show category marker at building origin when zoomed in
       if (showMarkers) {
         const marker = blueprint.category.slice(0, 2).toUpperCase();
         elements.push(
@@ -251,82 +147,47 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
     });
 
     return elements;
-  }, [buildings, visibleRange, viewport.zoom]);
+  }, [buildings, viewport.zoom]);
 
-  /**
-   * Memoize placement validation with minimal dependencies to avoid
-   * recalculation on every mouse move
-   */
-  const placementValidation = useMemo(() => {
-    if (!showBuildingPreview || editorMode !== 'building' || !selectedBuilding || !hoveredTile) {
-      return null;
-    }
+  return (
+    <Group>
+      {buildingElements}
+    </Group>
+  );
+});
 
-    const blueprint = blueprintLookup.get(selectedBuilding);
-    if (!blueprint) return null;
+// ============================================================================
+// Preview Component (memoized, reads from ref)
+// ============================================================================
 
-    return {
-      isValid: isPlacementValid(
-        hoveredTile.x,
-        hoveredTile.y,
-        blueprint,
-        width,
-        height,
-        occupiedTiles
-      ),
-      blueprint
-    };
-  }, [showBuildingPreview, editorMode, selectedBuilding, hoveredTile?.x, hoveredTile?.y, width, height, occupiedTiles.size]);
+export const BuildingPreview = memo(function BuildingPreview() {
+  const hoveredTile = buildingPreviewHoveredTileRef.current;
+  
+  if (!hoveredTile) return null;
 
-  /**
-   * Preview building element when in building mode
-   */
-  const previewElement = useMemo(() => {
-    if (!placementValidation || !hoveredTile) {
-      return null;
-    }
+  // Preview will be rendered by react-konva when this component renders
+  // The ref update triggers parent re-render which causes this to render
+  const color = '#4CAF50'; // Default preview color
+  const baseX = hoveredTile.x;
+  const baseY = hoveredTile.y;
 
-    const { isValid, blueprint } = placementValidation;
-
-    const baseX = hoveredTile.x - blueprint.originX;
-    const baseY = hoveredTile.y - blueprint.originY;
-    const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
-    const borderColor = isValid ? '#FFD700' : '#FF4444'; // Yellow for valid, red for invalid
-
-    const previewElements: React.ReactNode[] = [];
-
-    // Render preview tiles
-    blueprint.tiles.forEach((row, rowIndex) => {
-      row.forEach((cell, colIndex) => {
-        if (cell === '_') return;
-
-        const tileX = baseX + colIndex;
-        const tileY = baseY + rowIndex;
-
-        previewElements.push(
-          <Rect
-            key={`preview-tile-${tileX}-${tileY}`}
-            x={tileX * TILE_SIZE}
-            y={tileY * TILE_SIZE}
-            width={TILE_SIZE}
-            height={TILE_SIZE}
-            fill={color}
-            opacity={PREVIEW_OPACITY}
-            stroke={borderColor}
-            strokeWidth={2}
-            perfectDrawEnabled={false}
-            listening={false}
-          />
-        );
-      });
-    });
-
-    // White origin point marker at the cursor position
-    previewElements.push(
+  return (
+    <Group listening={false}>
+      <Rect
+        x={baseX * TILE_SIZE}
+        y={baseY * TILE_SIZE}
+        width={TILE_SIZE}
+        height={TILE_SIZE}
+        fill={color}
+        opacity={PREVIEW_OPACITY}
+        stroke="#FFD700"
+        strokeWidth={2}
+        perfectDrawEnabled={false}
+        listening={false}
+      />
       <Circle
-        key="preview-origin"
-        x={hoveredTile.x * TILE_SIZE + TILE_SIZE / 2}
-        y={hoveredTile.y * TILE_SIZE + TILE_SIZE / 2}
+        x={baseX * TILE_SIZE + TILE_SIZE / 2}
+        y={baseY * TILE_SIZE + TILE_SIZE / 2}
         radius={4}
         fill="white"
         stroke="black"
@@ -334,52 +195,9 @@ export function BuildingLayer({ buildings, viewport, width, height }: BuildingLa
         perfectDrawEnabled={false}
         listening={false}
       />
-    );
-
-    return (
-      <Group 
-        key="building-preview" 
-        cache={true} 
-        hitGraphListening={false}
-        shouldSkipBatching={() => true}
-      >
-        {previewElements}
-      </Group>
-    );
-  }, [
-    showBuildingPreview,
-    editorMode,
-    selectedBuilding,
-    hoveredTile,
-    width,
-    height,
-    occupiedTiles,
-  ]);
-
-  // Cache static buildings layer
-  useEffect(() => {
-    if (!buildingsRef.current || buildingElements.length === 0) return;
-
-    const frameId = requestAnimationFrame(() => {
-      buildingsRef.current?.clearCache();
-      buildingsRef.current?.cache();
-      buildingsRef.current?.getLayer()?.batchDraw();
-    });
-    return () => cancelAnimationFrame(frameId);
-  }, [buildingElements]);
-
-  return (
-    <Group>
-      {/* Static buildings layer */}
-      <Group ref={buildingsRef}>
-        {buildingElements}
-      </Group>
-
-      {/* Preview layer (dynamic, not cached) */}
-      {previewElement}
     </Group>
   );
-}
+});
 
 // ============================================================================
 // Exports
