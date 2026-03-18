@@ -476,7 +476,7 @@ function MainContent() {
   };
 
   return (
-    <div className="flex-1 overflow-hidden">
+    <div className="flex-1 overflow-hidden h-full">
       {renderContent()}
     </div>
   );
