@@ -185,7 +185,7 @@ function Sidebar() {
   }
 
   return (
-    <aside className="w-72 border-r border-border bg-card flex flex-col">
+    <aside className="w-72 border-r border-border bg-card flex flex-col h-screen">
       {/* Sidebar Header */}
       <div className="h-12 border-b border-border flex items-center justify-between px-3">
         <span className="font-medium">Tools</span>
