@@ -125,6 +125,7 @@ interface ConfigStoreActions {
   removeSpawnMultiplier: (night: number) => void;
   setSpawnsPerWaveFormula: (formula: string) => void;
   setMaxDistancePerDay: (night: number, distance: number) => void;
+  removeMaxDistancePerDay: (night: number) => void;
   addDisallowedEnemy: (enemyId: string) => void;
   removeDisallowedEnemy: (enemyId: string) => void;
   setSpawnPointsPerGroup: (points: number) => void;
@@ -269,6 +270,13 @@ export const useConfigStore = create<ConfigStoreState & ConfigStoreActions>()(
     setMaxDistancePerDay: (night, distance) => {
       set((state) => {
         state.gameConfig.spawnConfig.maxDistancePerDay.set(night, distance);
+        state.ui.hasUnsavedChanges = true;
+      });
+    },
+
+    removeMaxDistancePerDay: (night) => {
+      set((state) => {
+        state.gameConfig.spawnConfig.maxDistancePerDay.delete(night);
         state.ui.hasUnsavedChanges = true;
       });
     },

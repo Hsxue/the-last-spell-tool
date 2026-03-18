@@ -5,9 +5,8 @@
 
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
-import BuildingSidebar from './components/sidebar/BuildingSidebar';
-import FlagSidebar from './components/sidebar/FlagSidebar';
-import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
+import { MapStatusBar } from './components/MapStatusBar';
+import { ConfigTabs } from './components/config';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -145,16 +144,7 @@ function Sidebar() {
     height,
     selectedTerrain,
     setSelectedTerrain,
-    setEditorMode,
-    selectedBuilding,
-    setSelectedBuilding,
-    selectedFlag,
-    setSelectedFlag,
-    buildingHealth,
-    setBuildingHealth,
-    setIsRemoving,
-    removeMode,
-    setRemoveMode
+    setEditorMode
   } = useMapStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -185,7 +175,7 @@ function Sidebar() {
   }
 
   return (
-    <aside className="w-72 border-r border-border bg-card flex flex-col h-screen">
+    <aside className="w-72 border-r border-border bg-card flex flex-col">
       {/* Sidebar Header */}
       <div className="h-12 border-b border-border flex items-center justify-between px-3">
         <span className="font-medium">Tools</span>
@@ -280,37 +270,24 @@ function Sidebar() {
         )}
 
         {activeTab === 'building' && (
-          <div className="h-full overflow-hidden">
-            <BuildingSidebar 
-              buildingBlueprints={BUILDING_BLUEPRINTS.map(bp => ({ 
-                id: bp.id, 
-                name: bp.id.replace(/([A-Z])/g, ' $1').trim(), // Convert from camelCase to sentence case 
-                category: bp.category 
-              }))} 
-              selectedBuilding={selectedBuilding} 
-              setSelectedBuilding={setSelectedBuilding} 
-              buildingHealth={buildingHealth ?? 100}
-              setBuildingHealth={setBuildingHealth}
-              removeMode={removeMode === 'building'}
-              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'building' : null)}
-              setIsRemoving={setIsRemoving}
-            />
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Buildings</h3>
+              <p className="text-sm text-muted-foreground">
+                Building selection will be available here.
+              </p>
+            </div>
           </div>
         )}
 
         {activeTab === 'flag' && (
-          <div className="h-full overflow-hidden">
-            <FlagSidebar
-              selectedFlag={selectedFlag}
-              setSelectedFlag={setSelectedFlag}
-              flagLayerVisible={true}
-              zoneLayerVisible={true}
-              setFlagLayerVisible={() => {}}
-              setZoneLayerVisible={() => {}}
-              removeMode={removeMode === 'flag'}
-              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'flag' : null)}
-              setIsRemoving={setIsRemoving}
-            />
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Flags</h3>
+              <p className="text-sm text-muted-foreground">
+                Flag placement will be available here.
+              </p>
+            </div>
           </div>
         )}
 
@@ -353,7 +330,6 @@ function Sidebar() {
           {[
             { key: 'grid', label: 'Grid' },
             { key: 'zones', label: 'Zones' },
-            { key: 'buildings', label: 'Buildings' },
             { key: 'flags', label: 'Flags' },
             { key: 'occupied', label: 'Occupied' },
           ].map(({ key, label }) => (
@@ -430,27 +406,14 @@ function MapEditorContent() {
         <div className="flex-1 relative">
           <MapCanvas />
         </div>
-        {/* <MapStatusBar /> */}
+        <MapStatusBar />
       </div>
     </div>
   );
 }
 
 function GameConfigContent() {
-  return (
-    <div className="flex-1 flex items-center justify-center p-8 bg-muted">
-      <div className="text-center max-w-md">
-        <Settings className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Game Configuration</h2>
-        <p className="text-muted-foreground mb-4">
-          Manage game settings, difficulty levels, and configuration files here.
-        </p>
-        <Button variant="outline">
-          Configure General Settings
-        </Button>
-      </div>
-    </div>
-  );
+  return <ConfigTabs />;
 }
 
 function WeaponSkillContent() {
