@@ -211,7 +211,7 @@
 
 ### 波次 2: 完整编辑器表单
 
-- [ ] 4. WeaponEditorForm - 基本信息
+- [x] 4. WeaponEditorForm - 基本信息
 
   **做什么**:
   - 创建 `src/components/weapon-skill/WeaponEditorForm.tsx`
@@ -247,7 +247,7 @@
   - 添加/删除属性加成行
   - 验证数值为正整数
 
-- [ ] 7. SkillEditorForm - 基本信息
+- [x] 7. SkillEditorForm - 基本信息
 
   **做什么**:
   - 创建 `src/components/weapon-skill/SkillEditorForm.tsx`
@@ -279,7 +279,7 @@
 
 ### 波次 3: 操作和配置
 
-- [ ] 10. 复制功能
+- [x] 10. 复制功能
 
   **做什么**:
   - 在编辑器工具栏添加"复制"按钮
@@ -290,7 +290,7 @@
   - 点击复制创建新项目
   - 新项目名称为"原名称 (副本)"
 
-- [ ] 11. 删除功能和确认对话框
+- [x] 11. 删除功能和确认对话框
 
   **做什么**:
   - 添加"删除"按钮到工具栏
