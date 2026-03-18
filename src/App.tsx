@@ -115,7 +115,7 @@ const featureTabs: { id: FeatureTab; label: string; icon: React.ElementType }[] 
 function FeatureTabs() {
   const { activeFeatureTab, setActiveFeatureTab } = useUIStore();
   return (
-    <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-2">
+    <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-2 z-40 relative">
       {featureTabs.map((tab) => (
         <button 
           key={tab.id} 
