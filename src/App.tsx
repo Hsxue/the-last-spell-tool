@@ -6,6 +6,9 @@
 import { Button } from './components/ui/button';
 import { MapCanvas } from './components/canvas';
 import { MapStatusBar } from './components/MapStatusBar';
+import BuildingSidebar from './components/sidebar/BuildingSidebar';
+import FlagSidebar from './components/sidebar/FlagSidebar';
+import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import {
@@ -143,7 +146,16 @@ function Sidebar() {
     height,
     selectedTerrain,
     setSelectedTerrain,
-    setEditorMode
+    setEditorMode,
+    selectedBuilding,
+    setSelectedBuilding,
+    selectedFlag,
+    setSelectedFlag,
+    buildingHealth,
+    setBuildingHealth,
+    setIsRemoving,
+    removeMode,
+    setRemoveMode
   } = useMapStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
@@ -269,24 +281,37 @@ function Sidebar() {
         )}
 
         {activeTab === 'building' && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Buildings</h3>
-              <p className="text-sm text-muted-foreground">
-                Building selection will be available here.
-              </p>
-            </div>
+          <div className="h-full overflow-hidden">
+            <BuildingSidebar 
+              buildingBlueprints={BUILDING_BLUEPRINTS.map(bp => ({ 
+                id: bp.id, 
+                name: bp.id.replace(/([A-Z])/g, ' $1').trim(), // Convert from camelCase to sentence case 
+                category: bp.category 
+              }))} 
+              selectedBuilding={selectedBuilding} 
+              setSelectedBuilding={setSelectedBuilding} 
+              buildingHealth={buildingHealth ?? 100}
+              setBuildingHealth={setBuildingHealth}
+              removeMode={removeMode === 'building'}
+              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'building' : null)}
+              setIsRemoving={setIsRemoving}
+            />
           </div>
         )}
 
         {activeTab === 'flag' && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-sm font-medium mb-2">Flags</h3>
-              <p className="text-sm text-muted-foreground">
-                Flag placement will be available here.
-              </p>
-            </div>
+          <div className="h-full overflow-hidden">
+            <FlagSidebar
+              selectedFlag={selectedFlag}
+              setSelectedFlag={setSelectedFlag}
+              flagLayerVisible={true}
+              zoneLayerVisible={true}
+              setFlagLayerVisible={() => {}}
+              setZoneLayerVisible={() => {}}
+              removeMode={removeMode === 'flag'}
+              setRemoveMode={(enabled) => setRemoveMode(enabled ? 'flag' : null)}
+              setIsRemoving={setIsRemoving}
+            />
           </div>
         )}
 
@@ -329,6 +354,7 @@ function Sidebar() {
           {[
             { key: 'grid', label: 'Grid' },
             { key: 'zones', label: 'Zones' },
+            { key: 'buildings', label: 'Buildings' },
             { key: 'flags', label: 'Flags' },
             { key: 'occupied', label: 'Occupied' },
           ].map(({ key, label }) => (

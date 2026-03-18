@@ -229,6 +229,8 @@ export interface LayerVisibility {
   grid: boolean;
   /** Show special flags (markers) */
   flags: boolean;
+  /** Show building outlines */
+  buildings: boolean;
   /** Show building occupied tiles */
   occupied: boolean;
   /** Show building category markers */

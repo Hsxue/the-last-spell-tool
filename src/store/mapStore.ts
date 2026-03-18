@@ -33,6 +33,10 @@ interface MapState {
   brushSize: number;
   buildingHealth: number | undefined;
 
+  // Removal State
+  isRemoving: boolean;
+  removeMode: 'building' | 'flag' | null;
+
   // Viewport State
   viewport: ViewportState;
 
@@ -59,6 +63,10 @@ interface MapState {
   setHoveredTile: (tile: { x: number; y: number } | null) => void;
   addError: (error: string) => void;
   clearErrors: () => void;
+
+  // Removal Actions
+  setIsRemoving: (isRemoving: boolean) => void;
+  setRemoveMode: (mode: 'building' | 'flag' | null) => void;
 
   // Map Data Mutations
   setTerrain: (x: number, y: number, terrain: TerrainType) => void;
@@ -96,6 +104,7 @@ const defaultLayerVisibility: LayerVisibility = {
   zones: true,
   grid: true,
   flags: true,
+  buildings: true,
   occupied: true,
   categoryMarkers: true,
 };
@@ -116,6 +125,9 @@ export const useMapStore = create<MapState>()(
     selectedFlag: null,
     brushSize: 1,
     buildingHealth: undefined,
+    // Removal state
+    isRemoving: false,
+    removeMode: null,
     viewport: defaultViewport,
     layerVisibility: defaultLayerVisibility,
     showBuildingPreview: true,
@@ -199,6 +211,18 @@ export const useMapStore = create<MapState>()(
     setHoveredTile: (tile) => {
       set((state) => {
         state.hoveredTile = tile;
+      });
+    },
+
+    setIsRemoving: (isRemoving) => {
+      set((state) => {
+        state.isRemoving = isRemoving;
+      });
+    },
+
+    setRemoveMode: (mode) => {
+      set((state) => {
+        state.removeMode = mode;
       });
     },
 
@@ -342,6 +366,34 @@ export const selectBuildingAt = (x: number, y: number) => {
 };
 
 export const selectFlagsAt = (x: number, y: number) => {
+  return (state: MapState) => {
+    if (!state.mapData) return [] as string[];
+    const flags: string[] = [];
+    state.mapData.flags.forEach((positions, flagType) => {
+      if (positions.some((p) => p[0] === x && p[1] === y)) {
+        flags.push(flagType);
+      }
+    });
+    return flags;
+  };
+};
+
+/**
+ * Selector to return Set<"x,y"> of all building positions for collision detection
+ */
+export const selectOccupiedTiles = (state: MapState) => {
+  if (!state.mapData) return new Set<string>();
+  const occupied = new Set<string>();
+  state.mapData.buildings.forEach((building) => {
+    occupied.add(`${building.x},${building.y}`);
+  });
+  return occupied;
+};
+
+/**
+ * Selector to return array of flag types at a specific position
+ */
+export const selectFlagsAtPosition = (x: number, y: number) => {
   return (state: MapState) => {
     if (!state.mapData) return [] as string[];
     const flags: string[] = [];

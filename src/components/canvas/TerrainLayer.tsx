@@ -371,7 +371,9 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
     );
 
     // Log rendered tile count for verification
-    console.log(`[TerrainLayer] Rendering ${visibleTerrainData.length} / ${terrainData.length} terrain tiles (viewport culling)`);
+    if (import.meta.env.DEV) {
+      console.log(`[TerrainLayer] Rendering ${visibleTerrainData.length} / ${terrainData.length} terrain tiles (viewport culling)`);
+    }
 
     return visibleTerrainData.map(({ key, x, y, terrainType }) => (
       <Rect

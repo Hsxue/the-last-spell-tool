@@ -8,11 +8,13 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import { Stage, Layer } from 'react-konva';
 import type { KonvaEventObject } from 'konva/lib/Node';
 import { useMapStore } from '../../store/mapStore';
+import { useUIStore } from '../../store/uiStore';
 import { TerrainLayer } from './TerrainLayer';
 import { GridLayer } from './GridLayer';
 import { BuildingLayer } from './BuildingLayer';
 import { FlagLayer } from './FlagLayer';
 import type { MapData } from '../../types/map';
+import { canPlaceBuilding } from '../../lib/placementEngine';
 
 // ============================================================================
 // Props Interface
@@ -55,7 +57,19 @@ export function MapCanvas({ className }: MapCanvasProps) {
     setViewport,
     editorMode,
     setHoveredTile,
+    selectedBuilding,
+    selectedFlag,
+    isRemoving,
+    removeMode,
+    buildingHealth,
+    addBuilding,
+    removeBuilding,
+    addFlag,
+    removeFlag,
   } = useMapStore();
+
+  // Get UI store for toasts
+  const { addToast } = useUIStore();
 
   // Initialize map to center on first mount
   useEffect(() => {
@@ -189,6 +203,155 @@ export function MapCanvas({ className }: MapCanvasProps) {
     setHoveredTile(null);
   }, [setHoveredTile]);
 
+  // Handle canvas click for building placement and removal
+  const handleCanvasClick = useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      const stage = e.target.getStage();
+      const pos = stage?.getPointerPosition();
+      if (!pos) return;
+
+      // Calculate tile coordinates from screen coordinates
+      const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
+      const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
+      const tileX = Math.floor(worldX / TILE_SIZE);
+      const tileY = Math.floor(worldY / TILE_SIZE);
+
+      // Boundary check
+      if (tileX < 0 || tileX >= width || tileY < 0 || tileY >= height) {
+        return;
+      }
+
+      // Handle flag removal mode
+      if (isRemoving && removeMode === 'flag') {
+        // Get all flag types at this position and remove them
+        if (mapData?.flags) {
+          const flagsToRemove: string[] = [];
+          mapData.flags.forEach((positions, flagType) => {
+            if (positions.some((p) => p[0] === tileX && p[1] === tileY)) {
+              flagsToRemove.push(flagType);
+            }
+          });
+          // Remove each flag type at this position
+          flagsToRemove.forEach((flagType) => {
+            removeFlag(tileX, tileY, flagType);
+          });
+        }
+        return;
+      }
+
+      // Handle flag placement mode
+      if (selectedFlag && editorMode === 'flag') {
+        // Check if this is a zone flag
+        const isZoneFlag = selectedFlag.startsWith('Zone_');
+        
+        if (isZoneFlag) {
+          // Zone flags need SizeX/SizeY from store - use default size of 1 for now
+          // In full implementation, these would come from store configuration
+          addFlag({
+            flagType: selectedFlag,
+            x: tileX,
+            y: tileY,
+          });
+        } else {
+          // Regular flags
+          addFlag({
+            flagType: selectedFlag,
+            x: tileX,
+            y: tileY,
+          });
+        }
+
+        addToast({
+          title: 'Flag Placed',
+          description: `${selectedFlag} placed at (${tileX}, ${tileY})`,
+          type: 'success',
+          duration: 2000,
+        });
+        return;
+      }
+
+      // Handle building removal mode
+      if (isRemoving && removeMode === 'building') {
+        removeBuilding(tileX, tileY);
+        return;
+      }
+
+      // Handle building placement
+      if (selectedBuilding && editorMode === 'building') {
+        // Create a temporary building object for validation
+        const tempBuilding = {
+          position: { x: tileX, y: tileY },
+          width: 1,
+          height: 1,
+        };
+
+        // Validate placement using placementEngine
+        const placementResult = canPlaceBuilding(tempBuilding, { width, height });
+
+        if (!placementResult.valid) {
+          // Show error toast for invalid placement
+          addToast({
+            title: 'Cannot Place Building',
+            description: placementResult.reason || 'Invalid placement',
+            type: 'error',
+            duration: 3000,
+          });
+          return;
+        }
+
+        // Check if there's already a building at this position
+        const existingBuilding = mapData?.buildings.find(
+          (b) => b.x === tileX && b.y === tileY
+        );
+
+        if (existingBuilding) {
+          addToast({
+            title: 'Building Already Exists',
+            description: 'Remove the existing building first',
+            type: 'error',
+            duration: 3000,
+          });
+          return;
+        }
+
+        // Place the building
+        addBuilding({
+          id: selectedBuilding,
+          x: tileX,
+          y: tileY,
+          health: buildingHealth,
+        });
+
+        addToast({
+          title: 'Building Placed',
+          description: `${selectedBuilding} placed at (${tileX}, ${tileY})`,
+          type: 'success',
+          duration: 2000,
+        });
+      }
+    },
+    [
+      viewport.offsetX,
+      viewport.offsetY,
+      viewport.zoom,
+      width,
+      height,
+      selectedBuilding,
+      selectedFlag,
+      editorMode,
+      isRemoving,
+      removeMode,
+      buildingHealth,
+      mapData?.buildings,
+      mapData?.flags,
+      addBuilding,
+      removeBuilding,
+      addFlag,
+      removeFlag,
+      addToast,
+    ]
+  );
+
   // Prepare map data for layers
   const layerMapData: MapData | null = mapData || {
     width,
@@ -222,6 +385,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onDragEnd={handleDragEnd}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
+        onClick={handleCanvasClick}
       >
         {/* Terrain Layer - Bottom */}
         <Layer imageSmoothingEnabled={false}>
@@ -239,14 +403,16 @@ export function MapCanvas({ className }: MapCanvasProps) {
         <Layer imageSmoothingEnabled={false}>
           <BuildingLayer
             buildings={layerMapData.buildings}
-            showPreview={layerVisibility.occupied}
+            viewport={viewport}
+            width={width}
+            height={height}
           />
         </Layer>
 
         {/* Flag Layer - Top */}
         {layerVisibility.flags && (
           <Layer imageSmoothingEnabled={false}>
-            <FlagLayer flags={layerMapData.flags} />
+            <FlagLayer mapData={layerMapData} viewport={viewport} />
           </Layer>
         )}
       </Stage>

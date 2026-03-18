@@ -1,49 +1,68 @@
 /**
  * FlagLayer - Renders tile flags and markers on the map
- * Phase 2 Task 1: Placeholder implementation
- * Phase 2 Task 5: Full flag rendering logic
+ * Phase 2 Task 12: Zone flag rectangle rendering with viewport culling
+ *
+ * Features:
+ * - Zone flags render as colored rectangles using ZONE_COLORS
+ * - Special flags render as text markers using FLAG_CONFIG
+ * - Visibility toggles per flag type from store layerVisibility
+ * - Viewport culling for performance with 100+ flags
+ * - Konva batching optimization
  */
 
-import { Circle, Text, Group } from 'react-konva';
-import { FLAG_CONFIG, ZONE_COLORS } from '../../types/map';
+import { useMemo, useRef, useEffect } from 'react';
+import { Rect, Text, Group } from 'react-konva';
+import type { Group as KonvaGroup } from 'konva/lib/Group';
+import type { MapData, ViewportState } from '../../types/map';
+import { FLAG_CONFIG, ZONE_COLORS, ZONE_FLAGS } from '../../types/map';
+import { useMapStore } from '../../store/mapStore';
+import { getVisibleTileRange, isTileVisible } from '../../lib/viewportCulling';
 
 // ============================================================================
-// Props Interface
+// Constants
 // ============================================================================
 
-interface FlagLayerProps {
-  /** Map of flag type to array of positions [x, y] */
-  flags: Map<string, Array<[number, number]>>;
-}
+/** Size of each tile in pixels */
+const TILE_SIZE = 20;
+
+/** Default zone flag size (1x1 tile) */
+const DEFAULT_ZONE_SIZE = 1;
+
+/** Zone flag rectangle opacity */
+const ZONE_OPACITY = 0.5;
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
 
 /**
- * Get flag display configuration
+ * Check if a flag type is a zone flag
  */
-function getFlagConfig(flagType: string): {
+function isZoneFlag(flagType: string): boolean {
+  return flagType.startsWith('Zone_') || ZONE_FLAGS.includes(flagType as typeof ZONE_FLAGS[number]);
+}
+
+/**
+ * Get zone flag color from ZONE_COLORS
+ */
+function getZoneColor(flagType: string): string {
+  return ZONE_COLORS[flagType] || '#FFB6C1';
+}
+
+/**
+ * Get special flag config from FLAG_CONFIG
+ */
+function getSpecialFlagConfig(flagType: string): {
   marker: string;
   color: string;
   size: number;
 } {
-  // Check for zone flags
-  if (flagType.startsWith('Zone_')) {
-    return {
-      marker: flagType.replace('Zone_', ''),
-      color: ZONE_COLORS[flagType] || '#FFB6C1',
-      size: 0.4,
-    };
-  }
-
-  // Check for predefined flags
   const config = FLAG_CONFIG[flagType];
   if (config) {
     return {
       marker: config.marker,
       color: config.color,
-      size: config.size / 25, // Scale down from pixel to tile units
+      size: config.size,
     };
   }
 
@@ -51,50 +70,116 @@ function getFlagConfig(flagType: string): {
   return {
     marker: '●',
     color: '#FF69B4',
-    size: 0.3,
+    size: 10,
   };
 }
 
 /**
- * Check if flag is a zone flag
+ * Get zone flag label (e.g., "Zone_E" -> "E")
  */
-function isZoneFlag(flagType: string): boolean {
-  return flagType.startsWith('Zone_');
+function getZoneLabel(flagType: string): string {
+  return flagType.replace('Zone_', '');
+}
+
+// ============================================================================
+// Props Interface
+// ============================================================================
+
+interface FlagLayerProps {
+  /** Map data containing flag information */
+  mapData: MapData;
+  /** Viewport state for coordinate transformation */
+  viewport: ViewportState;
 }
 
 // ============================================================================
 // Main Component
 // ============================================================================
 
-export function FlagLayer({ flags }: FlagLayerProps) {
-  const flagElements: React.ReactNode[] = [];
+/**
+ * FlagLayer Component
+ *
+ * Renders zone flags as colored rectangles and special flags as markers.
+ * Uses viewport culling for performance optimization with large flag counts.
+ */
+export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
+  const { flags } = mapData;
+  const groupRef = useRef<KonvaGroup>(null);
 
-  flags.forEach((positions, flagType) => {
-    const config = getFlagConfig(flagType);
-    const isZone = isZoneFlag(flagType);
+  // Get layer visibility from store
+  const { layerVisibility } = useMapStore();
+  const showZones = layerVisibility.zones;
+  const showSpecialFlags = layerVisibility.flags;
 
-    positions.forEach(([x, y], index) => {
-      const key = `${flagType}-${x}-${y}-${index}`;
+  /**
+   * Calculate visible tile range based on viewport
+   * Used for culling flag elements outside the viewport
+   */
+  const visibleRange = useMemo(() => {
+    const viewportPixels = {
+      x: -viewport.offsetX / viewport.zoom,
+      y: -viewport.offsetY / viewport.zoom,
+      width: window.innerWidth / viewport.zoom,
+      height: window.innerHeight / viewport.zoom,
+    };
 
-      if (isZone) {
-        // Zone flags render as circles with labels
-        flagElements.push(
+    return getVisibleTileRange(
+      viewportPixels,
+      mapData.width * TILE_SIZE,
+      mapData.height * TILE_SIZE,
+      TILE_SIZE
+    );
+  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, mapData.width, mapData.height]);
+
+  /**
+   * Memoized zone flag rendering elements
+   * Renders zone flags as colored rectangles with labels
+   * Uses viewport culling to only render visible zones
+   */
+  const zoneFlagElements = useMemo(() => {
+    if (!showZones) return [];
+
+    const elements: React.ReactNode[] = [];
+
+    flags.forEach((positions, flagType) => {
+      if (!isZoneFlag(flagType)) return;
+
+      const color = getZoneColor(flagType);
+      const label = getZoneLabel(flagType);
+
+      positions.forEach(([x, y], index) => {
+        // Viewport culling - skip if not visible
+        if (!isTileVisible(x, y, visibleRange)) return;
+
+        const key = `${flagType}-${x}-${y}-${index}`;
+        const pixelX = x * TILE_SIZE;
+        const pixelY = y * TILE_SIZE;
+        const size = DEFAULT_ZONE_SIZE * TILE_SIZE;
+
+        elements.push(
           <Group key={key}>
-            <Circle
-              x={x + 0.5}
-              y={y + 0.5}
-              radius={config.size}
-              fill={config.color}
-              opacity={0.6}
+            {/* Zone rectangle */}
+            <Rect
+              x={pixelX}
+              y={pixelY}
+              width={size}
+              height={size}
+              fill={color}
+              opacity={ZONE_OPACITY}
+              stroke={color}
+              strokeWidth={1}
               perfectDrawEnabled={false}
+              listening={false}
+              hitStrokeWidth={0}
             />
+            {/* Zone label */}
             <Text
-              x={x}
-              y={y + 0.3}
-              width={1}
-              height={0.5}
-              text={config.marker}
-              fontSize={0.35}
+              x={pixelX}
+              y={pixelY + size * 0.25}
+              width={size}
+              height={size * 0.5}
+              text={label}
+              fontSize={size * 0.5}
               fontFamily="sans-serif"
               fill="#333"
               align="center"
@@ -104,42 +189,80 @@ export function FlagLayer({ flags }: FlagLayerProps) {
             />
           </Group>
         );
-      } else {
-        // Special flags render as markers
-        flagElements.push(
+      });
+    });
+
+    return elements;
+  }, [flags, showZones, visibleRange]);
+
+  /**
+   * Memoized special flag rendering elements
+   * Renders special flags as text markers
+   * Uses viewport culling to only render visible markers
+   */
+  const specialFlagElements = useMemo(() => {
+    if (!showSpecialFlags) return [];
+
+    const elements: React.ReactNode[] = [];
+
+    flags.forEach((positions, flagType) => {
+      if (isZoneFlag(flagType)) return;
+
+      const config = getSpecialFlagConfig(flagType);
+
+      positions.forEach(([x, y], index) => {
+        // Viewport culling - skip if not visible
+        if (!isTileVisible(x, y, visibleRange)) return;
+
+        const key = `${flagType}-${x}-${y}-${index}`;
+        const pixelX = x * TILE_SIZE;
+        const pixelY = y * TILE_SIZE;
+        const fontSize = Math.min(TILE_SIZE * 0.6, config.size);
+
+        elements.push(
           <Text
             key={key}
-            x={x + 0.1}
-            y={y + 0.1}
+            x={pixelX + (TILE_SIZE - fontSize) / 2}
+            y={pixelY + (TILE_SIZE - fontSize) / 2}
             text={config.marker}
-            fontSize={Math.min(0.5, config.size)}
+            fontSize={fontSize}
             fontFamily="sans-serif"
             fill={config.color}
             listening={false}
             perfectDrawEnabled={false}
           />
         );
-      }
+      });
     });
-  });
 
-  // Render placeholder if no flags
-  const placeholderElement = flags.size === 0 ? (
-    <Text
-      x={10}
-      y={5}
-      text="Flag Layer (Placeholder)"
-      fontSize={1}
-      fill="rgba(0, 0, 0, 0.3)"
-      listening={false}
-      perfectDrawEnabled={false}
-    />
-  ) : null;
+    return elements;
+  }, [flags, showSpecialFlags, visibleRange]);
+
+  // Cache the flag group for performance
+  useEffect(() => {
+    if (!groupRef.current) return;
+
+    const frameId = requestAnimationFrame(() => {
+      groupRef.current?.clearCache();
+      groupRef.current?.cache();
+      groupRef.current?.getLayer()?.batchDraw();
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [zoneFlagElements, specialFlagElements]);
 
   return (
-    <Group>
-      {flagElements}
-      {placeholderElement}
+    <Group ref={groupRef}>
+      {/* Zone flags layer (rectangles) */}
+      {zoneFlagElements}
+      {/* Special flags layer (markers) */}
+      {specialFlagElements}
     </Group>
   );
 }
+
+// ============================================================================
+// Exports
+// ============================================================================
+
+export type { FlagLayerProps };

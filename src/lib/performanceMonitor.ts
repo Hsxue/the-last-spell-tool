@@ -70,7 +70,9 @@ class PerformanceMonitorService {
       this.frameCount = 0;
       this.lastTimestamp = now;
       
-      console.log(`Render time: ${Math.round(this.renderTime)}ms, FPS: ${this.fps}`);
+      if (import.meta.env.DEV) {
+        console.log(`Render time: ${Math.round(this.renderTime)}ms, FPS: ${this.fps}`);
+      }
     }
 
     this.animationFrameId = requestAnimationFrame(this.animateLoop);

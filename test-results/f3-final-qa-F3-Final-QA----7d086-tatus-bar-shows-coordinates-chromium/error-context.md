@@ -1,0 +1,103 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - img [ref=e7]
+      - heading "TileMap Editor" [level=1] [ref=e9]
+    - generic [ref=e10]:
+      - button "New" [ref=e11]:
+        - img [ref=e12]
+        - text: New
+      - button "Open" [ref=e15]:
+        - img [ref=e16]
+        - text: Open
+      - button "Save" [ref=e18]:
+        - img [ref=e19]
+        - text: Save
+  - generic [ref=e23]:
+    - button "地图编辑器" [ref=e24]:
+      - img [ref=e25]
+      - text: 地图编辑器
+    - button "游戏配置" [ref=e27]:
+      - img [ref=e28]
+      - text: 游戏配置
+    - button "武器与技能" [ref=e31]:
+      - img [ref=e32]
+      - text: 武器与技能
+  - generic [ref=e38]:
+    - complementary [ref=e39]:
+      - generic [ref=e40]:
+        - generic [ref=e41]: Tools
+        - button [ref=e42]:
+          - img [ref=e43]
+      - generic [ref=e44]:
+        - button "Terrain" [ref=e45]:
+          - img [ref=e46]
+          - generic [ref=e48]: Terrain
+        - button "Buildings" [ref=e49]:
+          - img [ref=e50]
+          - generic [ref=e54]: Buildings
+        - button "Flags" [ref=e55]:
+          - img [ref=e56]
+          - generic [ref=e58]: Flags
+        - button "Config" [ref=e59]:
+          - img [ref=e60]
+          - generic [ref=e63]: Config
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - heading "Brush Size" [level=3] [ref=e67]
+          - generic [ref=e68]:
+            - slider [ref=e69]: "1"
+            - generic [ref=e70]: "1"
+        - generic [ref=e71]:
+          - heading "Terrain Types" [level=3] [ref=e72]
+          - generic [ref=e73]:
+            - button "Dirt" [ref=e74]: Dirt
+            - button "Stone" [ref=e76]: Stone
+            - button "Crater" [ref=e78]: Crater
+            - button "Empty" [ref=e80]: Empty
+      - generic [ref=e82]:
+        - heading "Layers" [level=3] [ref=e83]:
+          - img [ref=e84]
+          - text: Layers
+        - generic [ref=e88]:
+          - generic [ref=e89] [cursor=pointer]:
+            - checkbox "Grid" [checked] [ref=e90]
+            - text: Grid
+          - generic [ref=e91] [cursor=pointer]:
+            - checkbox "Zones" [checked] [ref=e92]
+            - text: Zones
+          - generic [ref=e93] [cursor=pointer]:
+            - checkbox "Buildings" [checked] [ref=e94]
+            - text: Buildings
+          - generic [ref=e95] [cursor=pointer]:
+            - checkbox "Flags" [checked] [ref=e96]
+            - text: Flags
+          - generic [ref=e97] [cursor=pointer]:
+            - checkbox "Occupied" [checked] [ref=e98]
+            - text: Occupied
+    - generic [ref=e99]:
+      - generic [ref=e100]:
+        - button [ref=e101]:
+          - img [ref=e102]
+        - generic [ref=e105]: 1px
+        - button [ref=e106]:
+          - img [ref=e107]
+        - button "Reset View" [ref=e111]:
+          - img [ref=e112]
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: "Screen:"
+          - generic [ref=e124]: 0, 0
+        - generic [ref=e126]:
+          - generic [ref=e127]: "World:"
+          - generic [ref=e128]: 0.00, 0.00
+        - generic [ref=e130]:
+          - generic [ref=e131]: "Tile:"
+          - generic [ref=e132]: "--, --"
+        - generic [ref=e134]:
+          - generic [ref=e135]: "Info:"
+          - generic [ref=e136]: "--"
+```
