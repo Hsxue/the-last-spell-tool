@@ -535,7 +535,9 @@ function App() {
     <div className="flex flex-col h-screen bg-background text-foreground">
       <Header />
       <FeatureTabs />
-      <MainContent />
+      <div className="flex-1 overflow-hidden min-h-0">
+        <MainContent />
+      </div>
       <ToastDisplay />
     </div>
   );
