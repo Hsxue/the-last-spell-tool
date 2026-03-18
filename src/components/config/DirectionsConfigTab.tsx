@@ -32,9 +32,7 @@ const DIRECTION_OPTIONS = [
   { value: 'Corner_BL', label: '角落左下 (Corner BL)' },
   { value: 'Corner_BR', label: '角落右下 (Corner BR)' },
   { value: 'Parallel_TB', label: '平行上下 (Parallel T-B)' },
-  { value: 'Parallel_LR', label: '平行左右 (Parallel L-R)' },
   { value: 'Four_Corners', label: '四角 (Four Corners)' },
-  { value: 'Four_TopBottom', label: '四向上下 (Four Top-Bottom)' },
   { value: 'Four_LeftRight', label: '四向左右 (Four Left-Right)' },
 ];
 
