@@ -38,9 +38,6 @@ const ZOOM_MARKER_THRESHOLD = 14;
 /** Default opacity for building tiles */
 const BUILDING_OPACITY = 0.85;
 
-/** Preview opacity for ghost building */
-const PREVIEW_OPACITY = 0.5;
-
 /** Stroke width for building borders */
 const STROKE_WIDTH = 1;
 
@@ -162,32 +159,57 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
 
 interface BuildingPreviewProps {
   hoveredTile: { x: number; y: number } | null;
+  selectedBuilding: string | null;
 }
 
-export const BuildingPreview = memo(function BuildingPreview({ hoveredTile }: BuildingPreviewProps) {
-  if (!hoveredTile) return null;
+export const BuildingPreview = memo(function BuildingPreview({ hoveredTile, selectedBuilding }: BuildingPreviewProps) {
+  if (!hoveredTile || !selectedBuilding) return null;
+
+  // Get the blueprint for the selected building
+  const blueprint = blueprintLookup.get(selectedBuilding);
+  if (!blueprint) return null;
 
   const color = '#4CAF50'; // Default preview color
-  const baseX = hoveredTile.x;
-  const baseY = hoveredTile.y;
+  const opacity = 0.5;
+  
+  // Calculate base position using blueprint origin
+  const baseX = hoveredTile.x - blueprint.originX;
+  const baseY = hoveredTile.y - blueprint.originY;
+  
+  const tileWidth = blueprint.tiles[0]?.length || 1;
+  const tileHeight = blueprint.tiles.length;
 
   return (
     <Group listening={false}>
-      <Rect
-        x={baseX * TILE_SIZE}
-        y={baseY * TILE_SIZE}
-        width={TILE_SIZE}
-        height={TILE_SIZE}
-        fill={color}
-        opacity={PREVIEW_OPACITY}
-        stroke="#FFD700"
-        strokeWidth={2}
-        perfectDrawEnabled={false}
-        listening={false}
-      />
+      {/* Draw all tiles that the building occupies */}
+      {blueprint.tiles.map((row, rowIndex) => (
+        row.map((cell, colIndex) => {
+          if (cell === '_') return null; // Skip empty cells in blueprint
+          
+          const tileX = (baseX + colIndex) * TILE_SIZE;
+          const tileY = (baseY + rowIndex) * TILE_SIZE;
+          
+          return (
+            <Rect
+              key={`preview-${rowIndex}-${colIndex}`}
+              x={tileX}
+              y={tileY}
+              width={TILE_SIZE}
+              height={TILE_SIZE}
+              fill={color}
+              opacity={opacity}
+              stroke="#FFD700"
+              strokeWidth={2}
+              perfectDrawEnabled={false}
+              listening={false}
+            />
+          );
+        })
+      ))}
+      {/* Center marker */}
       <Circle
-        x={baseX * TILE_SIZE + TILE_SIZE / 2}
-        y={baseY * TILE_SIZE + TILE_SIZE / 2}
+        x={(baseX + tileWidth / 2) * TILE_SIZE}
+        y={(baseY + tileHeight / 2) * TILE_SIZE}
         radius={4}
         fill="white"
         stroke="black"

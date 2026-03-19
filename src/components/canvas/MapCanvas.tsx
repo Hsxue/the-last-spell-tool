@@ -416,10 +416,13 @@ export function MapCanvas({ className }: MapCanvasProps) {
           />
         </Layer>
 
-        {/* Building Preview Layer - Dynamic preview (reads from hoveredTile state) */}
+        {/* Building Preview Layer - Dynamic preview (reads from hoveredTile state and selectedBuilding) */}
         {editorMode === 'building' && (
           <Layer imageSmoothingEnabled={false}>
-            <BuildingPreview hoveredTile={useMapStore.getState().hoveredTile} />
+            <BuildingPreview 
+              hoveredTile={useMapStore.getState().hoveredTile} 
+              selectedBuilding={useMapStore.getState().selectedBuilding}
+            />
           </Layer>
         )}
 
