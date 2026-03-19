@@ -14,7 +14,7 @@ import { GridLayer } from './GridLayer';
 import { BuildingLayer, BuildingPreview } from './BuildingLayer';
 import { FlagLayer } from './FlagLayer';
 import type { MapData } from '../../types/map';
-import { canPlaceBuilding } from '../../lib/placementEngine';
+import { canPlaceBuilding as canPlaceBuildingBlueprint } from '../../lib/placementEngine-blueprint';
 
 // ============================================================================
 // Props Interface
@@ -287,36 +287,20 @@ export function MapCanvas({ className }: MapCanvasProps) {
 
       // Handle building placement
       if (selectedBuilding && editorMode === 'building') {
-        // Create a temporary building object for validation
-        const tempBuilding = {
-          position: { x: tileX, y: tileY },
-          width: 1,
-          height: 1,
-        };
-
-        // Validate placement using placementEngine
-        const placementResult = canPlaceBuilding(tempBuilding, { width, height });
+        // Validate placement using blueprint-based collision detection
+        const placementResult = canPlaceBuildingBlueprint(
+          selectedBuilding,
+          tileX,
+          tileY,
+          { width, height },
+          mapData?.buildings || []
+        );
 
         if (!placementResult.valid) {
           // Show error toast for invalid placement
           addToast({
             title: 'Cannot Place Building',
             description: placementResult.reason || 'Invalid placement',
-            type: 'error',
-            duration: 3000,
-          });
-          return;
-        }
-
-        // Check if there's already a building at this position
-        const existingBuilding = mapData?.buildings.find(
-          (b) => b.x === tileX && b.y === tileY
-        );
-
-        if (existingBuilding) {
-          addToast({
-            title: 'Building Already Exists',
-            description: 'Remove the existing building first',
             type: 'error',
             duration: 3000,
           });
