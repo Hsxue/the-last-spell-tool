@@ -206,6 +206,7 @@ export const useConfigStore = create<ConfigStoreState & ConfigStoreActions>()(
     setMapId: (id) => {
       set((state) => {
         state.gameConfig.mapId = id;
+        state.gameConfig.fogId = id;
         state.ui.hasUnsavedChanges = true;
       });
     },
