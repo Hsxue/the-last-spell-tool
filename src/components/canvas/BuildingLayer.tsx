@@ -78,7 +78,7 @@ function getBuildingTilePositions(
 }
 
 // ============================================================================
-// Global Ref for BuildingPreview
+// Global Ref for BuildingPreview (kept for potential future use)
 // ============================================================================
 
 export const buildingPreviewHoveredTileRef = {
@@ -157,16 +157,16 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
 });
 
 // ============================================================================
-// Preview Component (memoized, reads from ref)
+// Preview Component (reads from parent state via props)
 // ============================================================================
 
-export const BuildingPreview = memo(function BuildingPreview() {
-  const hoveredTile = buildingPreviewHoveredTileRef.current;
-  
+interface BuildingPreviewProps {
+  hoveredTile: { x: number; y: number } | null;
+}
+
+export const BuildingPreview = memo(function BuildingPreview({ hoveredTile }: BuildingPreviewProps) {
   if (!hoveredTile) return null;
 
-  // Preview will be rendered by react-konva when this component renders
-  // The ref update triggers parent re-render which causes this to render
   const color = '#4CAF50'; // Default preview color
   const baseX = hoveredTile.x;
   const baseY = hoveredTile.y;

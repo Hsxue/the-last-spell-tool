@@ -11,7 +11,7 @@ import { useMapStore } from '../../store/mapStore';
 import { useUIStore } from '../../store/uiStore';
 import { TerrainLayer } from './TerrainLayer';
 import { GridLayer } from './GridLayer';
-import { BuildingLayer, BuildingPreview, buildingPreviewHoveredTileRef } from './BuildingLayer';
+import { BuildingLayer, BuildingPreview } from './BuildingLayer';
 import { FlagLayer } from './FlagLayer';
 import type { MapData } from '../../types/map';
 import { canPlaceBuilding } from '../../lib/placementEngine';
@@ -183,13 +183,8 @@ export function MapCanvas({ className }: MapCanvasProps) {
         ? { x: tileX, y: tileY }
         : null;
       
-      // Update Zustand store (for status bar and other components)
+      // Update Zustand store (for status bar and BuildingPreview)
       setHoveredTile(newHoveredTile);
-      
-      // Update BuildingPreview ref (read by BuildingPreview component on its own render cycle)
-      if (editorMode === 'building') {
-        buildingPreviewHoveredTileRef.current = newHoveredTile;
-      }
 
       // Dispatch custom event for MapStatusBar (THROTTLED to reduce GC pressure)
       // Only dispatch every 100ms to avoid creating too many objects
@@ -421,10 +416,10 @@ export function MapCanvas({ className }: MapCanvasProps) {
           />
         </Layer>
 
-        {/* Building Preview Layer - Dynamic preview (reads from ref, not state) */}
+        {/* Building Preview Layer - Dynamic preview (reads from hoveredTile state) */}
         {editorMode === 'building' && (
           <Layer imageSmoothingEnabled={false}>
-            <BuildingPreview />
+            <BuildingPreview hoveredTile={useMapStore.getState().hoveredTile} />
           </Layer>
         )}
 
