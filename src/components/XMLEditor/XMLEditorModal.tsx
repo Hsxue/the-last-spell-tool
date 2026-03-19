@@ -9,9 +9,11 @@ import { xml } from '@codemirror/lang-xml';
 import { json } from '@codemirror/lang-json';
 import { EditorView } from '@codemirror/view';
 import { highlightSelectionMatches } from '@codemirror/search';
+import { linter, type Diagnostic } from '@codemirror/lint';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { formatContent } from '@/utils/xmlFormatter';
+import { createDebouncedValidator, type ValidationResult } from '@/utils/xmlValidator';
 
 // ============================================================================
 // Types
@@ -53,6 +55,21 @@ export function XMLEditorModal({
   const [editorValue, setEditorValue] = useState(value);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
   const [error, setError] = useState<string | null>(null);
+  const [validationResult, setValidationResult] = useState<ValidationResult>({ valid: true });
+  const debouncedValidate = useCallback(createDebouncedValidator(500), []);
+
+  // Validate content on change with debounce
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const timer = setTimeout(() => {
+      debouncedValidate(editorValue, language).then((result) => {
+        setValidationResult(result);
+      });
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [editorValue, language, isOpen, debouncedValidate]);
 
   // Sync internal value when prop changes
   useEffect(() => {
@@ -100,11 +117,24 @@ export function XMLEditorModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Create editor extensions with language support
+  // Create editor extensions with language support and linting
   const extensions = useCallback(
     () => [
       language === 'json' ? json() : xml(),
       highlightSelectionMatches(),
+      linter((view) => {
+        if (!validationResult.valid && validationResult.error) {
+          const error = validationResult.error;
+          const diagnostic: Diagnostic = {
+            from: 0,
+            to: view.state.doc.length,
+            severity: 'error',
+            message: error.message,
+          };
+          return [diagnostic];
+        }
+        return [];
+      }),
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
           const newValue = update.state.doc.toString();
@@ -122,7 +152,7 @@ export function XMLEditorModal({
       }),
       EditorView.editable.of(!readOnly),
     ],
-    [onChange, readOnly]
+    [onChange, readOnly, language, validationResult]
   );
 
   const handleApply = () => {
@@ -221,8 +251,8 @@ export function XMLEditorModal({
                 variant="default"
                 size="sm"
                 onClick={handleApply}
-                disabled={readOnly}
-                title="Apply (Ctrl+S)"
+                disabled={readOnly || !validationResult.valid}
+                title={!validationResult.valid ? 'Fix syntax errors before applying' : 'Apply (Ctrl+S)'}
               >
                 Apply
               </Button>
@@ -247,6 +277,10 @@ export function XMLEditorModal({
               </span>
               <span className="text-muted-foreground/50">|</span>
               <span>Language: {language.toUpperCase()}</span>
+              <span className="text-muted-foreground/50">|</span>
+              <span className={validationResult.valid ? 'text-green-600' : 'text-destructive'}>
+                {validationResult.valid ? '✓ Valid' : `✗ ${validationResult.error?.message}`}
+              </span>
             </div>
             <div className="flex items-center gap-4">
               <span>
