@@ -12,7 +12,7 @@ import { useUIStore } from '../../store/uiStore';
 import { TerrainLayer } from './TerrainLayer';
 import { GridLayer } from './GridLayer';
 import { BuildingLayer, BuildingPreview } from './BuildingLayer';
-import { FlagLayer } from './FlagLayer';
+import { FlagLayer, FlagPreview } from './FlagLayer';
 import type { MapData } from '../../types/map';
 import { canPlaceBuilding as canPlaceBuildingBlueprint } from '../../lib/placementEngine-blueprint';
 
@@ -414,6 +414,16 @@ export function MapCanvas({ className }: MapCanvasProps) {
         {layerVisibility.flags && (
           <Layer imageSmoothingEnabled={false} listening={false}>
             <FlagLayer mapData={layerMapData} viewport={viewport} />
+          </Layer>
+        )}
+
+        {/* Flag Preview Layer - Dynamic preview */}
+        {editorMode === 'flag' && (
+          <Layer imageSmoothingEnabled={false}>
+            <FlagPreview 
+              hoveredTile={useMapStore.getState().hoveredTile}
+              selectedFlag={useMapStore.getState().selectedFlag}
+            />
           </Layer>
         )}
       </Stage>

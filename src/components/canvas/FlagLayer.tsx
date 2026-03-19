@@ -10,7 +10,7 @@
  * - Konva batching optimization
  */
 
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, memo } from 'react';
 import { Rect, Text, Group } from 'react-konva';
 import type { Group as KonvaGroup } from 'konva/lib/Group';
 import type { MapData, ViewportState } from '../../types/map';
@@ -260,6 +260,81 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
     </Group>
   );
 }
+
+// ============================================================================
+// Preview Component
+// ============================================================================
+
+interface FlagPreviewProps {
+  hoveredTile: { x: number; y: number } | null;
+  selectedFlag: string | null;
+}
+
+export const FlagPreview = memo(function FlagPreview({ hoveredTile, selectedFlag }: FlagPreviewProps) {
+  if (!hoveredTile || !selectedFlag) return null;
+
+  const isZone = isZoneFlag(selectedFlag);
+  
+  if (isZone) {
+    // Zone flag preview - show rectangle
+    const color = getZoneColor(selectedFlag);
+    const label = getZoneLabel(selectedFlag);
+    const size = DEFAULT_ZONE_SIZE * TILE_SIZE;
+    
+    return (
+      <Group listening={false}>
+        {/* Zone rectangle preview */}
+        <Rect
+          x={hoveredTile.x * TILE_SIZE}
+          y={hoveredTile.y * TILE_SIZE}
+          width={size}
+          height={size}
+          fill={color}
+          opacity={ZONE_OPACITY}
+          stroke={color}
+          strokeWidth={2}
+          perfectDrawEnabled={false}
+          listening={false}
+        />
+        {/* Zone label preview */}
+        <Text
+          x={hoveredTile.x * TILE_SIZE}
+          y={hoveredTile.y * TILE_SIZE + size * 0.25}
+          width={size}
+          height={size * 0.5}
+          text={label}
+          fontSize={size * 0.5}
+          fontFamily="sans-serif"
+          fill="#333"
+          align="center"
+          verticalAlign="middle"
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      </Group>
+    );
+  } else {
+    // Special flag preview - show marker
+    const config = getSpecialFlagConfig(selectedFlag);
+    const fontSize = Math.min(TILE_SIZE * 0.6, config.size);
+    
+    return (
+      <Group listening={false}>
+        <Text
+          x={hoveredTile.x * TILE_SIZE + (TILE_SIZE - fontSize) / 2}
+          y={hoveredTile.y * TILE_SIZE + (TILE_SIZE - fontSize) / 2}
+          text={config.marker}
+          fontSize={fontSize}
+          fontFamily="sans-serif"
+          fill={config.color}
+          opacity={0.7}
+          listening={false}
+          perfectDrawEnabled={false}
+        />
+      </Group>
+    );
+  }
+});
 
 // ============================================================================
 // Exports
