@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<weapon id="1">
+  <name>Sword</name>
+  <damage>10</damage>
+  <rare>true</rare>
+  <description>A basic sword</description>
+</weapon>
