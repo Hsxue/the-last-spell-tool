@@ -13,6 +13,9 @@ import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
 import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
+import { useXMLMode } from './hooks/useXMLMode';
+import { XMLEditorModal } from './components/XMLEditor/XMLEditorModal';
+import { weaponSchema } from './types/XMLSchemas';
 import {
   Menu,
   Map as MapIcon,
@@ -28,6 +31,7 @@ import {
   FilePlus,
   X,
   Sword,
+  FileCode,
 } from 'lucide-react';
 import type { SidebarTab, FeatureTab } from './types/map';
 import { useState } from 'react';
@@ -36,7 +40,11 @@ import { useState } from 'react';
 // Header Component
 // ============================================================================
 
-function Header() {
+interface HeaderProps {
+  onOpenXMLEditor?: () => void;
+}
+
+function Header({ onOpenXMLEditor }: HeaderProps) {
   const { addToast } = useUIStore();
 
   const handleNewMap = () => {
@@ -96,6 +104,16 @@ function Header() {
         >
           <Save className="h-4 w-4 mr-2" />
           Save
+        </Button>
+        <div className="w-px h-6 bg-border mx-1" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenXMLEditor}
+          title="Open XML Editor"
+        >
+          <FileCode className="h-4 w-4 mr-2" />
+          XML 编辑器
         </Button>
       </div>
     </header>
@@ -531,14 +549,45 @@ function ToastDisplay() {
 // ============================================================================
 
 function App() {
+  // Test data for XML Editor
+  const [testWeapon, setTestWeapon] = useState({
+    id: 1,
+    name: 'Test Sword',
+    damage: 15,
+    rare: false,
+  });
+
+  // XML Mode hook for the editor
+  const {
+    isXMLMode,
+    openXMLMode,
+    closeXMLMode,
+    handleApply,
+    xmlContent,
+  } = useXMLMode({
+    gameObject: testWeapon,
+    schema: weaponSchema,
+    onApply: (updatedWeapon) => {
+      setTestWeapon(updatedWeapon);
+    },
+  });
+
   return (
     <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header />
+      <Header onOpenXMLEditor={openXMLMode} />
       <FeatureTabs />
       <div className="flex-1 overflow-hidden">
         <MainContent />
       </div>
       <ToastDisplay />
+      <XMLEditorModal
+        isOpen={isXMLMode}
+        onClose={closeXMLMode}
+        value={xmlContent}
+        onApply={handleApply}
+        language="xml"
+        title="XML Editor - Weapon Configuration"
+      />
     </div>
   );
 }
