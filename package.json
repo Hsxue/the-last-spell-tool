@@ -12,7 +12,6 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@codemirror/basic-setup": "^0.20.0",
     "@codemirror/lang-json": "^6.0.2",
     "@codemirror/lang-xml": "^6.1.0",
     "@codemirror/lint": "^6.9.5",
@@ -35,6 +34,16 @@
     "tailwind-merge": "^3.5.0",
     "xml-formatter": "^3.7.0",
     "zustand": "^5.0.11"
+  },
+  "overrides": {
+    "@codemirror/state": "^6.4.0",
+    "@codemirror/view": "^6.22.0",
+    "@codemirror/language": "^6.10.0",
+    "@codemirror/autocomplete": "^6.20.0",
+    "@codemirror/commands": "^6.10.0",
+    "@codemirror/search": "^6.6.0",
+    "@codemirror/lint": "^6.9.5",
+    "codemirror": "^6.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
