@@ -36,14 +36,15 @@
     "zustand": "^5.0.11"
   },
   "overrides": {
-    "@codemirror/state": "^6.4.0",
-    "@codemirror/view": "^6.22.0",
-    "@codemirror/language": "^6.10.0",
-    "@codemirror/autocomplete": "^6.20.0",
-    "@codemirror/commands": "^6.10.0",
-    "@codemirror/search": "^6.6.0",
-    "@codemirror/lint": "^6.9.5",
-    "codemirror": "^6.0.0"
+    "@uiw/react-codemirror": {
+      "@codemirror/state": "$@codemirror/state",
+      "@codemirror/view": "$@codemirror/view",
+      "@codemirror/language": "$@codemirror/language",
+      "@codemirror/autocomplete": "$@codemirror/autocomplete",
+      "@codemirror/commands": "$@codemirror/commands",
+      "@codemirror/search": "$@codemirror/search",
+      "@codemirror/lint": "$@codemirror/lint"
+    }
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
