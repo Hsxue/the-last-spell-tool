@@ -8,7 +8,7 @@ import CodeMirror from '@uiw/react-codemirror';
 import { xml } from '@codemirror/lang-xml';
 import { json } from '@codemirror/lang-json';
 import { EditorView } from '@codemirror/view';
-import { highlightSelectionMatches } from '@codemirror/search';
+// highlightSelectionMatches is now part of basic setup
 import { linter, type Diagnostic } from '@codemirror/lint';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -121,7 +121,7 @@ export function XMLEditorModal({
   const extensions = useCallback(
     () => [
       language === 'json' ? json() : xml(),
-      highlightSelectionMatches(),
+      
       linter((view) => {
         if (!validationResult.valid && validationResult.error) {
           const error = validationResult.error;

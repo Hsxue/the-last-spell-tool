@@ -12,7 +12,7 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   // Test directory
-  testDir: './src/__tests__',
+  testDir: './e2e',
 
   // Run tests in files in parallel
   fullyParallel: true,
@@ -73,7 +73,7 @@ export default defineConfig({
 
   // Snapshot directory configuration
   // Baseline screenshots stored alongside test files in __snapshots__
-  snapshotDir: './src/__tests__/__snapshots__',
+  snapshotDir: './e2e/__snapshots__',
 
   // Output directory for test artifacts (screenshots, videos, traces)
   outputDir: './test-results',
