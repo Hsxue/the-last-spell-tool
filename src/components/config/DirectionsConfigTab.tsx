@@ -40,7 +40,7 @@ export const DirectionsConfigTab: React.FC = () => {
   const { gameConfig, addSpawnDirection, removeSpawnDirection } = useConfigStore();
 
   const spawnConfig = gameConfig.spawnConfig;
-  const spawnDirections = spawnConfig.spawnDirections;
+  const spawnDirections = spawnConfig?.spawnDirections ?? new Map();
 
   // State for night selector
   const [selectedNight, setSelectedNight] = useState<string>('1');

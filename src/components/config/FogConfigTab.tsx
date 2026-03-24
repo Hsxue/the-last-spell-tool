@@ -61,7 +61,7 @@ export const FogConfigTab: React.FC = () => {
   const handleFogDensityChange = (index: number, value: string) => {
     const numValue = parseInt(value, 10);
     if (!isNaN(numValue)) {
-      const densityName = fogConfig.fogDensities[index]?.[0];
+      const densityName = fogConfig?.fogDensities?.[index]?.[0];
       if (densityName) {
         setFogDensity(index, densityName, numValue);
       }
@@ -96,7 +96,7 @@ export const FogConfigTab: React.FC = () => {
             id="increaseEveryXDays-input"
             type="number"
             min={1}
-            value={fogConfig.increaseEveryXDays}
+            value={fogConfig?.increaseEveryXDays ?? 1}
             onChange={(e) => handleIncreaseEveryXDaysChange(e.target.value)}
             data-testid="increaseEveryXDays-input"
             placeholder="输入天数..."
@@ -112,7 +112,7 @@ export const FogConfigTab: React.FC = () => {
             初始密度索引 (Initial Density Index)
           </Label>
           <Select
-            value={fogConfig.initialDensityIndex.toString()}
+            value={(fogConfig?.initialDensityIndex ?? 0).toString()}
             onValueChange={handleInitialDensityIndexChange}
           >
             <SelectTrigger
@@ -139,7 +139,7 @@ export const FogConfigTab: React.FC = () => {
         <div className="space-y-3">
           <Label>迷雾密度列表 (Fog Density Values)</Label>
           <div className="space-y-2">
-            {fogConfig.fogDensities.map(([name, value], index) => (
+            {fogConfig?.fogDensities?.map(([name, value], index) => (
               <div
                 key={name}
                 className="flex items-center gap-3"
@@ -215,12 +215,12 @@ export const FogConfigTab: React.FC = () => {
 
           {/* Exception List */}
           <div className="space-y-2">
-            {fogConfig.dayExceptions.size === 0 ? (
+            {fogConfig?.dayExceptions?.size === 0 ? (
               <p className="text-sm text-muted-foreground">
                 暂无日期例外配置
               </p>
             ) : (
-              Array.from(fogConfig.dayExceptions.entries()).map(([day, densityName]) => (
+              Array.from(fogConfig?.dayExceptions?.entries() ?? []).map(([day, densityName]) => (
                 <div
                   key={day}
                   className="flex items-center justify-between p-2 border rounded-md"

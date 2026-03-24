@@ -38,10 +38,10 @@ export const SpawnConfigTab: React.FC = () => {
   const [newEnemyId, setNewEnemyId] = useState<string>('');
 
   // Convert Map to sorted array for rendering
-  const spawnMultipliersArray = Array.from(spawnConfig.spawnMultipliers.entries()).sort(
+  const spawnMultipliersArray = Array.from(spawnConfig?.spawnMultipliers?.entries() ?? []).sort(
     (a, b) => a[0] - b[0]
   );
-  const maxDistancePerDayArray = Array.from(spawnConfig.maxDistancePerDay.entries()).sort(
+  const maxDistancePerDayArray = Array.from(spawnConfig?.maxDistancePerDay?.entries() ?? []).sort(
     (a, b) => a[0] - b[0]
   );
 
@@ -172,7 +172,7 @@ export const SpawnConfigTab: React.FC = () => {
           </Label>
           <Textarea
             id="spawns-formula-textarea"
-            value={spawnConfig.spawnsPerWaveFormula}
+            value={spawnConfig?.spawnsPerWaveFormula ?? ''}
             onChange={(e) => setSpawnsPerWaveFormula(e.target.value)}
             data-testid="spawns-formula-textarea"
             placeholder="输入每波生成公式，例如：60 + Night * Multiplier"
@@ -289,12 +289,12 @@ export const SpawnConfigTab: React.FC = () => {
           </div>
 
           <div className="border rounded-md p-3 space-y-2" data-testid="disallowed-enemies-list">
-            {spawnConfig.disallowedEnemies.length === 0 ? (
+            {spawnConfig?.disallowedEnemies?.length === 0 ? (
               <p className="text-center text-muted-foreground text-sm">
                 暂无禁止的敌人
               </p>
             ) : (
-              spawnConfig.disallowedEnemies.map((enemyId) => (
+              spawnConfig?.disallowedEnemies?.map((enemyId) => (
                 <div
                   key={enemyId}
                   className="flex justify-between items-center bg-muted px-3 py-2 rounded"
@@ -324,7 +324,7 @@ export const SpawnConfigTab: React.FC = () => {
             id="spawn-points-per-group-input"
             type="number"
             min={1}
-            value={spawnConfig.spawnPointsPerGroup}
+            value={spawnConfig?.spawnPointsPerGroup ?? 0}
             onChange={(e) => setSpawnPointsPerGroup(parseInt(e.target.value) || 0)}
             data-testid="spawn-points-per-group-input"
             placeholder="输入每组生成点数..."
@@ -340,7 +340,7 @@ export const SpawnConfigTab: React.FC = () => {
             id="spawn-rect-width-input"
             type="number"
             min={1}
-            value={spawnConfig.spawnPointRectWidth}
+            value={spawnConfig?.spawnPointRectWidth ?? 0}
             onChange={(e) => setSpawnPointRectWidth(parseInt(e.target.value) || 0)}
             data-testid="spawn-rect-width-input"
             placeholder="输入生成区域宽度..."
@@ -356,7 +356,7 @@ export const SpawnConfigTab: React.FC = () => {
             id="spawn-rect-height-input"
             type="number"
             min={1}
-            value={spawnConfig.spawnPointRectHeight}
+            value={spawnConfig?.spawnPointRectHeight ?? 0}
             onChange={(e) => setSpawnPointRectHeight(parseInt(e.target.value) || 0)}
             data-testid="spawn-rect-height-input"
             placeholder="输入生成区域高度..."

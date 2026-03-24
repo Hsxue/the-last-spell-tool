@@ -31,7 +31,7 @@ export const ElitesConfigTab: React.FC = () => {
   const [newCount, setNewCount] = useState<string>('');
 
   // Convert Map to sorted array for rendering
-  const elitesPerDayArray = Array.from(spawnConfig.elitesPerDay.entries()).sort(
+  const elitesPerDayArray = Array.from(spawnConfig?.elitesPerDay?.entries() ?? []).sort(
     (a, b) => a[0] - b[0]
   );
 
@@ -133,7 +133,7 @@ export const ElitesConfigTab: React.FC = () => {
             </TableHeader>
             <TableBody>
               {(() => {
-                const nightElites = spawnConfig.elitesPerDay.get(parseInt(selectedNight)) || [];
+                const nightElites = spawnConfig?.elitesPerDay?.get(parseInt(selectedNight)) || [];
                 const sortedElites = [...nightElites].sort((a, b) => a[0] - b[0]);
 
                 if (sortedElites.length === 0) {

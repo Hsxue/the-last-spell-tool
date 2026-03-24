@@ -6,11 +6,13 @@ import { Input } from '@/components/ui/input';
 
 export const ResourcesConfigTab: React.FC = () => {
   const {
-    gameConfig: { resourceConfig },
+    gameConfig,
     setGold,
     setMaterials,
     setDamnedSouls,
   } = useConfigStore();
+
+  const resourceConfig = gameConfig?.resourceConfig ?? { gold: 0, materials: 0, damnedSouls: 0 };
 
   return (
     <Card>

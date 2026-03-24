@@ -3,19 +3,34 @@
  */
 
 import { Button } from '@/components/ui/button';
-import { useXMLMode } from '@/hooks/useXMLMode';
 import { XMLEditorModal } from '@/components/XMLEditor/XMLEditorModal';
-import { gameConfigSchema } from '@/types/XMLSchemas';
 import { useConfigStore } from '@/store/configStore';
+import { serializeConfigToXml, deserializeXmlToConfig } from '@/lib/configSerializer';
+import { useState, useCallback } from 'react';
 
 export function ConfigXMLButton() {
   const { gameConfig, setGameConfig } = useConfigStore();
-  
-  const { isXMLMode, openXMLMode, closeXMLMode, handleApply, xmlContent } = useXMLMode({
-    gameObject: gameConfig,
-    schema: gameConfigSchema,
-    onApply: (updatedConfig) => setGameConfig(updatedConfig),
-  });
+  const [isXMLMode, setIsXMLMode] = useState(false);
+  const [xmlContent, setXmlContent] = useState('');
+
+  const openXMLMode = useCallback(() => {
+    // Use the specialized config serializer instead of generic gameObjectToXML
+    const xml = serializeConfigToXml(gameConfig);
+    setXmlContent(xml);
+    setIsXMLMode(true);
+  }, [gameConfig]);
+
+  const closeXMLMode = useCallback(() => {
+    setIsXMLMode(false);
+    setXmlContent('');
+  }, []);
+
+  const handleApply = useCallback((xml: string) => {
+    // Use the specialized config deserializer
+    const updatedConfig = deserializeXmlToConfig(xml);
+    setGameConfig(updatedConfig);
+    closeXMLMode();
+  }, [setGameConfig, closeXMLMode]);
 
   return (
     <>

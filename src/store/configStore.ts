@@ -190,7 +190,96 @@ export const useConfigStore = create<ConfigStoreState & ConfigStoreActions>()(
     // Game Config Actions
     setGameConfig: (config) => {
       set((state) => {
-        state.gameConfig = config;
+        // Deep merge to ensure all nested fields exist
+        // This handles cases where imported configs may be missing newer fields
+        const initial = createInitialGameConfig();
+        
+        state.gameConfig = {
+          // Base fields with fallbacks
+          mapId: config.mapId ?? initial.mapId,
+          victoryDays: config.victoryDays ?? initial.victoryDays,
+          difficulty: config.difficulty ?? initial.difficulty,
+          enemiesOffset: config.enemiesOffset ?? initial.enemiesOffset,
+          maxGlyphPoints: config.maxGlyphPoints ?? initial.maxGlyphPoints,
+          fogId: config.fogId ?? initial.fogId,
+          
+          // Spawn config - merge to preserve all nested fields
+          spawnConfig: config.spawnConfig
+            ? {
+                ...initial.spawnConfig,
+                ...config.spawnConfig,
+                spawnMultipliers: new Map([
+                  ...initial.spawnConfig.spawnMultipliers,
+                  ...(config.spawnConfig.spawnMultipliers instanceof Map
+                    ? config.spawnConfig.spawnMultipliers
+                    : []),
+                ]),
+                spawnWavesPerDay: new Map([
+                  ...initial.spawnConfig.spawnWavesPerDay,
+                  ...(config.spawnConfig.spawnWavesPerDay instanceof Map
+                    ? config.spawnConfig.spawnWavesPerDay
+                    : []),
+                ]),
+                spawnDirections: new Map([
+                  ...initial.spawnConfig.spawnDirections,
+                  ...(config.spawnConfig.spawnDirections instanceof Map
+                    ? config.spawnConfig.spawnDirections
+                    : []),
+                ]),
+                elitesPerDay: new Map([
+                  ...initial.spawnConfig.elitesPerDay,
+                  ...(config.spawnConfig.elitesPerDay instanceof Map
+                    ? config.spawnConfig.elitesPerDay
+                    : []),
+                ]),
+                maxDistancePerDay: new Map([
+                  ...initial.spawnConfig.maxDistancePerDay,
+                  ...(config.spawnConfig.maxDistancePerDay instanceof Map
+                    ? config.spawnConfig.maxDistancePerDay
+                    : []),
+                ]),
+                disallowedEnemies: config.spawnConfig.disallowedEnemies ?? initial.spawnConfig.disallowedEnemies,
+                waveDefinitions: config.spawnConfig.waveDefinitions ?? initial.spawnConfig.waveDefinitions,
+              }
+            : initial.spawnConfig,
+          
+          // Corruption config - merge
+          corruptionConfig: config.corruptionConfig
+            ? {
+                ...initial.corruptionConfig,
+                ...config.corruptionConfig,
+                corruptionByNight: new Map([
+                  ...initial.corruptionConfig.corruptionByNight,
+                  ...(config.corruptionConfig.corruptionByNight instanceof Map
+                    ? config.corruptionConfig.corruptionByNight
+                    : []),
+                ]),
+              }
+            : initial.corruptionConfig,
+          
+          // Fog config - merge
+          fogConfig: config.fogConfig
+            ? {
+                ...initial.fogConfig,
+                ...config.fogConfig,
+                dayExceptions: new Map([
+                  ...initial.fogConfig.dayExceptions,
+                  ...(config.fogConfig.dayExceptions instanceof Map
+                    ? config.fogConfig.dayExceptions
+                    : []),
+                ]),
+              }
+            : initial.fogConfig,
+          
+          // Resource config - merge
+          resourceConfig: config.resourceConfig
+            ? {
+                ...initial.resourceConfig,
+                ...config.resourceConfig,
+              }
+            : initial.resourceConfig,
+        };
+        
         state.ui.hasUnsavedChanges = true;
       });
     },

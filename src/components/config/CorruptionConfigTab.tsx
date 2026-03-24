@@ -30,7 +30,7 @@ export const CorruptionConfigTab: React.FC = () => {
   };
 
   // Convert Map to array for easier iteration
-  const corruptionEntries = Array.from(corruptionConfig.corruptionByNight.entries()).sort(
+  const corruptionEntries = Array.from(corruptionConfig?.corruptionByNight?.entries() ?? []).sort(
     ([nightA], [nightB]) => nightA - nightB
   );
 

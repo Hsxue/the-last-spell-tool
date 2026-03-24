@@ -31,7 +31,7 @@ export const WaveDefinitionsTab: React.FC = () => {
     moveWaveDefinition,
   } = useConfigStore();
 
-  const waveDefinitions = gameConfig.spawnConfig.waveDefinitions;
+  const waveDefinitions = gameConfig?.spawnConfig?.waveDefinitions ?? [];
 
   // State for selected wave (for editing)
   const [selectedWaveId, setSelectedWaveId] = useState<string | null>(null);
@@ -321,7 +321,7 @@ export const WaveDefinitionsTab: React.FC = () => {
                   <Checkbox
                     id="wave-is-boss-wave"
                     checked={editForm.isBossWave}
-                    onCheckedChange={(checked) => handleUpdateField('isBossWave', checked as boolean)}
+                    onChange={(e) => handleUpdateField('isBossWave', e.target.checked)}
                   />
                   <Label htmlFor="wave-is-boss-wave">Boss 波次</Label>
                 </div>
@@ -344,7 +344,7 @@ export const WaveDefinitionsTab: React.FC = () => {
                 <Checkbox
                   id="wave-is-infinite"
                   checked={editForm.isInfinite}
-                  onCheckedChange={(checked) => handleUpdateField('isInfinite', checked as boolean)}
+                  onChange={(e) => handleUpdateField('isInfinite', e.target.checked)}
                 />
                 <Label htmlFor="wave-is-infinite">无限波次</Label>
               </div>

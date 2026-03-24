@@ -24,7 +24,7 @@ export const WavesConfigTab: React.FC = () => {
   const { gameConfig, addSpawnWave, removeSpawnWave } = useConfigStore();
 
   const spawnConfig = gameConfig.spawnConfig;
-  const spawnWavesPerDay = spawnConfig.spawnWavesPerDay;
+  const spawnWavesPerDay = spawnConfig?.spawnWavesPerDay ?? new Map();
 
   // State for night selector
   const [selectedNight, setSelectedNight] = useState<string>('1');

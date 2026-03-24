@@ -366,8 +366,9 @@ function parseXmlSpawnConfig(xml: unknown): SpawnConfig {
   // Parse spawnWavesPerDay
   if (obj.spawnWavesPerDay && typeof obj.spawnWavesPerDay === 'object') {
     const swpd = obj.spawnWavesPerDay as { entry?: unknown };
-    if (swpd.entry && Array.isArray(swpd.entry)) {
-      swpd.entry.forEach((e: Record<string, unknown>) => {
+    const entries = ensureArray<Record<string, unknown>>(swpd.entry as Record<string, unknown> | Array<Record<string, unknown>>);
+    if (entries) {
+      entries.forEach((e: Record<string, unknown>) => {
         const key = Number(e['@_key']);
         const value = ensureArray<Record<string, unknown>>(e['item'] as Record<string, unknown> | Array<Record<string, unknown>>);
         const tuples: Array<[string, number]> = value.map((v: Record<string, unknown>) => [
@@ -382,8 +383,9 @@ function parseXmlSpawnConfig(xml: unknown): SpawnConfig {
   // Parse spawnDirections
   if (obj.spawnDirections && typeof obj.spawnDirections === 'object') {
     const sd = obj.spawnDirections as { entry?: unknown };
-    if (sd.entry && Array.isArray(sd.entry)) {
-      sd.entry.forEach((e: Record<string, unknown>) => {
+    const entries = ensureArray<Record<string, unknown>>(sd.entry as Record<string, unknown> | Array<Record<string, unknown>>);
+    if (entries) {
+      entries.forEach((e: Record<string, unknown>) => {
         const key = Number(e['@_key']);
         const value = ensureArray<Record<string, unknown>>(e['item'] as Record<string, unknown> | Array<Record<string, unknown>>);
         const tuples: Array<[string, number]> = value.map((v: Record<string, unknown>) => [
@@ -398,8 +400,9 @@ function parseXmlSpawnConfig(xml: unknown): SpawnConfig {
   // Parse elitesPerDay
   if (obj.elitesPerDay && typeof obj.elitesPerDay === 'object') {
     const epd = obj.elitesPerDay as { entry?: unknown };
-    if (epd.entry && Array.isArray(epd.entry)) {
-      epd.entry.forEach((e: Record<string, unknown>) => {
+    const entries = ensureArray<Record<string, unknown>>(epd.entry as Record<string, unknown> | Array<Record<string, unknown>>);
+    if (entries) {
+      entries.forEach((e: Record<string, unknown>) => {
         const key = Number(e['@_key']);
         const value = ensureArray<Record<string, unknown>>(e['item'] as Record<string, unknown> | Array<Record<string, unknown>>);
         const tuples: Array<[number, number]> = value.map((v: Record<string, unknown>) => [
