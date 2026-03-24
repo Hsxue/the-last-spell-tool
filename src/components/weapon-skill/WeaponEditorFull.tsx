@@ -1,6 +1,7 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 import { useState, useEffect } from 'react';
 import { WeaponLevelDetailEditor } from './WeaponLevelDetailEditor';
+import { WeaponXMLButton } from './WeaponXMLButton';
 
 export function WeaponEditorFull() {
   const selectedWeapon = useWeaponSkillStore((state: any) => {
@@ -33,9 +34,12 @@ export function WeaponEditorFull() {
 
   return (
     <div className="p-4 space-y-4 h-full overflow-y-auto">
-      <div className="border-b pb-2">
-        <h2 className="text-lg font-semibold">{selectedWeapon.id}</h2>
-        <p className="text-sm text-gray-500">类别：{selectedWeapon.category}</p>
+      <div className="border-b pb-2 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">{selectedWeapon.id}</h2>
+          <p className="text-sm text-gray-500">类别：{selectedWeapon.category}</p>
+        </div>
+        <WeaponXMLButton weaponId={selectedWeapon.id} />
       </div>
       
       {/* 基本信息 */}

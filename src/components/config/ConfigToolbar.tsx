@@ -6,6 +6,7 @@
 import React from 'react';
 import { ExportButton } from './ExportButton';
 import { ImportButton } from './ImportButton';
+import { ConfigXMLButton } from './ConfigXMLButton';
 
 interface ConfigToolbarProps {
   className?: string;
@@ -19,6 +20,7 @@ export const ConfigToolbar: React.FC<ConfigToolbarProps> = ({ className = '' }) 
     >
       <ExportButton />
       <ImportButton />
+      <ConfigXMLButton />
     </div>
   );
 };

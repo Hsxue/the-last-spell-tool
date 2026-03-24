@@ -1,6 +1,7 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 import { useState } from 'react';
 import { SkillEffectForms } from './SkillEffectForms';
+import { SkillXMLButton } from './SkillXMLButton';
 
 export function SkillEditorFull() {
   const selectedSkill = useWeaponSkillStore((state: any) => {
@@ -29,9 +30,12 @@ export function SkillEditorFull() {
 
   return (
     <div className="p-4 space-y-4 h-full overflow-y-auto">
-      <div className="border-b pb-2">
-        <h2 className="text-lg font-semibold">{selectedSkill.id}</h2>
-        <p className="text-sm text-gray-500">类别：{selectedSkill.category}</p>
+      <div className="border-b pb-2 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">{selectedSkill.id}</h2>
+          <p className="text-sm text-gray-500">类别：{selectedSkill.category}</p>
+        </div>
+        <SkillXMLButton skillId={selectedSkill.id} />
       </div>
       
       {/* 基本信息 */}
