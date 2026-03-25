@@ -117,6 +117,8 @@ export const useWeaponSkillStore = create<WeaponSkillState>()(
     // Actions - Data Mutations
     addWeapon: (weapon) => {
       set((state) => {
+        console.log('[store.addWeapon] Adding weapon:', weapon);
+        console.log('[store.addWeapon] levelVariations:', weapon.levelVariations);
         state.weapons.push(weapon);
         state.hasUnsavedChanges = true;
       });
@@ -124,9 +126,31 @@ export const useWeaponSkillStore = create<WeaponSkillState>()(
 
     updateWeapon: (weapon) => {
       set((state) => {
+        console.log('[store.updateWeapon] Updating weapon:', weapon);
+        console.log('[store.updateWeapon] levelVariations type:', weapon.levelVariations?.constructor?.name);
+        if (weapon.levelVariations instanceof Map) {
+          console.log('[store.updateWeapon] levelVariations size:', weapon.levelVariations.size);
+          const entries = Array.from(weapon.levelVariations.entries());
+          console.log('[store.updateWeapon] levelVariations entries:', entries);
+          entries.forEach(([level, data]) => {
+            console.log(`[store.updateWeapon]   Level ${level}:`, data);
+            console.log(`[store.updateWeapon]   baseDamage:`, (data as any).baseDamage);
+          });
+        }
         const index = state.weapons.findIndex((w) => w.id === weapon.id);
         if (index !== -1) {
+          console.log('[store.updateWeapon] Found weapon at index:', index);
           state.weapons[index] = weapon;
+          console.log('[store.updateWeapon] After update, store levelVariations:', state.weapons[index].levelVariations);
+          if (state.weapons[index].levelVariations instanceof Map) {
+            console.log('[store.updateWeapon] After update, Map size:', state.weapons[index].levelVariations.size);
+            const entries = Array.from(state.weapons[index].levelVariations.entries());
+            console.log('[store.updateWeapon] After update, Map entries:', entries);
+            entries.forEach(([level, data]) => {
+              console.log(`[store.updateWeapon]   Level ${level}:`, data);
+              console.log(`[store.updateWeapon]   baseDamage:`, (data as any).baseDamage);
+            });
+          }
           state.hasUnsavedChanges = true;
         }
       });

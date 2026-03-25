@@ -34,8 +34,8 @@ export interface WeaponDefinition {
   hands: WeaponHands;
   /** Tags (e.g., Sword, Axe) */
   tags: string[];
-  /** Level variations: level -> WeaponLevel */
-  levelVariations: Map<number, WeaponLevel>;
+  /** Level variations: level -> WeaponLevel (use Record for better Zustand compatibility) */
+  levelVariations: Record<number, WeaponLevel>;
 }
 
 // ============================================================================

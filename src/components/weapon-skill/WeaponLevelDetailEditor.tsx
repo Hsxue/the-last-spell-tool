@@ -1,5 +1,5 @@
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface WeaponLevelDetailEditorProps {
   level: number;
@@ -7,39 +7,96 @@ interface WeaponLevelDetailEditorProps {
 }
 
 export function WeaponLevelDetailEditor({ level, onClose }: WeaponLevelDetailEditorProps) {
-  const selectedWeaponId = useWeaponSkillStore((state: any) => state.selectedWeaponId);
-  const updateWeapon = useWeaponSkillStore((state: any) => state.updateWeapon);
+  const selectedWeaponId = useWeaponSkillStore((state) => state.selectedWeaponId);
+  const updateWeapon = useWeaponSkillStore((state) => state.updateWeapon);
   
-  const selectedWeapon = useWeaponSkillStore((state: any) => 
-    state.weapons.find((w: any) => w.id === state.selectedWeaponId)
-  );
+  const selectedWeapon = useWeaponSkillStore((state) => {
+    if (!state.selectedWeaponId) return null;
+    return state.weapons.find((w) => w.id === state.selectedWeaponId);
+  });
   
-  const currentLevel = selectedWeapon?.levels?.[level];
+  // Get current level data from levelVariations Record
+  const currentLevel = selectedWeapon?.levelVariations?.[level];
   
-  const [damageMin, setDamageMin] = useState(currentLevel?.baseDamage?.min || 0);
-  const [damageMax, setDamageMax] = useState(currentLevel?.baseDamage?.max || 0);
+  const [damageMin, setDamageMin] = useState(currentLevel?.baseDamage?.[0] || 0);
+  const [damageMax, setDamageMax] = useState(currentLevel?.baseDamage?.[1] || 0);
   const [price, setPrice] = useState(currentLevel?.basePrice || 0);
-  const [statBonuses, setStatBonuses] = useState<string>(
-    currentLevel?.baseStatBonuses ? Object.entries(currentLevel.baseStatBonuses)
-      .map(([key, value]: [string, any]) => `${key}=${value}`).join(', ') : ''
-  );
+  const [statBonuses, setStatBonuses] = useState<string>(() => {
+    if (!currentLevel?.baseStatBonuses) return '';
+    const bonuses = currentLevel.baseStatBonuses instanceof Map
+      ? Array.from(currentLevel.baseStatBonuses.entries())
+      : typeof currentLevel.baseStatBonuses === 'object'
+        ? Object.entries(currentLevel.baseStatBonuses)
+        : [];
+    return bonuses.map(([key, value]) => `${key}=${value}`).join(', ');
+  });
+
+  // Update local state when currentLevel changes
+  useEffect(() => {
+    if (currentLevel) {
+      setDamageMin(currentLevel.baseDamage?.[0] || 0);
+      setDamageMax(currentLevel.baseDamage?.[1] || 0);
+      setPrice(currentLevel.basePrice || 0);
+      const bonuses = currentLevel.baseStatBonuses instanceof Map
+        ? Array.from(currentLevel.baseStatBonuses.entries())
+        : typeof currentLevel.baseStatBonuses === 'object'
+          ? Object.entries(currentLevel.baseStatBonuses || {})
+          : [];
+      setStatBonuses(bonuses.map(([key, value]) => `${key}=${value}`).join(', '));
+    }
+  }, [currentLevel]);
 
   const handleSave = () => {
-    if (!selectedWeaponId) return;
+    if (!selectedWeaponId || !selectedWeapon) return;
     
-    const updatedLevels = [...(selectedWeapon?.levels || [])];
-    updatedLevels[level] = {
-      ...currentLevel,
-      baseDamage: { min: damageMin, max: damageMax },
-      basePrice: price,
-      baseStatBonuses: statBonuses.split(',').reduce((acc: any, pair: string) => {
-        const [key, value] = pair.split('=').map(s => s.trim());
-        if (key && value) acc[key] = parseInt(value) || 0;
-        return acc;
-      }, {}),
+    console.log('[WeaponLevelDetailEditor] Before save:', {
+      damageMin,
+      damageMax,
+      price,
+    });
+    
+    // Parse stat bonuses into a Map
+    const statBonusesMap = new Map<string, number>();
+    statBonuses.split(',').forEach((pair: string) => {
+      const [key, value] = pair.split('=').map(s => s.trim());
+      if (key && value) {
+        statBonusesMap.set(key, parseInt(value) || 0);
+      }
+    });
+    
+    // Create new levelVariations object with all existing levels
+    const levelVariations: Record<number, any> = {
+      ...(selectedWeapon.levelVariations || {}),
     };
     
-    updateWeapon({ ...selectedWeapon, levels: updatedLevels });
+    // Create the new level data
+    const newLevelData = {
+      baseDamage: [damageMin, damageMax] as [number, number],
+      basePrice: price,
+      baseStatBonuses: new Map(statBonusesMap),
+      skills: Array.isArray(currentLevel?.skills) ? currentLevel.skills : [],
+    };
+    
+    console.log('[WeaponLevelDetailEditor] New level data:', {
+      ...newLevelData,
+      baseDamage: newLevelData.baseDamage,
+    });
+    
+    // Update the specific level
+    levelVariations[level] = newLevelData;
+    
+    console.log('[WeaponLevelDetailEditor] levelVariations after update:', levelVariations);
+    console.log('[WeaponLevelDetailEditor] levelVariations[level]:', levelVariations[level]);
+    
+    // Create updated weapon
+    const updatedWeapon = {
+      ...selectedWeapon,
+      levelVariations,
+    };
+    
+    console.log('[WeaponLevelDetailEditor] Calling updateWeapon with:', updatedWeapon);
+    
+    updateWeapon(updatedWeapon);
     onClose();
   };
 

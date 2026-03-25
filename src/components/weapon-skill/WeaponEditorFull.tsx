@@ -95,19 +95,24 @@ export function WeaponEditorFull() {
       <div className="space-y-3">
         <h3 className="text-sm font-semibold">级别配置 (0-5)</h3>
         <div className="grid grid-cols-3 gap-2">
-          {[0,1,2,3,4,5].map((level) => (
-            <button
-              key={level}
-              onClick={() => setEditingLevel(level)}
-              className={`px-3 py-2 text-xs rounded border ${
-                selectedWeapon.levels?.[level] 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-100 hover:bg-gray-200'
-              }`}
-            >
-              级别 {level}
-            </button>
-          ))}
+          {[0,1,2,3,4,5].map((level) => {
+            const hasLevel = editedWeapon.levelVariations instanceof Map
+              ? editedWeapon.levelVariations.has(level)
+              : editedWeapon.levelVariations?.[level] !== undefined;
+            return (
+              <button
+                key={level}
+                onClick={() => setEditingLevel(level)}
+                className={`px-3 py-2 text-xs rounded border ${
+                  hasLevel
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-100 hover:bg-gray-200'
+                }`}
+              >
+                级别 {level}
+              </button>
+            );
+          })}
         </div>
       </div>
 

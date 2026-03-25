@@ -121,8 +121,16 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
   };
 
   const parseNumberTuple = (value: unknown): [number, number] => {
+    // Handle array format [min, max]
     if (Array.isArray(value) && value.length >= 2) {
       return [parseNumber(value[0]), parseNumber(value[1])];
+    }
+    // Handle object format { Min: x, Max: y } or { min: x, max: y }
+    if (typeof value === 'object' && value !== null) {
+      const obj = value as Record<string, unknown>;
+      const min = parseNumber(obj.Min ?? obj.min ?? obj.Min ?? 0);
+      const max = parseNumber(obj.Max ?? obj.max ?? obj.Max ?? 0);
+      return [min, max];
     }
     return [0, 0];
   };
@@ -155,20 +163,26 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
     return bonuses;
   };
 
-  const parseLevelVariations = (value: unknown): Map<number, WeaponLevel> => {
-    const variations = new Map<number, WeaponLevel>();
+  const parseLevelVariations = (value: unknown): Record<number, WeaponLevel> => {
+    const variations: Record<number, WeaponLevel> = {};
     if (Array.isArray(value)) {
       for (const item of value) {
         if (typeof item === 'object' && item !== null) {
           const levelData = item as Record<string, unknown>;
           const level = parseNumber(levelData.Level ?? levelData.level ?? -1);
           if (level >= 0) {
-            variations.set(level, {
-              baseDamage: parseNumberTuple(levelData.BaseDamage ?? levelData.baseDamage),
+            const baseDamageRaw = levelData.BaseDamage ?? levelData.baseDamage;
+            console.log('[parseLevelVariations] level:', level);
+            console.log('[parseLevelVariations] baseDamage raw:', baseDamageRaw);
+            
+            variations[level] = {
+              baseDamage: parseNumberTuple(baseDamageRaw),
               basePrice: parseNumber(levelData.BasePrice ?? levelData.basePrice),
               baseStatBonuses: parseStatBonuses(levelData.BaseStatBonuses ?? levelData.baseStatBonuses),
               skills: parseStringArray(levelData.Skills ?? levelData.skills),
-            });
+            };
+            
+            console.log('[parseLevelVariations] parsed baseDamage:', variations[level].baseDamage);
           }
         }
       }
@@ -189,29 +203,65 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
  * Convert WeaponDefinition to XML data object
  */
 function weaponToXml(weapon: WeaponDefinition): Record<string, unknown> {
+  console.log('[weaponToXml] Input weapon:', weapon);
+  console.log('[weaponToXml] levelVariations:', weapon.levelVariations);
+  
   const levelVariationsArray: Record<string, unknown>[] = [];
   
-  weapon.levelVariations.forEach((data, level) => {
+  // Handle levelVariations as Record<number, WeaponLevel>
+  const levelVars = weapon.levelVariations || {};
+  
+  Object.entries(levelVars).forEach(([levelStr, data]: [string, any]) => {
+    const levelNum = parseInt(levelStr, 10);
+    if (isNaN(levelNum) || levelNum < 0) return;
+    
+    console.log('[weaponToXml] Processing level:', levelNum, 'data:', data);
+    console.log('[weaponToXml] data.baseDamage:', data.baseDamage, 'isArray:', Array.isArray(data.baseDamage));
+    
+    // Handle baseStatBonuses as Map or plain object
+    let baseStatBonuses: Array<[string, number]> = [];
+    if (data.baseStatBonuses instanceof Map) {
+      baseStatBonuses = Array.from(data.baseStatBonuses.entries());
+    } else if (data.baseStatBonuses && typeof data.baseStatBonuses === 'object') {
+      baseStatBonuses = Object.entries(data.baseStatBonuses).map(([k, v]) => [k, v as number]);
+    }
+    
+    // Handle skills array
+    const skills = Array.isArray(data.skills) ? data.skills : [];
+    
+    // Handle baseDamage tuple - ensure it's always an array
+    let baseDamage: [number, number] = [0, 0];
+    if (Array.isArray(data.baseDamage)) {
+      baseDamage = [data.baseDamage[0] ?? 0, data.baseDamage[1] ?? 0];
+    } else if (data.baseDamage && typeof data.baseDamage === 'object') {
+      // Handle { min, max } format
+      baseDamage = [(data.baseDamage as any).min ?? 0, (data.baseDamage as any).max ?? 0];
+    }
+    
+    console.log('[weaponToXml] baseDamage after check:', baseDamage);
+    
     levelVariationsArray.push({
-      Level: level,
+      Level: levelNum,
       BaseDamage: {
-        Min: data.baseDamage[0],
-        Max: data.baseDamage[1],
+        Min: baseDamage[0],
+        Max: baseDamage[1],
       },
-      BasePrice: data.basePrice,
-      BaseStatBonuses: Array.from(data.baseStatBonuses.entries()).map(([statName, value]) => ({
+      BasePrice: data.basePrice || 0,
+      BaseStatBonuses: baseStatBonuses.map(([statName, value]) => ({
         StatName: statName,
         Value: value,
       })),
-      Skills: data.skills.length > 0 ? { Skill: data.skills } : [],
+      Skills: skills.length > 0 ? { Skill: skills } : [],
     });
   });
+
+  console.log('[weaponToXml] levelVariationsArray:', levelVariationsArray);
 
   return {
     Id: weapon.id,
     Category: weapon.category,
     Hands: weapon.hands,
-    Tags: { Tag: weapon.tags },
+    Tags: { Tag: Array.isArray(weapon.tags) ? weapon.tags : [] },
     LevelVariations: levelVariationsArray,
   };
 }
@@ -299,14 +349,16 @@ export function roundTripTest(weapons: WeaponDefinition[]): boolean {
         return false;
       }
       
-      if (original.levelVariations.size !== roundTripped.levelVariations.size) {
+      const origLevels = Object.keys(original.levelVariations).map(Number);
+      const roundLevels = Object.keys(roundTripped.levelVariations).map(Number);
+      
+      if (origLevels.length !== roundLevels.length) {
         return false;
       }
       
-      // Convert to array to avoid iteration issues
-      const levelEntries = Array.from(original.levelVariations.entries());
-      for (const [level, origLevel] of levelEntries) {
-        const roundTrippedLevel = roundTripped.levelVariations.get(level);
+      for (const level of origLevels) {
+        const origLevel = original.levelVariations[level];
+        const roundTrippedLevel = roundTripped.levelVariations[level];
         if (!roundTrippedLevel) return false;
         
         if (origLevel.baseDamage[0] !== roundTrippedLevel.baseDamage[0] ||
@@ -315,7 +367,14 @@ export function roundTripTest(weapons: WeaponDefinition[]): boolean {
           return false;
         }
         
-        if (origLevel.baseStatBonuses.size !== roundTrippedLevel.baseStatBonuses.size) {
+        const origBonuses = origLevel.baseStatBonuses instanceof Map
+          ? origLevel.baseStatBonuses.size
+          : Object.keys(origLevel.baseStatBonuses || {}).length;
+        const roundBonuses = roundTrippedLevel.baseStatBonuses instanceof Map
+          ? roundTrippedLevel.baseStatBonuses.size
+          : Object.keys(roundTrippedLevel.baseStatBonuses || {}).length;
+        
+        if (origBonuses !== roundBonuses) {
           return false;
         }
         

@@ -1,32 +1,37 @@
+import { useEffect, useState } from 'react';
 import { useWeaponSkillStore } from '../../store/weaponSkillStore';
-import { useState } from 'react';
 import { SkillEffectForms } from './SkillEffectForms';
 import { SkillXMLButton } from './SkillXMLButton';
 
 export function SkillEditorFull() {
-  const selectedSkill = useWeaponSkillStore((state: any) => {
+  const selectedSkill = useWeaponSkillStore((state) => {
     if (!state.selectedSkillId) return null;
-    return state.skills.find((s: any) => s.id === state.selectedSkillId);
+    return state.skills.find((s) => s.id === state.selectedSkillId);
   });
-  const updateSkill = useWeaponSkillStore((state: any) => state.updateSkill);
+  const updateSkill = useWeaponSkillStore((state) => state.updateSkill);
 
-  const [editedSkill, setEditedSkill] = useState<any>(selectedSkill);
+  const [editedSkill, setEditedSkill] = useState<any>(null);
+
+  // Sync editedSkill with selectedSkill
+  useEffect(() => {
+    setEditedSkill(selectedSkill);
+  }, [selectedSkill]);
 
   const handleSkillEffectChange = (updates: any) => {
     setEditedSkill({ ...editedSkill, ...updates });
   };
 
-  if (!selectedSkill) {
+  const handleSave = () => {
+    updateSkill(editedSkill);
+  };
+
+  if (!selectedSkill || !editedSkill) {
     return (
       <div className="p-8 text-center text-gray-500">
         <p className="text-sm">选择技能以编辑</p>
       </div>
     );
   }
-
-  const handleSave = () => {
-    updateSkill(editedSkill);
-  };
 
   return (
     <div className="p-4 space-y-4 h-full overflow-y-auto">

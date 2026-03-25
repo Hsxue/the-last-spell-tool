@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import { WeaponTreeView } from './WeaponTreeView';
 import { SkillTreeView } from './SkillTreeView';
 import { WeaponEditorFull } from './WeaponEditorFull';
 import { SkillEditorFull } from './SkillEditorFull';
 import { WeaponSkillActions } from './WeaponSkillActions';
 import { Toolbar } from './Toolbar';
-
-type TabType = 'weapons' | 'skills';
+import { useWeaponSkillStore } from '../../store/weaponSkillStore';
 
 export function WeaponSkillTab() {
-  const [activeTab, setActiveTab] = useState<TabType>('weapons');
+  const currentView = useWeaponSkillStore((state) => state.currentView);
+  const setCurrentView = useWeaponSkillStore((state) => state.setCurrentView);
 
   return (
     <div className="flex flex-col h-full">
@@ -20,21 +19,21 @@ export function WeaponSkillTab() {
       <div className="flex border-b">
         <button
           className={`px-4 py-2 text-sm font-medium ${
-            activeTab === 'weapons' 
+            currentView === 'weapons' 
               ? 'border-b-2 border-blue-500 text-blue-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
-          onClick={() => setActiveTab('weapons')}
+          onClick={() => setCurrentView('weapons')}
         >
           武器
         </button>
         <button
           className={`px-4 py-2 text-sm font-medium ${
-            activeTab === 'skills' 
+            currentView === 'skills' 
               ? 'border-b-2 border-blue-500 text-blue-600' 
               : 'text-gray-500 hover:text-gray-700'
           }`}
-          onClick={() => setActiveTab('skills')}
+          onClick={() => setCurrentView('skills')}
         >
           技能
         </button>
@@ -42,7 +41,7 @@ export function WeaponSkillTab() {
       
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden">
-        {activeTab === 'weapons' ? (
+        {currentView === 'weapons' ? (
           <div className="h-full">
             <div className="grid grid-cols-2 h-full">
               <div className="border-r">

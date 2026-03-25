@@ -22,7 +22,7 @@ export function NewWeaponDialog({ open, onClose }: NewWeaponDialogProps) {
       category,
       hands: 'OneHand',
       tags: [],
-      levels: [],
+      levelVariations: {},
     });
     
     setName('');

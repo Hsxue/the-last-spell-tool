@@ -342,54 +342,58 @@ function skillToXml(skill: SkillDefinition): Record<string, unknown> {
     Description: skill.description,
     IconPath: skill.iconPath,
     TemplateId: skill.templateId,
-    ActionPointsCost: skill.actionPointsCost,
-    ManaCost: skill.manaCost,
-    HealthCost: skill.healthCost,
-    UsesPerTurnCount: skill.usesPerTurnCount,
+    ActionPointsCost: skill.actionPointsCost || 0,
+    ManaCost: skill.manaCost || 0,
+    HealthCost: skill.healthCost || 0,
+    UsesPerTurnCount: skill.usesPerTurnCount || 0,
     Category: skill.category,
   };
 
-  // Skill Range
+  // Skill Range - handle undefined
   xml.SkillRange = {
-    Min: skill.skillRange.min,
-    Max: skill.skillRange.max,
-    CardinalDirectionOnly: skill.skillRange.cardinalDirectionOnly,
-    Modifiable: skill.skillRange.modifiable,
+    Min: skill.skillRange?.min ?? 0,
+    Max: skill.skillRange?.max ?? 0,
+    CardinalDirectionOnly: skill.skillRange?.cardinalDirectionOnly ?? false,
+    Modifiable: skill.skillRange?.modifiable ?? false,
   };
 
-  // Skill Target
+  // Skill Target - handle undefined
   xml.SkillTarget = {
-    ValidTargets: { Target: skill.skillTarget.validTargets },
-    AffectedUnits: { Unit: skill.skillTarget.affectedUnits },
+    ValidTargets: { Target: Array.isArray(skill.skillTarget?.validTargets) ? skill.skillTarget.validTargets : [] },
+    AffectedUnits: { Unit: Array.isArray(skill.skillTarget?.affectedUnits) ? skill.skillTarget.affectedUnits : [] },
   };
 
-  // Area of Effect
+  // Area of Effect - handle undefined
   xml.AreaOfEffect = {
-    OriginX: skill.areaOfEffect.originX,
-    OriginY: skill.areaOfEffect.originY,
-    Pattern: skill.areaOfEffect.pattern,
+    OriginX: skill.areaOfEffect?.originX ?? 0,
+    OriginY: skill.areaOfEffect?.originY ?? 0,
+    Pattern: skill.areaOfEffect?.pattern ?? '',
   };
 
   // Attack Action (if present)
   if (skill.attackAction) {
     xml.AttackAction = {
       AttackType: skill.attackAction.attackType,
-      BaseDamageMin: skill.attackAction.baseDamage[0],
-      BaseDamageMax: skill.attackAction.baseDamage[1],
-      DamageMultiplier: skill.attackAction.damageMultiplier,
-      CriticalChance: skill.attackAction.criticalChance,
-      Follow: skill.attackAction.effects.follow,
-      Maneuver: skill.attackAction.effects.maneuver,
-      MultiHit: skill.attackAction.effects.multiHit,
-      ArmorPiercing: skill.attackAction.effects.armorPiercing,
+      BaseDamageMin: skill.attackAction.baseDamage?.[0] ?? 0,
+      BaseDamageMax: skill.attackAction.baseDamage?.[1] ?? 0,
+      DamageMultiplier: skill.attackAction.damageMultiplier ?? 1,
+      CriticalChance: skill.attackAction.criticalChance ?? 0,
+      Follow: skill.attackAction.effects?.follow ?? false,
+      Maneuver: skill.attackAction.effects?.maneuver ?? false,
+      MultiHit: skill.attackAction.effects?.multiHit ?? false,
+      ArmorPiercing: skill.attackAction.effects?.armorPiercing ?? false,
     };
   }
 
   // Generic Action (if present)
   if (skill.genericAction) {
+    const params = skill.genericAction.parameters instanceof Map
+      ? skill.genericAction.parameters
+      : new Map(Object.entries(skill.genericAction.parameters || {}));
+    
     xml.GenericAction = {
       ActionType: skill.genericAction.actionType,
-      Parameters: Array.from(skill.genericAction.parameters.entries()).map(([key, value]) => ({
+      Parameters: Array.from(params.entries()).map(([key, value]) => ({
         Parameter: {
           Key: key,
           Value: value,
@@ -398,19 +402,19 @@ function skillToXml(skill: SkillDefinition): Record<string, unknown> {
     };
   }
 
-  // Cast FX
+  // Cast FX - serialize all fields including empty ones
   xml.CastFX = {
-    VFX: skill.castFx.vfx,
-    Sound: skill.castFx.sound,
-    CamShake: skill.castFx.camShake,
-    CasterAnim: skill.castFx.casterAnim,
+    VFX: skill.castFx?.vfx ?? '',
+    Sound: skill.castFx?.sound ?? '',
+    CamShake: skill.castFx?.camShake ?? 0,
+    CasterAnim: skill.castFx?.casterAnim ?? '',
   };
 
-  // Conditions
+  // Conditions - serialize all fields
   xml.Conditions = {
-    ...(skill.conditions.phase !== undefined && { Phase: skill.conditions.phase }),
-    ...(skill.conditions.targetInRange !== undefined && { TargetInRange: skill.conditions.targetInRange }),
-    ...(skill.conditions.inWatchtower !== undefined && { InWatchtower: skill.conditions.inWatchtower }),
+    ...(skill.conditions?.phase !== undefined && { Phase: skill.conditions.phase }),
+    ...(skill.conditions?.targetInRange !== undefined && { TargetInRange: skill.conditions.targetInRange }),
+    ...(skill.conditions?.inWatchtower !== undefined && { InWatchtower: skill.conditions.inWatchtower }),
   };
 
   return xml;
