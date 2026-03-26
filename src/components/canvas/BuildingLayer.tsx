@@ -1,10 +1,5 @@
 /**
  * BuildingLayer - Renders buildings using pre-rendered canvas for optimal performance
- * 
- * Features:
- * - Pre-renders all buildings to offscreen canvas
- * - Uses Konva Image for GPU-accelerated rendering
- * - Separate BuildingPreview component for editing
  */
 
 import { useState, useEffect, useRef, memo } from 'react';
@@ -20,13 +15,9 @@ interface BuildingLayerProps {
 }
 
 const TILE_SIZE = 20;
-
 const blueprintLookup = new Map(BUILDING_BLUEPRINTS.map(bp => [bp.id, bp]));
 
-function getBuildingTilePositions(
-  building: Building,
-  blueprint: typeof BUILDING_BLUEPRINTS[0]
-): Array<[number, number]> {
+function getBuildingTilePositions(building: Building, blueprint: typeof BUILDING_BLUEPRINTS[0]): Array<[number, number]> {
   const positions: Array<[number, number]> = [];
   const baseX = building.x - blueprint.originX;
   const baseY = building.y - blueprint.originY;
@@ -42,11 +33,7 @@ function getBuildingTilePositions(
   return positions;
 }
 
-function preRenderBuildings(
-  buildings: Building[],
-  mapWidth: number,
-  mapHeight: number
-): HTMLCanvasElement {
+function preRenderBuildings(buildings: Building[], mapWidth: number, mapHeight: number): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = mapWidth * TILE_SIZE;
   canvas.height = mapHeight * TILE_SIZE;
@@ -83,9 +70,17 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, mapWidth, 
   const [, forceUpdate] = useState({});
 
   useEffect(() => {
+    if (buildingsCanvasRef.current) {
+      buildingsCanvasRef.current = preRenderBuildings(buildings, mapWidth, mapHeight);
+      forceUpdate({});
+    }
+  }, [buildings, mapWidth, mapHeight]);
+
+  // Initial render
+  useEffect(() => {
     buildingsCanvasRef.current = preRenderBuildings(buildings, mapWidth, mapHeight);
     forceUpdate({});
-  }, [buildings, mapWidth, mapHeight]);
+  }, []);
 
   const canvasWidth = mapWidth * TILE_SIZE;
   const canvasHeight = mapHeight * TILE_SIZE;

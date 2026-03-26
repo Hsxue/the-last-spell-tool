@@ -13,6 +13,7 @@ import { TerrainLayer } from './TerrainLayer';
 import { GridLayer } from './GridLayer';
 import { BuildingLayer, BuildingPreview } from './BuildingLayer';
 import { FlagLayer, FlagPreview } from './FlagLayer';
+import { ContextMenu } from './ContextMenu';
 import type { MapData } from '../../types/map';
 import { canPlaceBuilding as canPlaceBuildingBlueprint } from '../../lib/placementEngine-blueprint';
 
@@ -46,6 +47,14 @@ function clamp(value: number, min: number, max: number): number {
 export function MapCanvas({ className }: MapCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerSize, setContainerSize] = useState({ width: 800, height: 600 });
+  const [contextMenu, setContextMenu] = useState<{
+    tileX: number;
+    tileY: number;
+    worldX: number;
+    worldY: number;
+    screenX: number;
+    screenY: number;
+  } | null>(null);
   
   // Ref for throttling custom events (reduce GC pressure)
   const lastEventTimeRef = useRef(0);
@@ -162,6 +171,39 @@ export function MapCanvas({ className }: MapCanvasProps) {
   const handleDragStart = useCallback(() => {
     setViewport({ isPanning: true });
   }, [setViewport]);
+
+  // Handle right click - show context menu
+  const handleContextMenu = useCallback(
+    (e: KonvaEventObject<MouseEvent>) => {
+      e.evt.preventDefault();
+      
+      const stage = e.target.getStage();
+      const pos = stage?.getPointerPosition();
+      if (!pos) return;
+
+      // Calculate tile coordinates
+      const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
+      const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
+      const tileX = Math.floor(worldX / TILE_SIZE);
+      const tileY = Math.floor(worldY / TILE_SIZE);
+
+      // Set hovered tile for context menu
+      if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
+        setHoveredTile({ x: tileX, y: tileY });
+        
+        // Show context menu
+        setContextMenu({
+          tileX,
+          tileY,
+          worldX: Math.round(worldX * 100) / 100,
+          worldY: Math.round(worldY * 100) / 100,
+          screenX: pos.x,
+          screenY: pos.y,
+        });
+      }
+    },
+    [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height, setHoveredTile]
+  );
 
   // Handle mouse move for coordinate tracking
   const handleMouseMove = useCallback(
@@ -363,6 +405,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
           ? (viewport.isPanning ? 'grabbing' : 'crosshair') 
           : (viewport.isPanning ? 'grabbing' : 'grab') 
       }}
+      onContextMenu={(e) => e.preventDefault()}
     >
       {/* Disable Stage drag when in terrain/eraser mode to allow drawing instead of panning */}
       <Stage
@@ -379,6 +422,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
         onClick={handleCanvasClick}
+        onContextMenu={handleContextMenu}
       >
         {/* Terrain Layer - Bottom (needs interaction for terrain drawing) */}
         <Layer imageSmoothingEnabled={false}>
@@ -428,6 +472,19 @@ export function MapCanvas({ className }: MapCanvasProps) {
           </Layer>
         )}
       </Stage>
+      
+      {/* Context Menu */}
+      {contextMenu && (
+        <ContextMenu
+          tileX={contextMenu.tileX}
+          tileY={contextMenu.tileY}
+          worldX={contextMenu.worldX}
+          worldY={contextMenu.worldY}
+          screenX={contextMenu.screenX}
+          screenY={contextMenu.screenY}
+          onClose={() => setContextMenu(null)}
+        />
+      )}
     </div>
   );
 }
