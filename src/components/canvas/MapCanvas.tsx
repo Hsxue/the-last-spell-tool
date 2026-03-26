@@ -196,7 +196,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
   }, []);
 
   const handleStageMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
-    if (isMiddleMouseDownRef.current && editorMode !== 'terrain' && editorMode !== 'eraser') {
+    if (isMiddleMouseDownRef.current) {
       e.evt.preventDefault();
       const pos = e.target.getStage()?.getPointerPosition();
       if (pos) {
@@ -210,7 +210,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         lastMousePosRef.current = { x: pos.x, y: pos.y };
       }
     }
-  }, [editorMode, viewport.offsetX, viewport.offsetY, setViewport]);
+  }, [viewport.offsetX, viewport.offsetY, setViewport]);
 
   // Handle right click - show context menu
   const handleContextMenu = useCallback(
