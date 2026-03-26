@@ -303,6 +303,9 @@ export function TerrainLayer({ mapData }: TerrainLayerProps) {
         height={canvasHeight}
         fill="transparent"
         onMouseDown={(e: KonvaEventObject<MouseEvent>) => {
+          // Only handle left mouse button
+          if (e.evt.button !== 0) return;
+          
           const stage = e.target.getStage();
           const pos = stage?.getPointerPosition();
           if (!pos) return;
