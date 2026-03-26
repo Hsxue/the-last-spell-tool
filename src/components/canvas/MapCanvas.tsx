@@ -295,8 +295,14 @@ export function MapCanvas({ className }: MapCanvasProps) {
   }, [setHoveredTile]);
 
   // Handle canvas click for building placement and removal
+  // Only responds to left mouse button (button 0)
   const handleCanvasClick = useCallback(
     (e: KonvaEventObject<MouseEvent>) => {
+      // Only handle left mouse button clicks
+      if (e.evt.button !== 0) {
+        return;
+      }
+      
       const stage = e.target.getStage();
       const pos = stage?.getPointerPosition();
       if (!pos) return;
