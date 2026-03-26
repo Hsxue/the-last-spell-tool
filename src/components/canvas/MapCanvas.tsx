@@ -382,7 +382,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
       >
         {/* Terrain Layer - Bottom (needs interaction for terrain drawing) */}
         <Layer imageSmoothingEnabled={false}>
-          <TerrainLayer mapData={layerMapData} viewport={viewport} containerSize={containerSize} />
+          <TerrainLayer mapData={layerMapData} />
         </Layer>
 
         {/* Grid Layer - Static, no interaction needed */}
@@ -392,11 +392,12 @@ export function MapCanvas({ className }: MapCanvasProps) {
           </Layer>
         )}
 
-        {/* Building Layer - Static buildings only (memoized to prevent re-renders) */}
+        {/* Building Layer - Static buildings only (pre-rendered for performance) */}
         <Layer imageSmoothingEnabled={false} listening={false}>
           <BuildingLayer
             buildings={layerMapData.buildings}
-            viewport={viewport}
+            mapWidth={width}
+            mapHeight={height}
           />
         </Layer>
 
@@ -413,7 +414,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         {/* Flag Layer - Top, static, no interaction needed */}
         {layerVisibility.flags && (
           <Layer imageSmoothingEnabled={false} listening={false}>
-            <FlagLayer mapData={layerMapData} viewport={viewport} containerSize={containerSize} />
+            <FlagLayer mapData={layerMapData} />
           </Layer>
         )}
 
