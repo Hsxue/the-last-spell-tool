@@ -6,6 +6,7 @@
  * - Renders all building tiles with category colors
  * - Shows category markers (first 2 letters) when zoom >= 14
  * - Separate BuildingPreview component with React.memo for smooth rendering
+ * - PERFORMANCE: Viewport culling and LOD for better zoom performance
  */
 
 import { useMemo, memo } from 'react';
@@ -13,6 +14,7 @@ import { Rect, Text, Group, Circle } from 'react-konva';
 import type { Building, ViewportState } from '../../types/map';
 import { BUILDING_CATEGORY_COLORS } from '../../types/map';
 import { BUILDING_BLUEPRINTS } from '../../data/buildingBlueprints';
+import { getVisibleTileRange, isTileVisible } from '../../lib/viewportCulling';
 
 // ============================================================================
 // Props Interface
@@ -88,10 +90,34 @@ export const buildingPreviewHoveredTileRef = {
 
 export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }: BuildingLayerProps) {
   const buildingElements = useMemo(() => {
+    // LOD: Hide buildings when zoomed out too far
+    const BUILDING_LOD_THRESHOLD = 0.4;
+    if (viewport.zoom < BUILDING_LOD_THRESHOLD) {
+      return [];
+    }
+    
     const elements: React.ReactNode[] = [];
     const showMarkers = viewport.zoom >= ZOOM_MARKER_THRESHOLD;
+    
+    // Calculate visible range for culling
+    const visibleRange = getVisibleTileRange(
+      {
+        x: -viewport.offsetX / viewport.zoom,
+        y: -viewport.offsetY / viewport.zoom,
+        width: window.innerWidth / viewport.zoom,
+        height: window.innerHeight / viewport.zoom,
+      },
+      10000, // Large enough map size
+      10000,
+      TILE_SIZE
+    );
 
     buildings.forEach((building) => {
+      // Viewport culling: skip buildings outside visible range
+      if (!isTileVisible(building.x, building.y, visibleRange)) {
+        return;
+      }
+      
       const blueprint = blueprintLookup.get(building.id);
       if (!blueprint) return;
 
@@ -143,8 +169,12 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
       }
     });
 
+    if (import.meta.env.DEV) {
+      console.log(`[BuildingLayer] Rendering ${buildings.length} buildings (${elements.length} tiles, zoom: ${viewport.zoom.toFixed(2)})`);
+    }
+
     return elements;
-  }, [buildings, viewport.zoom]);
+  }, [buildings, viewport.zoom, viewport.offsetX, viewport.offsetY]);
 
   return (
     <Group>
