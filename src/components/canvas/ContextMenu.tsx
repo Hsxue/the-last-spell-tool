@@ -16,23 +16,26 @@ interface ContextMenuProps {
 }
 
 export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, onClose }: ContextMenuProps) {
-  const [position, setPosition] = useState({ x: screenX, y: screenY });
+  const [position, setPosition] = useState({ x: screenX + 10, y: screenY + 10 });
 
   useEffect(() => {
-    // Adjust position if menu would go off-screen
+    // Position menu at bottom-right of mouse cursor to avoid covering it
     const menuWidth = 200;
-    const menuHeight = 300;
+    const menuHeight = 200;
     const padding = 10;
     
-    let newX = screenX;
-    let newY = screenY;
+    // Start from mouse position with 10px offset (bottom-right corner)
+    let newX = screenX + 10;
+    let newY = screenY + 10;
     
-    if (screenX + menuWidth > window.innerWidth - padding) {
-      newX = window.innerWidth - menuWidth - padding;
+    // Adjust if menu would go off-screen right
+    if (newX + menuWidth > window.innerWidth - padding) {
+      newX = screenX - menuWidth - 10;
     }
     
-    if (screenY + menuHeight > window.innerHeight - padding) {
-      newY = screenY - menuHeight;
+    // Adjust if menu would go off-screen bottom
+    if (newY + menuHeight > window.innerHeight - padding) {
+      newY = screenY - menuHeight - 10;
     }
     
     setPosition({ x: newX, y: newY });
@@ -80,7 +83,6 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, on
         <button
           className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
           onClick={() => {
-            console.log('Copy coordinates');
             navigator.clipboard.writeText(`${tileX},${tileY}`);
             onClose();
           }}
@@ -91,8 +93,6 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, on
         <button
           className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
           onClick={() => {
-            console.log('Center on tile');
-            // Dispatch event to center camera on this tile
             window.dispatchEvent(new CustomEvent('centerontile', {
               detail: { tileX, tileY },
             }));
@@ -107,8 +107,6 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, on
         <button
           className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground"
           onClick={() => {
-            console.log('Inspect tile');
-            // Dispatch event for tile inspection
             window.dispatchEvent(new CustomEvent('inspecttile', {
               detail: { tileX, tileY },
             }));
