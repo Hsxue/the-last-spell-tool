@@ -10,6 +10,7 @@ import BuildingSidebar from './components/sidebar/BuildingSidebar';
 import FlagSidebar from './components/sidebar/FlagSidebar';
 import { ConfigTabs } from './components/config';
 import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
+import { TileMapImportButton } from './components/TileMapImportButton';
 import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
@@ -55,14 +56,6 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
     });
   };
 
-  const handleOpenMap = () => {
-    addToast({
-      title: 'Open Map',
-      description: 'Opening file dialog...',
-      type: 'info',
-    });
-  };
-
   const handleSaveMap = () => {
     addToast({
       title: 'Save Map',
@@ -89,14 +82,7 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
           <FilePlus className="h-4 w-4 mr-2" />
           New
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleOpenMap}
-        >
-          <FolderOpen className="h-4 w-4 mr-2" />
-          Open
-        </Button>
+        <TileMapImportButton />
         <Button
           variant="default"
           size="sm"

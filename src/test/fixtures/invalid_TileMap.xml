@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-16"?>
+<TileMap>
+  <Width>51</Width>
+  <Height>51</Height>
+  <Grounds>
+    <Crater>this is not valid - malformed content without proper coordinates</Crater>
+  </Grounds>
+  <Flags>
+    <InvalidFlagType>missing closing tag
+  </Flags>
+</TileMap>

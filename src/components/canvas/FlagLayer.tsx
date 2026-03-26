@@ -102,8 +102,8 @@ interface FlagLayerProps {
  * Renders zone flags as colored rectangles and special flags as markers.
  * Uses viewport culling for performance optimization with large flag counts.
  */
-export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
-  const { flags } = mapData;
+export function FlagLayer({ mapData, viewport, containerSize }: FlagLayerProps & { containerSize?: { width: number; height: number } }) {
+  const { flags, width: mapWidth, height: mapHeight } = mapData;
   const groupRef = useRef<KonvaGroup>(null);
 
   // Get layer visibility from store
@@ -113,30 +113,38 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
 
   /**
    * Calculate visible tile range based on viewport
-   * Used for culling flag elements outside the viewport
+   * Uses containerSize for accurate culling
    */
   const visibleRange = useMemo(() => {
+    // Use the container size if available, fallback to window dimensions for compatibility
+    const width = containerSize?.width || window.innerWidth;
+    const height = containerSize?.height || window.innerHeight;
+    
     const viewportPixels = {
       x: -viewport.offsetX / viewport.zoom,
       y: -viewport.offsetY / viewport.zoom,
-      width: window.innerWidth / viewport.zoom,
-      height: window.innerHeight / viewport.zoom,
+      width: width / viewport.zoom,
+      height: height / viewport.zoom,
     };
 
     return getVisibleTileRange(
       viewportPixels,
-      mapData.width * TILE_SIZE,
-      mapData.height * TILE_SIZE,
+      mapWidth * TILE_SIZE,
+      mapHeight * TILE_SIZE,
       TILE_SIZE
     );
-  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, mapData.width, mapData.height]);
+  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, mapWidth, mapHeight, containerSize?.width, containerSize?.height]);
 
   /**
    * Memoized zone flag rendering elements
-   * Renders zone flags as colored rectangles with labels
-   * Uses viewport culling to only render visible zones
+   * LOD: Skip rendering when zoom < 0.4
    */
   const zoneFlagElements = useMemo(() => {
+    // LOD: Hide zone flags when zoomed out too far
+    if (viewport.zoom < 0.4) {
+      return [];
+    }
+    
     if (!showZones) return [];
 
     const elements: React.ReactNode[] = [];
@@ -148,7 +156,7 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
       const label = getZoneLabel(flagType);
 
       positions.forEach(([x, y], index) => {
-        // Viewport culling - skip if not visible
+        // Viewport culling with margin
         if (!isTileVisible(x, y, visibleRange)) return;
 
         const key = `${flagType}-${x}-${y}-${index}`;
@@ -172,35 +180,45 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
               listening={false}
               hitStrokeWidth={0}
             />
-            {/* Zone label */}
-            <Text
-              x={pixelX}
-              y={pixelY + size * 0.25}
-              width={size}
-              height={size * 0.5}
-              text={label}
-              fontSize={size * 0.5}
-              fontFamily="sans-serif"
-              fill="#333"
-              align="center"
-              verticalAlign="middle"
-              listening={false}
-              perfectDrawEnabled={false}
-            />
+            {/* Zone label - only show when zoomed in enough */}
+            {viewport.zoom >= 0.6 && (
+              <Text
+                x={pixelX}
+                y={pixelY + size * 0.25}
+                width={size}
+                height={size * 0.5}
+                text={label}
+                fontSize={size * 0.5}
+                fontFamily="sans-serif"
+                fill="#333"
+                align="center"
+                verticalAlign="middle"
+                listening={false}
+                perfectDrawEnabled={false}
+              />
+            )}
           </Group>
         );
       });
     });
 
+    if (import.meta.env.DEV) {
+      console.log(`[FlagLayer] Rendering ${elements.length} zone flags (zoom: ${viewport.zoom.toFixed(2)})`);
+    }
+
     return elements;
-  }, [flags, showZones, visibleRange]);
+  }, [flags, showZones, visibleRange, viewport.zoom]);
 
   /**
    * Memoized special flag rendering elements
-   * Renders special flags as text markers
-   * Uses viewport culling to only render visible markers
+   * LOD: Skip rendering when zoom < 0.4
    */
   const specialFlagElements = useMemo(() => {
+    // LOD: Hide special flags when zoomed out too far
+    if (viewport.zoom < 0.4) {
+      return [];
+    }
+    
     if (!showSpecialFlags) return [];
 
     const elements: React.ReactNode[] = [];
@@ -235,8 +253,12 @@ export function FlagLayer({ mapData, viewport }: FlagLayerProps) {
       });
     });
 
+    if (import.meta.env.DEV) {
+      console.log(`[FlagLayer] Rendering ${elements.length} special flags (zoom: ${viewport.zoom.toFixed(2)})`);
+    }
+
     return elements;
-  }, [flags, showSpecialFlags, visibleRange]);
+  }, [flags, showSpecialFlags, visibleRange, viewport.zoom]);
 
   // Cache the flag group for performance
   useEffect(() => {

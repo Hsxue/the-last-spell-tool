@@ -413,7 +413,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         {/* Flag Layer - Top, static, no interaction needed */}
         {layerVisibility.flags && (
           <Layer imageSmoothingEnabled={false} listening={false}>
-            <FlagLayer mapData={layerMapData} viewport={viewport} />
+            <FlagLayer mapData={layerMapData} viewport={viewport} containerSize={containerSize} />
           </Layer>
         )}
 

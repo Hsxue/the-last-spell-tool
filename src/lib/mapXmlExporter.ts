@@ -17,17 +17,13 @@ export function exportBuildingsToXml(buildings: Building[]): string {
   xmlParts.push('<Buildings>');
   
   for (const building of buildings) {
-    xmlParts.push('  <Building>');
-    xmlParts.push(`    <Id>${escapeXml(building.id)}</Id>`);
-    xmlParts.push(`    <X>${building.x}</X>`);
-    xmlParts.push(`    <Y>${building.y}</Y>`);
+    // Use attributes for Id, X, Y (matching game format)
+    // Health is an element (as per game format)
+    const healthElement = building.health !== undefined && building.health !== null && building.health >= 0
+      ? `<Health>${building.health}</Health>`
+      : '';
     
-    // Include Health only if defined and >= 0
-    if (building.health !== undefined && building.health !== null && building.health >= 0) {
-      xmlParts.push(`    <Health>${building.health}</Health>`);
-    }
-    
-    xmlParts.push('  </Building>');
+    xmlParts.push(`  <Building Id="${escapeXml(building.id)}" X="${building.x}" Y="${building.y}">${healthElement}</Building>`);
   }
   
   xmlParts.push('</Buildings>');

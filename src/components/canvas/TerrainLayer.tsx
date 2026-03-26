@@ -106,7 +106,7 @@ function getBrushPositions(
  * Renders terrain tiles and handles terrain editing interactions.
  * Uses Konva Group for batch rendering performance.
  */
-export function TerrainLayer({ mapData, viewport, containerSize }: TerrainLayerProps & { containerSize?: { width: number; height: number } }) {
+export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
   const { width, height, terrain } = mapData;
 
   // Refs for terrain groups to enable separate caching
@@ -306,25 +306,40 @@ export function TerrainLayer({ mapData, viewport, containerSize }: TerrainLayerP
 
   /**
    * Calculate visible tile range based on viewport
-   * Used for culling terrain elements outside the viewport
+   * Uses containerSize for accurate culling
    */
   const visibleRange = useMemo(() => {
-    // Convert ViewportState to Viewport interface
-    // We need to calculate the visible area in world coordinates
+    const containerWidth = window.innerWidth;
+    const containerHeight = window.innerHeight;
+    
     const viewportPixels = {
       x: -viewport.offsetX / viewport.zoom,
       y: -viewport.offsetY / viewport.zoom,
-      width: containerSize?.width ? containerSize.width / viewport.zoom : window.innerWidth / viewport.zoom,
-      height: containerSize?.height ? containerSize.height / viewport.zoom : window.innerHeight / viewport.zoom,
+      width: containerWidth / viewport.zoom,
+      height: containerHeight / viewport.zoom,
     };
 
-    return getVisibleTileRange(
+    const range = getVisibleTileRange(
       viewportPixels,
       width * TILE_SIZE,
       height * TILE_SIZE,
       TILE_SIZE
     );
-  }, [containerSize, viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
+    
+    // Debug logging
+    if (import.meta.env.DEV) {
+      console.log('[TerrainLayer] Viewport:', {
+        offsetX: viewport.offsetX,
+        offsetY: viewport.offsetY,
+        zoom: viewport.zoom,
+        containerWidth,
+        containerHeight,
+      });
+      console.log('[TerrainLayer] Visible range:', range);
+    }
+
+    return range;
+  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
 
   /**
    * Dynamic terrain elements from pendingTerrain (preview layer)

@@ -32,19 +32,30 @@ export function getVisibleTileRange(
   mapHeight: number,
   tileSize: number
 ): { minX: number; maxX: number; minY: number; maxY: number } {
-  // Calculate tile bounds without margin
-  const minX = Math.floor(viewport.x / tileSize);
-  const maxX = Math.floor((viewport.x + viewport.width) / tileSize);
-  const minY = Math.floor(viewport.y / tileSize);
-  const maxY = Math.floor((viewport.y + viewport.height) / tileSize);
+  // viewport.x and viewport.y are the offset of the canvas (can be negative)
+  // viewport.width and viewport.height are the visible area in world coordinates
+  
+  // Calculate visible tile range
+  // minX: leftmost visible tile (where viewport.x lands)
+  // maxX: rightmost visible tile (where viewport.x + viewport.width lands)
+  const minXCalc = Math.max(0, Math.floor(viewport.x / tileSize));
+  const minYCalc = Math.max(0, Math.floor(viewport.y / tileSize));
+  const maxXCalc = Math.min(
+    Math.floor((mapWidth - 1) / tileSize),
+    Math.floor((viewport.x + viewport.width) / tileSize)
+  );
+  const maxYCalc = Math.min(
+    Math.floor((mapHeight - 1) / tileSize),
+    Math.floor((viewport.y + viewport.height) / tileSize)
+  );
 
-  // Apply 2-tile safety margin
+  // Apply 2-tile safety margin for smooth scrolling
   const margin = 2;
   const range = {
-    minX: Math.max(0, minX - margin),
-    maxX: Math.min(Math.floor(mapWidth / tileSize), maxX + margin),
-    minY: Math.max(0, minY - margin),
-    maxY: Math.min(Math.floor(mapHeight / tileSize), maxY + margin)
+    minX: Math.max(0, minXCalc - margin),
+    maxX: Math.min(Math.floor((mapWidth - 1) / tileSize), maxXCalc + margin),
+    minY: Math.max(0, minYCalc - margin),
+    maxY: Math.min(Math.floor((mapHeight - 1) / tileSize), maxYCalc + margin)
   };
 
   return range;

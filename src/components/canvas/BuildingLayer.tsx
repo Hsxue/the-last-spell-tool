@@ -96,9 +96,6 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
       return [];
     }
     
-    const elements: React.ReactNode[] = [];
-    const showMarkers = viewport.zoom >= ZOOM_MARKER_THRESHOLD;
-    
     // Calculate visible range for culling
     const visibleRange = getVisibleTileRange(
       {
@@ -112,18 +109,24 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
       TILE_SIZE
     );
 
+    const elements: React.ReactNode[] = [];
+    let visibleBuildingsCount = 0;
+    const showMarkers = viewport.zoom >= ZOOM_MARKER_THRESHOLD;
+
     buildings.forEach((building) => {
-      // Viewport culling: skip buildings outside visible range
-      if (!isTileVisible(building.x, building.y, visibleRange)) {
-        return;
-      }
-      
       const blueprint = blueprintLookup.get(building.id);
       if (!blueprint) return;
-
-      const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
+      
+      // More sophisticated visibility check - check if any tile of the building is visible
       const positions = getBuildingTilePositions(building, blueprint);
-
+      const buildingIsVisible = positions.some(([tileX, tileY]) => 
+        isTileVisible(tileX, tileY, visibleRange)
+      );
+      
+      if (!buildingIsVisible) return; // Skip if no part of the building is visible
+      visibleBuildingsCount++;
+      
+      const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
       const baseX = building.x - blueprint.originX;
       const baseY = building.y - blueprint.originY;
       const tileWidth = blueprint.tiles[0]?.length || 1;
@@ -170,7 +173,7 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }
     });
 
     if (import.meta.env.DEV) {
-      console.log(`[BuildingLayer] Rendering ${buildings.length} buildings (${elements.length} tiles, zoom: ${viewport.zoom.toFixed(2)})`);
+      console.log(`[BuildingLayer] Rendering ${visibleBuildingsCount} buildings (${elements.length} tiles, zoom: ${viewport.zoom.toFixed(2)})`);
     }
 
     return elements;
