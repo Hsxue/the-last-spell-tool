@@ -37,16 +37,16 @@ export function getVisibleTileRange(
   
   // Calculate visible tile range
   // minX: leftmost visible tile (where viewport.x lands)
-  // maxX: rightmost visible tile (where viewport.x + viewport.width lands)
+  // maxX: rightmost visible tile (where viewport.x + viewport.width - 1 lands, inclusive of last pixel)
   const minXCalc = Math.max(0, Math.floor(viewport.x / tileSize));
   const minYCalc = Math.max(0, Math.floor(viewport.y / tileSize));
   const maxXCalc = Math.min(
     Math.floor((mapWidth - 1) / tileSize),
-    Math.floor((viewport.x + viewport.width) / tileSize)
+    Math.floor((viewport.x + viewport.width - 1) / tileSize)
   );
   const maxYCalc = Math.min(
     Math.floor((mapHeight - 1) / tileSize),
-    Math.floor((viewport.y + viewport.height) / tileSize)
+    Math.floor((viewport.y + viewport.height - 1) / tileSize)
   );
 
   // Apply 2-tile safety margin for smooth scrolling

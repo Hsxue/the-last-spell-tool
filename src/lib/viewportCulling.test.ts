@@ -67,8 +67,8 @@ describe('Viewport Culling Functions', () => {
       expect(result.minY).toBe(0);
       
       // Should still properly calculate max values with margin
-      expect(result.maxX).toBeGreaterThanOrEqual(5); // At least covers some positive tiles
-      expect(result.maxY).toBeGreaterThanOrEqual(5);
+      expect(result.maxX).toBeGreaterThanOrEqual(4); // At least covers some positive tiles
+      expect(result.maxY).toBeGreaterThanOrEqual(4);
     });
   });
 
