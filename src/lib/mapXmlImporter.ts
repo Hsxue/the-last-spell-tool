@@ -90,7 +90,7 @@ export function parseTileMap(xmlBuffer: ArrayBuffer): MapData {
   }
 
   const grounds = (root.Grounds as Record<string, unknown>) ?? {};
-  const terrain = new Map<string, string>();
+  const terrain = new Map<string, 'Crater' | 'Dirt' | 'Stone' | 'Empty'>();
 
   // Parse each terrain type (Crater, Dirt, Stone, Empty)
   for (const terrainType of Object.keys(grounds)) {
@@ -108,7 +108,7 @@ export function parseTileMap(xmlBuffer: ArrayBuffer): MapData {
         const y = parseInt(parts[1], 10);
         if (!isNaN(x) && !isNaN(y)) {
           // Store only x,y -> terrainType (discard distToCity/distToMagic)
-          terrain.set(`${x},${y}`, terrainType);
+          terrain.set(`${x},${y}`, terrainType as 'Crater' | 'Dirt' | 'Stone' | 'Empty');
         }
       }
     }
@@ -146,11 +146,69 @@ export function parseTileMap(xmlBuffer: ArrayBuffer): MapData {
     }
   }
 
+  // Parse Buildings section (optional - can be in same file or separate)
+  const buildings: Building[] = [];
+
+  if ('Buildings' in root && root.Buildings) {
+    const buildingsData = root.Buildings as Record<string, unknown>;
+    
+    if (buildingsData && typeof buildingsData === 'object') {
+      // Parse each Building element
+      const buildingEntries = Object.entries(buildingsData);
+
+      for (const [key, value] of buildingEntries) {
+        // Skip non-Building elements
+        if (key !== 'Building') {
+          continue;
+        }
+
+        // Handle both single building and array of buildings
+        const buildingList = Array.isArray(value) ? value : [value];
+
+        for (const buildingData of buildingList) {
+          if (!buildingData || typeof buildingData !== 'object') {
+            continue;
+          }
+
+          const building = buildingData as Record<string, unknown>;
+          
+          // Extract attributes (prefixed with @_)
+          const id = building['@_Id'] as string | undefined;
+          const x = parseOptionalNumber(building, '@_X');
+          const y = parseOptionalNumber(building, '@_Y');
+
+          // Extract Health element (child element, not attribute)
+          let health: number | undefined;
+          if ('Health' in building) {
+            const healthValue = building.Health;
+            if (typeof healthValue === 'number') {
+              health = healthValue >= 0 ? healthValue : undefined;
+            } else if (typeof healthValue === 'string') {
+              const parsed = parseInt(healthValue, 10);
+              if (!isNaN(parsed)) {
+                health = parsed >= 0 ? parsed : undefined;
+              }
+            }
+          }
+
+          if (id && x !== undefined && y !== undefined) {
+            buildings.push({
+              id,
+              x,
+              y,
+              health,
+            } as Building);
+          }
+        }
+      }
+    }
+  }
+
   return {
     width,
     height,
     terrain,
-    buildings: [],
+    buildings,
     flags,
   };
 }
