@@ -1,67 +1,33 @@
 /**
- * BuildingLayer - Renders buildings on the map with Konva
- * Phase 2 Task 4: Full building rendering and preview logic
- *
+ * BuildingLayer - Renders buildings using pre-rendered canvas for optimal performance
+ * 
  * Features:
- * - Renders all building tiles with category colors
- * - Shows category markers (first 2 letters) when zoom >= 14
- * - Separate BuildingPreview component with React.memo for smooth rendering
- * - PERFORMANCE: Viewport culling and LOD for better zoom performance
+ * - Pre-renders all buildings to offscreen canvas
+ * - Uses Konva Image for GPU-accelerated rendering
+ * - Separate BuildingPreview component for editing
  */
 
-import { useMemo, memo } from 'react';
-import { Rect, Text, Group, Circle } from 'react-konva';
-import type { Building, ViewportState } from '../../types/map';
+import { useState, useEffect, useRef, memo } from 'react';
+import { Image as KonvaImage, Rect, Group, Circle } from 'react-konva';
+import type { Building } from '../../types/map';
 import { BUILDING_CATEGORY_COLORS } from '../../types/map';
 import { BUILDING_BLUEPRINTS } from '../../data/buildingBlueprints';
-import { getVisibleTileRange, isTileVisible } from '../../lib/viewportCulling';
-
-// ============================================================================
-// Props Interface
-// ============================================================================
 
 interface BuildingLayerProps {
-  /** Array of buildings to render */
   buildings: Building[];
-  /** Viewport state for coordinate transformation and culling */
-  viewport: ViewportState;
+  mapWidth: number;
+  mapHeight: number;
 }
 
-// ============================================================================
-// Constants
-// ============================================================================
-
-/** Size of each tile in pixels */
 const TILE_SIZE = 20;
 
-/** Zoom threshold for showing category markers */
-const ZOOM_MARKER_THRESHOLD = 14;
-
-/** Default opacity for building tiles */
-const BUILDING_OPACITY = 0.85;
-
-/** Stroke width for building borders */
-const STROKE_WIDTH = 1;
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Create a lookup map for building blueprints by ID
- */
 const blueprintLookup = new Map(BUILDING_BLUEPRINTS.map(bp => [bp.id, bp]));
 
-/**
- * Get all occupied tile positions for a building based on its blueprint
- * Returns array of [worldX, worldY] positions
- */
 function getBuildingTilePositions(
   building: Building,
   blueprint: typeof BUILDING_BLUEPRINTS[0]
 ): Array<[number, number]> {
   const positions: Array<[number, number]> = [];
-
   const baseX = building.x - blueprint.originX;
   const baseY = building.y - blueprint.originY;
 
@@ -76,119 +42,70 @@ function getBuildingTilePositions(
   return positions;
 }
 
-// ============================================================================
-// Global Ref for BuildingPreview (kept for potential future use)
-// ============================================================================
-
-export const buildingPreviewHoveredTileRef = {
-  current: null as { x: number; y: number } | null
-};
-
-// ============================================================================
-// Main Component (memoized to prevent re-renders)
-// ============================================================================
-
-export const BuildingLayer = memo(function BuildingLayer({ buildings, viewport }: BuildingLayerProps) {
-  const buildingElements = useMemo(() => {
-    // LOD: Hide buildings when zoomed out too far
-    const BUILDING_LOD_THRESHOLD = 0.4;
-    if (viewport.zoom < BUILDING_LOD_THRESHOLD) {
-      return [];
-    }
+function preRenderBuildings(
+  buildings: Building[],
+  mapWidth: number,
+  mapHeight: number
+): HTMLCanvasElement {
+  const canvas = document.createElement('canvas');
+  canvas.width = mapWidth * TILE_SIZE;
+  canvas.height = mapHeight * TILE_SIZE;
+  const ctx = canvas.getContext('2d');
+  
+  if (!ctx) return canvas;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  buildings.forEach((building) => {
+    const blueprint = blueprintLookup.get(building.id);
+    if (!blueprint) return;
     
-    // Calculate visible range for culling
-    const visibleRange = getVisibleTileRange(
-      {
-        x: -viewport.offsetX / viewport.zoom,
-        y: -viewport.offsetY / viewport.zoom,
-        width: window.innerWidth / viewport.zoom,
-        height: window.innerHeight / viewport.zoom,
-      },
-      10000, // Large enough map size
-      10000,
-      TILE_SIZE
-    );
-
-    const elements: React.ReactNode[] = [];
-    let visibleBuildingsCount = 0;
-    const showMarkers = viewport.zoom >= ZOOM_MARKER_THRESHOLD;
-
-    buildings.forEach((building) => {
-      const blueprint = blueprintLookup.get(building.id);
-      if (!blueprint) return;
+    const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
+    const positions = getBuildingTilePositions(building, blueprint);
+    
+    positions.forEach(([tileX, tileY]) => {
+      ctx.fillStyle = color;
+      ctx.globalAlpha = 0.85;
+      ctx.fillRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       
-      // More sophisticated visibility check - check if any tile of the building is visible
-      const positions = getBuildingTilePositions(building, blueprint);
-      const buildingIsVisible = positions.some(([tileX, tileY]) => 
-        isTileVisible(tileX, tileY, visibleRange)
-      );
-      
-      if (!buildingIsVisible) return; // Skip if no part of the building is visible
-      visibleBuildingsCount++;
-      
-      const color = BUILDING_CATEGORY_COLORS[blueprint.category] || BUILDING_CATEGORY_COLORS.Building;
-      const baseX = building.x - blueprint.originX;
-      const baseY = building.y - blueprint.originY;
-      const tileWidth = blueprint.tiles[0]?.length || 1;
-      const tileHeight = blueprint.tiles.length;
-
-      positions.forEach(([tileX, tileY]) => {
-        elements.push(
-          <Rect
-            key={`building-${building.x}-${building.y}-${building.id}-${tileX}-${tileY}`}
-            x={tileX * TILE_SIZE}
-            y={tileY * TILE_SIZE}
-            width={TILE_SIZE}
-            height={TILE_SIZE}
-            fill={color}
-            opacity={BUILDING_OPACITY}
-            stroke="rgba(0, 0, 0, 0.3)"
-            strokeWidth={STROKE_WIDTH}
-            perfectDrawEnabled={false}
-            listening={false}
-          />
-        );
-      });
-
-      if (showMarkers) {
-        const marker = blueprint.category.slice(0, 2).toUpperCase();
-        elements.push(
-          <Text
-            key={`marker-${building.x}-${building.y}-${building.id}`}
-            x={baseX * TILE_SIZE}
-            y={baseY * TILE_SIZE}
-            width={tileWidth * TILE_SIZE}
-            height={tileHeight * TILE_SIZE}
-            text={marker}
-            fontSize={Math.min(TILE_SIZE * 0.5, 12)}
-            fontFamily="sans-serif"
-            fill="white"
-            align="center"
-            verticalAlign="middle"
-            listening={false}
-            perfectDrawEnabled={false}
-          />
-        );
-      }
+      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.globalAlpha = 1.0;
+      ctx.lineWidth = 1;
+      ctx.strokeRect(tileX * TILE_SIZE, tileY * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     });
+  });
+  
+  return canvas;
+}
 
-    if (import.meta.env.DEV) {
-      console.log(`[BuildingLayer] Rendering ${visibleBuildingsCount} buildings (${elements.length} tiles, zoom: ${viewport.zoom.toFixed(2)})`);
-    }
+export const BuildingLayer = memo(function BuildingLayer({ buildings, mapWidth, mapHeight }: BuildingLayerProps) {
+  const buildingsCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [, forceUpdate] = useState({});
 
-    return elements;
-  }, [buildings, viewport.zoom, viewport.offsetX, viewport.offsetY]);
+  useEffect(() => {
+    buildingsCanvasRef.current = preRenderBuildings(buildings, mapWidth, mapHeight);
+    forceUpdate({});
+  }, [buildings, mapWidth, mapHeight]);
+
+  const canvasWidth = mapWidth * TILE_SIZE;
+  const canvasHeight = mapHeight * TILE_SIZE;
 
   return (
     <Group>
-      {buildingElements}
+      {buildingsCanvasRef.current && (
+        <KonvaImage
+          image={buildingsCanvasRef.current}
+          x={0}
+          y={0}
+          width={canvasWidth}
+          height={canvasHeight}
+          perfectDrawEnabled={false}
+          listening={false}
+        />
+      )}
     </Group>
   );
 });
-
-// ============================================================================
-// Preview Component (reads from parent state via props)
-// ============================================================================
 
 interface BuildingPreviewProps {
   hoveredTile: { x: number; y: number } | null;
@@ -198,14 +115,12 @@ interface BuildingPreviewProps {
 export const BuildingPreview = memo(function BuildingPreview({ hoveredTile, selectedBuilding }: BuildingPreviewProps) {
   if (!hoveredTile || !selectedBuilding) return null;
 
-  // Get the blueprint for the selected building
   const blueprint = blueprintLookup.get(selectedBuilding);
   if (!blueprint) return null;
 
-  const color = '#4CAF50'; // Default preview color
+  const color = '#4CAF50';
   const opacity = 0.5;
   
-  // Calculate base position using blueprint origin
   const baseX = hoveredTile.x - blueprint.originX;
   const baseY = hoveredTile.y - blueprint.originY;
   
@@ -214,10 +129,9 @@ export const BuildingPreview = memo(function BuildingPreview({ hoveredTile, sele
 
   return (
     <Group listening={false}>
-      {/* Draw all tiles that the building occupies */}
       {blueprint.tiles.map((row, rowIndex) => (
         row.map((cell, colIndex) => {
-          if (cell === '_') return null; // Skip empty cells in blueprint
+          if (cell === '_') return null;
           
           const tileX = (baseX + colIndex) * TILE_SIZE;
           const tileY = (baseY + rowIndex) * TILE_SIZE;
@@ -239,7 +153,6 @@ export const BuildingPreview = memo(function BuildingPreview({ hoveredTile, sele
           );
         })
       ))}
-      {/* Center marker */}
       <Circle
         x={(baseX + tileWidth / 2) * TILE_SIZE}
         y={(baseY + tileHeight / 2) * TILE_SIZE}
@@ -253,9 +166,5 @@ export const BuildingPreview = memo(function BuildingPreview({ hoveredTile, sele
     </Group>
   );
 });
-
-// ============================================================================
-// Exports
-// ============================================================================
 
 export type { BuildingLayerProps };
