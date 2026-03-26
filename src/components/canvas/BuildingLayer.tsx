@@ -70,17 +70,9 @@ export const BuildingLayer = memo(function BuildingLayer({ buildings, mapWidth, 
   const [, forceUpdate] = useState({});
 
   useEffect(() => {
-    if (buildingsCanvasRef.current) {
-      buildingsCanvasRef.current = preRenderBuildings(buildings, mapWidth, mapHeight);
-      forceUpdate({});
-    }
-  }, [buildings, mapWidth, mapHeight]);
-
-  // Initial render
-  useEffect(() => {
     buildingsCanvasRef.current = preRenderBuildings(buildings, mapWidth, mapHeight);
     forceUpdate({});
-  }, []);
+  }, [buildings, mapWidth, mapHeight]);
 
   const canvasWidth = mapWidth * TILE_SIZE;
   const canvasHeight = mapHeight * TILE_SIZE;

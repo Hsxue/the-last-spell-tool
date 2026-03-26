@@ -56,6 +56,10 @@ export function MapCanvas({ className }: MapCanvasProps) {
     screenY: number;
   } | null>(null);
   
+  // Ref for middle mouse panning
+  const isMiddleMouseDownRef = useRef(false);
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
+  
   // Ref for throttling custom events (reduce GC pressure)
   const lastEventTimeRef = useRef(0);
 
@@ -171,6 +175,43 @@ export function MapCanvas({ className }: MapCanvasProps) {
   const handleDragStart = useCallback(() => {
     setViewport({ isPanning: true });
   }, [setViewport]);
+
+  // Handle middle mouse button for panning
+  const handleMouseDown = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    if (e.evt.button === 1) { // Middle mouse button
+      e.evt.preventDefault();
+      isMiddleMouseDownRef.current = true;
+      const stage = e.target.getStage();
+      const pos = stage?.getPointerPosition();
+      if (pos) {
+        lastMousePosRef.current = { x: pos.x, y: pos.y };
+      }
+    }
+  }, []);
+
+  const handleMouseUp = useCallback((e: KonvaEventObject<MouseEvent>) => {
+    if (e.evt.button === 1) { // Middle mouse button
+      isMiddleMouseDownRef.current = false;
+    }
+  }, []);
+
+  const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
+    if (isMiddleMouseDownRef.current && editorMode !== 'terrain' && editorMode !== 'eraser') {
+      const dx = e.movementX;
+      const dy = e.movementY;
+      setViewport({
+        offsetX: viewport.offsetX + dx,
+        offsetY: viewport.offsetY + dy,
+        isPanning: true,
+      });
+    }
+  }, [editorMode, viewport.offsetX, viewport.offsetY, setViewport]);
+
+  // Add global mouse move listener for middle mouse panning
+  useEffect(() => {
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
+  }, [handleGlobalMouseMove]);
 
   // Handle right click - show context menu
   const handleContextMenu = useCallback(
@@ -423,6 +464,8 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onMouseLeave={handleMouseLeave}
         onClick={handleCanvasClick}
         onContextMenu={handleContextMenu}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
       >
         {/* Terrain Layer - Bottom (needs interaction for terrain drawing) */}
         <Layer imageSmoothingEnabled={false}>
