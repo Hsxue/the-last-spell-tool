@@ -382,7 +382,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
       >
         {/* Terrain Layer - Bottom (needs interaction for terrain drawing) */}
         <Layer imageSmoothingEnabled={false}>
-          <TerrainLayer mapData={layerMapData} viewport={viewport} />
+          <TerrainLayer mapData={layerMapData} viewport={viewport} containerSize={containerSize} />
         </Layer>
 
         {/* Grid Layer - Static, no interaction needed */}

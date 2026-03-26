@@ -106,7 +106,7 @@ function getBrushPositions(
  * Renders terrain tiles and handles terrain editing interactions.
  * Uses Konva Group for batch rendering performance.
  */
-export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
+export function TerrainLayer({ mapData, viewport, containerSize }: TerrainLayerProps & { containerSize?: { width: number; height: number } }) {
   const { width, height, terrain } = mapData;
 
   // Refs for terrain groups to enable separate caching
@@ -314,8 +314,8 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
     const viewportPixels = {
       x: -viewport.offsetX / viewport.zoom,
       y: -viewport.offsetY / viewport.zoom,
-      width: window.innerWidth / viewport.zoom,
-      height: window.innerHeight / viewport.zoom,
+      width: containerSize?.width ? containerSize.width / viewport.zoom : window.innerWidth / viewport.zoom,
+      height: containerSize?.height ? containerSize.height / viewport.zoom : window.innerHeight / viewport.zoom,
     };
 
     return getVisibleTileRange(
@@ -324,15 +324,21 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
       height * TILE_SIZE,
       TILE_SIZE
     );
-  }, [viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
+  }, [containerSize, viewport.offsetX, viewport.offsetY, viewport.zoom, width, height]);
 
   /**
    * Dynamic terrain elements from pendingTerrain (preview layer)
    * Only renders tiles being drawn (<50 typically), not all 2500 tiles
    * Uses viewport culling to only render visible tiles
+   * Implements LOD: skips rendering when zoom < 0.5 for performance
    * Recalculates frequently during drawing but with minimal overhead
    */
   const pendingElements = useMemo(() => {
+    // Implement Level of Detail (LOD): skip rendering when zoom is too far out
+    if (viewport.zoom < 0.5) {
+      return [];
+    }
+    
     // Filter to only visible tiles
     const visiblePendingEntries = Array.from(pendingTerrain.entries()).filter(([key]) => {
       const [x, y] = parsePositionKey(key);
@@ -357,14 +363,20 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
         />
       );
     });
-  }, [pendingTerrain, visibleRange]);
+  }, [pendingTerrain, visibleRange, viewport.zoom]);
 
   /**
    * Memoized terrain rendering elements (static layer)
    * Converts terrain data array into Konva Rect components
    * Uses viewport culling to only render visible tiles
+   * Implements LOD: skips rendering when zoom < 0.5 for performance
    */
   const terrainElements = useMemo(() => {
+    // Implement Level of Detail (LOD): skip rendering when zoom is too far out
+    if (viewport.zoom < 0.5) {
+      return [];
+    }
+    
     // Filter to only visible tiles
     const visibleTerrainData = terrainData.filter(({ x, y }) =>
       isTileVisible(x, y, visibleRange)
@@ -372,7 +384,7 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
 
     // Log rendered tile count for verification
     if (import.meta.env.DEV) {
-      console.log(`[TerrainLayer] Rendering ${visibleTerrainData.length} / ${terrainData.length} terrain tiles (viewport culling)`);
+      console.log(`[TerrainLayer] Rendering ${visibleTerrainData.length} / ${terrainData.length} terrain tiles (viewport culling, LOD active at ${viewport.zoom.toFixed(2)})`);
     }
 
     return visibleTerrainData.map(({ key, x, y, terrainType }) => (
@@ -390,33 +402,63 @@ export function TerrainLayer({ mapData, viewport }: TerrainLayerProps) {
         hitStrokeWidth={0}
       />
     ));
-  }, [terrainData, visibleRange]);
+  }, [terrainData, visibleRange, viewport.zoom]);
 
   // Cache static terrain layer (rarely changes)
-  // Only rebuilds when terrain store or visible range changes
+  // Only rebuilds when terrain data changes, not on zoom/viewport changes
+  // Also invalidate cache when switching between LOD and normal rendering
   useEffect(() => {
-    if (!staticTerrainRef.current || terrainData.length === 0) return;
-
+    if (!staticTerrainRef.current || terrainElements.length === 0) return;
+    
+    // Only cache on terrain changes, not during viewport changes
+    // Also invalidate when zoom level changes from LOD threshold (0.5)
+    const shouldRebuild = terrainData.length > 0;
+    
+    if (!shouldRebuild) return;
+    
+    // Delay cache operation slightly to ensure rendering is settled
     const frameId = requestAnimationFrame(() => {
-      staticTerrainRef.current?.clearCache();
-      staticTerrainRef.current?.cache();
+      staticTerrainRef.current?.cache({
+        x: 0,
+        y: 0,
+        width: width * TILE_SIZE,
+        height: height * TILE_SIZE,
+        pixelRatio: window.devicePixelRatio || 1,
+      });
       staticTerrainRef.current?.getLayer()?.batchDraw();
     });
-    return () => cancelAnimationFrame(frameId);
-  }, [terrainData, visibleRange]);
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [terrainData]); // Only re-cache when terrain data changes, not on zoom or visibleRange
 
   // Cache dynamic terrain layer (frequently changes during drawing)
-  // Direct cache update without throttling for immediate visual feedback
+  // Only cache when pending terrain changes, not during zoom/viewport changes
   useEffect(() => {
-    if (!dynamicTerrainRef.current || isCommittingRef.current || pendingTerrain.size === 0) return;
+    if (!dynamicTerrainRef.current || isCommittingRef.current || pendingTerrain.size === 0) 
+      return;
 
     const frameId = requestAnimationFrame(() => {
-      dynamicTerrainRef.current?.clearCache();
-      dynamicTerrainRef.current?.cache();
+      // Proper cache with bounds specified
+      dynamicTerrainRef.current?.cache({
+        x: 0,
+        y: 0,
+        width: width * TILE_SIZE,
+        height: height * TILE_SIZE,
+        pixelRatio: window.devicePixelRatio || 1,
+      });
       dynamicTerrainRef.current?.getLayer()?.batchDraw();
     });
-    return () => cancelAnimationFrame(frameId);
-  }, [pendingTerrain]);
+
+    return () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
+    };
+  }, [pendingTerrain]); // Only re-cache when pending terrain data changes, not on zoom
 
   // Calculate canvas dimensions in pixels
   const canvasWidth = width * TILE_SIZE;
