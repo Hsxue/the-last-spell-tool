@@ -195,23 +195,22 @@ export function MapCanvas({ className }: MapCanvasProps) {
     }
   }, []);
 
-  const handleGlobalMouseMove = useCallback((e: MouseEvent) => {
+  const handleStageMouseMove = useCallback((e: KonvaEventObject<MouseEvent>) => {
     if (isMiddleMouseDownRef.current && editorMode !== 'terrain' && editorMode !== 'eraser') {
-      const dx = e.movementX;
-      const dy = e.movementY;
-      setViewport({
-        offsetX: viewport.offsetX + dx,
-        offsetY: viewport.offsetY + dy,
-        isPanning: true,
-      });
+      e.evt.preventDefault();
+      const pos = e.target.getStage()?.getPointerPosition();
+      if (pos) {
+        const dx = pos.x - lastMousePosRef.current.x;
+        const dy = pos.y - lastMousePosRef.current.y;
+        setViewport({
+          offsetX: viewport.offsetX + dx,
+          offsetY: viewport.offsetY + dy,
+          isPanning: true,
+        });
+        lastMousePosRef.current = { x: pos.x, y: pos.y };
+      }
     }
   }, [editorMode, viewport.offsetX, viewport.offsetY, setViewport]);
-
-  // Add global mouse move listener for middle mouse panning
-  useEffect(() => {
-    window.addEventListener('mousemove', handleGlobalMouseMove);
-    return () => window.removeEventListener('mousemove', handleGlobalMouseMove);
-  }, [handleGlobalMouseMove]);
 
   // Handle right click - show context menu
   const handleContextMenu = useCallback(
@@ -460,7 +459,10 @@ export function MapCanvas({ className }: MapCanvasProps) {
         onWheel={handleWheel}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
-        onMouseMove={handleMouseMove}
+        onMouseMove={(e) => {
+          handleStageMouseMove(e);
+          handleMouseMove(e);
+        }}
         onMouseLeave={handleMouseLeave}
         onClick={handleCanvasClick}
         onContextMenu={handleContextMenu}
