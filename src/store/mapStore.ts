@@ -1,9 +1,13 @@
 /**
  * Map Store - Zustand store for map state management
  * Handles map data, buildings, flags, and terrain editing state
+ *
+ * Persistence: State is automatically saved to localStorage via zustand persist middleware.
+ * Map objects (terrain, flags) are serialized to Records for JSON compatibility.
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
   MapData,
@@ -14,6 +18,7 @@ import type {
   LayerVisibility,
   ViewportState,
 } from '../types/map';
+import { mapToRecord, recordToMap } from '../lib/map-serialization';
 
 // ============================================================================
 // State Interface
@@ -24,6 +29,7 @@ interface MapState {
   mapData: MapData | null;
   width: number;
   height: number;
+  mapName: string;
 
   // Editor State
   editorMode: EditorMode;
@@ -50,6 +56,7 @@ interface MapState {
 
   // Actions
   setMapData: (mapData: MapData) => void;
+  setMapName: (name: string) => void;
   setMapSize: (width: number, height: number) => void;
   setEditorMode: (mode: EditorMode) => void;
   setSelectedTerrain: (terrain: TerrainType) => void;
@@ -108,15 +115,49 @@ const defaultLayerVisibility: LayerVisibility = {
 };
 
 // ============================================================================
+// Persist Middleware Configuration
+// ============================================================================
+
+/**
+ * Serialize MapData for localStorage - convert Maps to Records.
+ */
+function serializeMapDataForPersist(mapData: MapData | null): Record<string, unknown> | null {
+  if (!mapData) return null;
+  return {
+    width: mapData.width,
+    height: mapData.height,
+    terrain: mapToRecord(mapData.terrain),
+    buildings: mapData.buildings,
+    flags: mapToRecord(mapData.flags),
+  };
+}
+
+/**
+ * Deserialize MapData from localStorage - convert Records back to Maps.
+ */
+function deserializeMapDataFromPersist(raw: Record<string, unknown> | null): MapData | null {
+  if (!raw) return null;
+  return {
+    width: raw.width as number,
+    height: raw.height as number,
+    terrain: recordToMap(raw.terrain as Record<string, TerrainType> | undefined),
+    buildings: raw.buildings as Building[],
+    flags: recordToMap(raw.flags as Record<string, Array<[number, number]>> | undefined),
+  };
+}
+
+// ============================================================================
 // Store Creation
 // ============================================================================
 
 export const useMapStore = create<MapState>()(
-  immer((set) => ({
+  persist(
+    immer((set) => ({
     // Initial State
     mapData: null,
     width: DEFAULT_WIDTH,
     height: DEFAULT_HEIGHT,
+    mapName: 'CustomMap',
     editorMode: 'terrain',
     selectedTerrain: 'Dirt',
     selectedBuilding: null,
@@ -138,6 +179,12 @@ export const useMapStore = create<MapState>()(
         state.mapData = mapData;
         state.width = mapData.width;
         state.height = mapData.height;
+      });
+    },
+
+    setMapName: (name) => {
+      set((state) => {
+        state.mapName = name;
       });
     },
 
@@ -342,7 +389,47 @@ export const useMapStore = create<MapState>()(
         };
       });
     },
-  }))
+  })),
+  {
+    name: 'map-store',
+    storage: {
+      getItem: async (name: string) => {
+        const str = localStorage.getItem(name);
+        if (!str) return null;
+        try {
+          const parsed = JSON.parse(str);
+          const rawState = parsed.state as Record<string, unknown>;
+          const mapData = deserializeMapDataFromPersist(rawState.mapData as Record<string, unknown> | null);
+          return {
+            state: {
+              ...rawState,
+              mapData,
+              // Restore function-less state only (zustand will re-bind actions via merge)
+            } as Partial<MapState>,
+          };
+        } catch {
+          return null;
+        }
+      },
+      setItem: async (name: string, value: unknown) => {
+        const stateObj = value as { state: MapState };
+        const serialized = {
+          ...stateObj.state,
+          mapData: serializeMapDataForPersist(stateObj.state.mapData),
+        };
+        localStorage.setItem(name, JSON.stringify({ state: serialized }));
+      },
+      removeItem: async (name: string) => {
+        localStorage.removeItem(name);
+      },
+    },
+    merge: (persistedState, currentState) => {
+      if (!persistedState) return currentState;
+      return { ...currentState, ...persistedState };
+    },
+    version: 1,
+  }
+)
 );
 
 // ============================================================================
