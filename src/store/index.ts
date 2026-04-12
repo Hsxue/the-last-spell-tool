@@ -6,3 +6,4 @@ export { useMapStore } from './mapStore';
 export { useUIStore } from './uiStore';
 export { useConfigStore } from './configStore';
 export { useWeaponSkillStore } from './weaponSkillStore';
+export { useLocalizationStore } from './localizationStore';

@@ -1,9 +1,13 @@
 /**
  * UI Store - Zustand store for UI state management
  * Handles sidebar tabs, dialogs, toasts, and UI interactions
+ *
+ * Persistence: State is automatically saved to localStorage via zustand persist middleware.
+ * Transient state (toasts, dialogs, loading) is excluded from persistence.
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type { SidebarTab, FeatureTab } from '../types/map';
 
@@ -139,7 +143,8 @@ const generateToastId = (): string => {
 // ============================================================================
 
 export const useUIStore = create<UIState>()(
-  immer((set, get) => ({
+  persist(
+    immer((set, get) => ({
     // Initial State
     activeTab: 'terrain',
     activeFeatureTab: 'mapEditor',
@@ -311,7 +316,20 @@ export const useUIStore = create<UIState>()(
         state.theme = theme;
       });
     },
-  }))
+  })),
+  {
+    name: 'ui-store',
+    // Exclude transient state from persistence
+    partialize: (state) => ({
+      activeTab: state.activeTab,
+      activeFeatureTab: state.activeFeatureTab,
+      panelState: state.panelState,
+      shortcutsEnabled: state.shortcutsEnabled,
+      theme: state.theme,
+    }),
+    version: 1,
+  }
+)
 );
 
 // ============================================================================
