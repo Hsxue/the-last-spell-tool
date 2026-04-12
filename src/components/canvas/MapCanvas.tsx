@@ -103,7 +103,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
         offsetY: centerOffsetY,
       });
     }
-  }, [width, height, viewport.zoom, setViewport]);
+  }, [width, height, setViewport]);
 
   // Update container size on mount and resize
   useEffect(() => {
@@ -118,6 +118,75 @@ export function MapCanvas({ className }: MapCanvasProps) {
     window.addEventListener('resize', updateSize);
     return () => window.removeEventListener('resize', updateSize);
   }, []);
+
+  // Listen for context menu actions
+  useEffect(() => {
+    // Handle center camera request from context menu
+    const handleCenterOnTile = (e: CustomEvent<{ tileX: number; tileY: number }>) => {
+      const { tileX, tileY } = e.detail;
+      if (containerRef.current) {
+        const { clientWidth, clientHeight } = containerRef.current;
+        // Calculate offset to center the tile
+        const tilePixelX = tileX * TILE_SIZE * viewport.zoom;
+        const tilePixelY = tileY * TILE_SIZE * viewport.zoom;
+        const centerOffsetX = clientWidth / 2 - tilePixelX - (TILE_SIZE * viewport.zoom) / 2;
+        const centerOffsetY = clientHeight / 2 - tilePixelY - (TILE_SIZE * viewport.zoom) / 2;
+        setViewport({ offsetX: centerOffsetX, offsetY: centerOffsetY });
+      }
+    };
+
+    // Handle inspect tile request from context menu
+    const handleInspectTile = (e: CustomEvent<{ tileX: number; tileY: number }>) => {
+      const { tileX, tileY } = e.detail;
+      // Show tile info in a toast notification
+      const tileInfo = [];
+      
+      // Check terrain
+      if (mapData?.terrain) {
+        const terrain = mapData.terrain.get(`${tileX},${tileY}`);
+        if (terrain) tileInfo.push(`Terrain: ${terrain}`);
+      }
+      
+      // Check buildings
+      const building = mapData?.buildings?.find(b => b.x === tileX && b.y === tileY);
+      if (building) tileInfo.push(`Building: ${building.id}`);
+      
+      // Check flags
+      if (mapData?.flags) {
+        const flagsAtTile: string[] = [];
+        mapData.flags.forEach((positions, flagType) => {
+          if (positions.some(p => p[0] === tileX && p[1] === tileY)) {
+            flagsAtTile.push(flagType);
+          }
+        });
+        if (flagsAtTile.length > 0) tileInfo.push(`Flags: ${flagsAtTile.join(', ')}`);
+      }
+      
+      if (tileInfo.length === 0) {
+        addToast({
+          title: `Tile (${tileX}, ${tileY})`,
+          description: 'Empty tile - no terrain, building, or flags',
+          type: 'info',
+          duration: 3000,
+        });
+      } else {
+        addToast({
+          title: `Tile (${tileX}, ${tileY})`,
+          description: tileInfo.join(' | '),
+          type: 'info',
+          duration: 5000,
+        });
+      }
+    };
+
+    window.addEventListener('centerontile', handleCenterOnTile as EventListener);
+    window.addEventListener('inspecttile', handleInspectTile as EventListener);
+    
+    return () => {
+      window.removeEventListener('centerontile', handleCenterOnTile as EventListener);
+      window.removeEventListener('inspecttile', handleInspectTile as EventListener);
+    };
+  }, [viewport.zoom, mapData, setViewport, addToast]);
 
   // Handle zoom with mouse wheel
   const handleWheel = useCallback(
@@ -221,6 +290,10 @@ export function MapCanvas({ className }: MapCanvasProps) {
       const pos = stage?.getPointerPosition();
       if (!pos) return;
 
+      // Get screen coordinates from native mouse event
+      const screenX = e.evt.clientX;
+      const screenY = e.evt.clientY;
+
       // Calculate tile coordinates
       const worldX = (pos.x - viewport.offsetX) / viewport.zoom;
       const worldY = (pos.y - viewport.offsetY) / viewport.zoom;
@@ -231,14 +304,14 @@ export function MapCanvas({ className }: MapCanvasProps) {
       if (tileX >= 0 && tileX < width && tileY >= 0 && tileY < height) {
         setHoveredTile({ x: tileX, y: tileY });
         
-        // Show context menu
+        // Show context menu with screen coordinates
         setContextMenu({
           tileX,
           tileY,
           worldX: Math.round(worldX * 100) / 100,
           worldY: Math.round(worldY * 100) / 100,
-          screenX: pos.x,
-          screenY: pos.y,
+          screenX,
+          screenY,
         });
       }
     },
@@ -533,6 +606,7 @@ export function MapCanvas({ className }: MapCanvasProps) {
           worldY={contextMenu.worldY}
           screenX={contextMenu.screenX}
           screenY={contextMenu.screenY}
+          mapData={mapData}
           onClose={() => setContextMenu(null)}
         />
       )}
