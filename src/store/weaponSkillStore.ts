@@ -1,15 +1,23 @@
 /**
  * Weapon & Skill Store - Zustand store for weapon and skill state management
  * Handles weapon definitions, skill definitions, and editing state
+ *
+ * Persistence: State is automatically saved to localStorage via zustand persist middleware.
+ * Map objects (baseStatBonuses, genericAction.parameters) are serialized to Records.
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
   WeaponDefinition,
+  WeaponCategory,
+  WeaponHands,
+  WeaponLevel,
   SkillDefinition,
   WeaponSkillView,
 } from '../types/weapon-skill';
+import { mapToRecord, recordToMap } from '../lib/map-serialization';
 
 // ============================================================================
 // State Interface
@@ -81,11 +89,118 @@ const defaultState: Omit<
 };
 
 // ============================================================================
+// Persist Middleware Configuration
+// ============================================================================
+
+/**
+ * Serialize weapons/skills for localStorage - converts all Maps to Records.
+ */
+function serializeForPersist(state: Omit<WeaponSkillState, keyof WeaponSkillActions>): unknown {
+  return {
+    currentView: state.currentView,
+    selectedWeaponId: state.selectedWeaponId,
+    selectedSkillId: state.selectedSkillId,
+    editingWeaponLevel: state.editingWeaponLevel,
+    weapons: state.weapons.map((w) => ({
+      ...w,
+      levelVariations: Object.fromEntries(
+        Object.entries(w.levelVariations).map(([level, lv]) => [
+          level,
+          {
+            ...lv,
+            baseStatBonuses: mapToRecord(lv.baseStatBonuses),
+          },
+        ])
+      ),
+    })),
+    skills: state.skills.map((s) => ({
+      ...s,
+      genericAction: s.genericAction
+        ? {
+            ...s.genericAction,
+            parameters: mapToRecord(s.genericAction.parameters as Map<string, unknown>),
+          }
+        : undefined,
+    })),
+    hasUnsavedChanges: state.hasUnsavedChanges,
+    errors: state.errors,
+  };
+}
+
+/**
+ * Deserialize from localStorage - converts Records back to Maps.
+ */
+function deserializeFromPersist(raw: unknown): Partial<WeaponSkillState> {
+  const data = raw as Record<string, unknown>;
+  const weapons = (data.weapons as Array<Record<string, unknown>> | undefined)?.map((w) => {
+    const levelVariationsRaw = w.levelVariations as Record<string, Record<string, unknown>> | undefined;
+    const levelVariations: Record<number, WeaponLevel> = {};
+    if (levelVariationsRaw) {
+      Object.entries(levelVariationsRaw).forEach(([level, lv]) => {
+        levelVariations[Number(level)] = {
+          ...lv,
+          baseStatBonuses: recordToMap(lv.baseStatBonuses as Record<string, number> | undefined),
+        } as WeaponLevel;
+      });
+    }
+    return {
+      id: w.id as string,
+      category: w.category as WeaponCategory,
+      hands: w.hands as WeaponHands,
+      tags: w.tags as string[],
+      levelVariations,
+    } as WeaponDefinition;
+  }) ?? [];
+
+  const skills = (data.skills as Array<Record<string, unknown>> | undefined)?.map((s) => {
+    const genericActionRaw = s.genericAction as Record<string, unknown> | undefined;
+    const genericAction = genericActionRaw
+      ? {
+          ...genericActionRaw,
+          parameters: recordToMap(genericActionRaw.parameters as Record<string, unknown> | undefined),
+        }
+      : undefined;
+    return {
+      ...s,
+      genericAction,
+    } as SkillDefinition;
+  }) ?? [];
+
+  return {
+    currentView: (data.currentView as WeaponSkillView) ?? 'weapons',
+    selectedWeaponId: (data.selectedWeaponId as string | null) ?? null,
+    selectedSkillId: (data.selectedSkillId as string | null) ?? null,
+    editingWeaponLevel: (data.editingWeaponLevel as number | null) ?? null,
+    weapons,
+    skills,
+    hasUnsavedChanges: (data.hasUnsavedChanges as boolean) ?? false,
+    errors: (data.errors as string[]) ?? [],
+  };
+}
+
+interface WeaponSkillActions {
+  setCurrentView: (view: WeaponSkillView) => void;
+  setSelectedWeapon: (weaponId: string | null) => void;
+  setSelectedSkill: (skillId: string | null) => void;
+  setEditingLevel: (level: number | null) => void;
+  addWeapon: (weapon: WeaponDefinition) => void;
+  updateWeapon: (weapon: WeaponDefinition) => void;
+  removeWeapon: (weaponId: string) => void;
+  addSkill: (skill: SkillDefinition) => void;
+  updateSkill: (skill: SkillDefinition) => void;
+  removeSkill: (skillId: string) => void;
+  setHasUnsavedChanges: (hasChanges: boolean) => void;
+  addError: (error: string) => void;
+  clearErrors: () => void;
+}
+
+// ============================================================================
 // Store Creation
 // ============================================================================
 
 export const useWeaponSkillStore = create<WeaponSkillState>()(
-  immer((set) => ({
+  persist(
+    immer((set) => ({
     // Initial State
     ...defaultState,
 
@@ -211,7 +326,37 @@ export const useWeaponSkillStore = create<WeaponSkillState>()(
         state.errors = [];
       });
     },
-  }))
+  })),
+  {
+    name: 'weapon-skill-store',
+    storage: {
+      getItem: async (name: string) => {
+        const str = localStorage.getItem(name);
+        if (!str) return null;
+        try {
+          const parsed = JSON.parse(str);
+          return { state: deserializeFromPersist(parsed.state) };
+        } catch {
+          return null;
+        }
+      },
+      setItem: async (name: string, value: unknown) => {
+        const stateObj = (value as { state: Omit<WeaponSkillState, keyof WeaponSkillActions> }).state;
+        const serialized = serializeForPersist(stateObj);
+        localStorage.setItem(name, JSON.stringify({ state: serialized }));
+      },
+      removeItem: async (name: string) => {
+        localStorage.removeItem(name);
+      },
+    },
+    // Merge persisted state with defaults for new fields
+    merge: (persistedState, currentState) => {
+      if (!persistedState) return currentState;
+      return { ...currentState, ...persistedState };
+    },
+    version: 1,
+  }
+)
 );
 
 // ============================================================================
