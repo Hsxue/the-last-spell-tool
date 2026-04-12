@@ -181,7 +181,7 @@ export interface TerrainExportData {
 // Editor State Types
 // ============================================================================
 
-export type FeatureTab = 'mapEditor' | 'gameConfig' | 'weaponSkill';
+export type FeatureTab = 'mapEditor' | 'gameConfig' | 'localization' | 'weaponSkill';
 
 export type EditorMode = 'terrain' | 'building' | 'flag' | 'eraser';
 
