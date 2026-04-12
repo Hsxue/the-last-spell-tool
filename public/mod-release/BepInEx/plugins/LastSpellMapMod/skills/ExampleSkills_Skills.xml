@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-16"?>
+<SkillDefinitions xmlns:xs="http://www.w3.org/2001/XMLSchema-instance"
+                  xs:noNamespaceSchemaLocation="SkillDefinitions.xsd">
+
+    <!-- 示例自定义技能 - 火焰新星 -->
+    <SkillDefinition Id="Mod_FlameNova">
+        <ActionPointsCost>3</ActionPointsCost>
+        <UsesPerTurnCount>2</UsesPerTurnCount>
+        <Range Min="1" Max="2"/>
+        <SkillAction>
+            <Attack>
+                <AttackType>Magical</AttackType>
+                <DamageMultiplier>1.5</DamageMultiplier>
+                <SkillEffects>
+                    <IgnoreLineOfSight/>
+                </SkillEffects>
+            </Attack>
+        </SkillAction>
+    </SkillDefinition>
+
+    <!-- 示例自定义技能 - 治疗之光 -->
+    <SkillDefinition Id="Mod_HealingLight">
+        <ActionPointsCost>2</ActionPointsCost>
+        <UsesPerTurnCount>3</UsesPerTurnCount>
+        <Range Min="1" Max="3"/>
+        <ValidTargets>
+            <PlayableUnits/>
+        </ValidTargets>
+        <SkillAction>
+            <Generic>
+                <SkillEffects>
+                    <Heal>
+                        <BaseAmount>15</BaseAmount>
+                    </Heal>
+                </SkillEffects>
+            </Generic>
+        </SkillAction>
+    </SkillDefinition>
+
+</SkillDefinitions>

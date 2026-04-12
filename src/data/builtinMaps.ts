@@ -19,7 +19,7 @@ let _cachedMaps: BuiltinMapEntry[] | null = null;
 export async function fetchBuiltinMapsList(): Promise<BuiltinMapEntry[]> {
   if (_cachedMaps) return _cachedMaps;
 
-  const response = await fetch('/maps-index.json');
+  const response = await fetch(`${import.meta.env.BASE_URL}maps-index.json`);
   if (!response.ok) {
     throw new Error(`Failed to fetch maps index: ${response.status}`);
   }
@@ -39,7 +39,7 @@ export function clearBuiltinMapsCache(): void {
  * @param relativePath - Path from server root (e.g., "maps/TutorialMap_TileMap.xml")
  */
 export async function loadMapXml(relativePath: string): Promise<ArrayBuffer> {
-  const response = await fetch(`/${relativePath}`);
+  const response = await fetch(`${import.meta.env.BASE_URL}${relativePath}`);
   if (!response.ok) {
     throw new Error(`Failed to load ${relativePath}: ${response.status}`);
   }

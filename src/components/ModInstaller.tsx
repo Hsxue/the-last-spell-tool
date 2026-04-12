@@ -17,6 +17,8 @@ import {
 import { useUIStore } from '../store/uiStore';
 import { Download, Info } from 'lucide-react';
 
+const MOD_RELEASE = `${import.meta.env.BASE_URL}mod-release`;
+
 // Fallback file list if manifest fails to load
 const FALLBACK_FILES = [
   'BepInEx/plugins/LastSpellMapMod/LastSpellMapMod.dll',
@@ -99,7 +101,7 @@ export function ModInstaller() {
     setIsDownloading(true);
     try {
       // Fetch manifest to get current file list (from release root, not mod dir)
-      const manifestRes = await fetch('/mod-release/manifest.json');
+      const manifestRes = await fetch(`${MOD_RELEASE}/manifest.json`);
       let modFiles: string[];
 
       if (manifestRes.ok) {
@@ -114,7 +116,7 @@ export function ModInstaller() {
 
       // Fetch each file and add to ZIP
       const fetchPromises = modFiles.map(async (filePath) => {
-        const response = await fetch(`/mod-release/${filePath}`);
+        const response = await fetch(`${MOD_RELEASE}/${filePath}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
         }

@@ -2,3 +2,4 @@
 nginx.conf
 deploy-config.local.sh
 node_modules
+dist
