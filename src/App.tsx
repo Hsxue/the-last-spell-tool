@@ -10,6 +10,7 @@ import BuildingSidebar from './components/sidebar/BuildingSidebar';
 import FlagSidebar from './components/sidebar/FlagSidebar';
 import { ConfigTabs } from './components/config';
 import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
+import { LocalizationTab } from './components/localization/LocalizationTab';
 import { TileMapImportButton } from './components/TileMapImportButton';
 import { BuiltinMapButton } from './components/BuiltinMapSelector';
 import { ModInstaller } from './components/ModInstaller';
@@ -19,7 +20,7 @@ import { useUIStore } from './store/uiStore';
 import { useXMLMode } from './hooks/useXMLMode';
 import { XMLEditorModal } from './components/XMLEditor/XMLEditorModal';
 import { weaponSchema } from './types/XMLSchemas';
-import { saveMapAsTileMap } from './lib/mapXmlExporter';
+import { saveMapAsTileMap, saveBuildings } from './lib/mapXmlExporter';
 import {
   Menu,
   Map as MapIcon,
@@ -36,9 +37,10 @@ import {
   X,
   Sword,
   FileCode,
+  Languages,
 } from 'lucide-react';
 import type { SidebarTab, FeatureTab } from './types/map';
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
 
 // ============================================================================
 // Header Component
@@ -49,42 +51,64 @@ interface HeaderProps {
 }
 
 function Header({ onOpenXMLEditor }: HeaderProps) {
-  const { addToast } = useUIStore();
-  const { width, height, mapData } = useMapStore();
+  const addToast = useUIStore((state) => state.addToast);
+  const [isImporting, setIsImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleNewMap = () => {
-    addToast({
-      title: 'New Map',
-      description: 'Creating new map...',
-      type: 'info',
-    });
-  };
-
-  const handleSaveMap = () => {
-    if (!mapData) {
+  const handleExportAll = useCallback(async () => {
+    const { exportAllStoresToZip } = await import('./lib/state-import-export');
+    try {
+      await exportAllStoresToZip();
       addToast({
-        title: '无法保存',
-        description: '地图数据为空，请先加载或编辑地图',
-        type: 'warning',
+        title: '导出成功',
+        description: '编辑器状态已保存为 ZIP 文件',
+        type: 'success',
       });
-      return;
+    } catch (e) {
+      addToast({
+        title: '导出失败',
+        description: (e as Error).message,
+        type: 'error',
+      });
     }
+  }, [addToast]);
 
-    saveMapAsTileMap(
-      width,
-      height,
-      mapData.terrain,
-      mapData.buildings,
-      mapData.flags
-    );
+  const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    addToast({
-      title: 'Save Map',
-      description: `已导出 TileMap.xml (${mapData.buildings.length} buildings, ${mapData.terrain.size} terrain tiles)`,
-      type: 'success',
-      duration: 3000,
-    });
-  };
+    setIsImporting(true);
+    try {
+      const { importStateFromZip } = await import('./lib/state-import-export');
+      const report = await importStateFromZip(file);
+
+      if (report.success) {
+        addToast({
+          title: '导入成功',
+          description: `已恢复 ${report.storesImported.length} 个模块状态`,
+          type: 'success',
+        });
+        window.location.reload();
+      } else {
+        addToast({
+          title: '导入失败',
+          description: report.errors[0] ?? '无法识别的 ZIP 文件',
+          type: 'error',
+        });
+      }
+    } catch (e) {
+      addToast({
+        title: '导入失败',
+        description: (e as Error).message,
+        type: 'error',
+      });
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [addToast]);
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 sticky top-0 z-50">
@@ -99,31 +123,39 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
         <Button
           variant="outline"
           size="sm"
-          onClick={handleNewMap}
-        >
-          <FilePlus className="h-4 w-4 mr-2" />
-          New
-        </Button>
-        <TileMapImportButton />
-        <BuiltinMapButton />
-        <Button
-          variant="default"
-          size="sm"
-          onClick={handleSaveMap}
-        >
-          <Save className="h-4 w-4 mr-2" />
-          Save
-        </Button>
-        <div className="w-px h-6 bg-border mx-1" />
-        <Button
-          variant="outline"
-          size="sm"
           onClick={onOpenXMLEditor}
           title="Open XML Editor"
         >
           <FileCode className="h-4 w-4 mr-2" />
           XML 编辑器
         </Button>
+        <div className="w-px h-6 bg-border mx-1" />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExportAll}
+          title="导出所有编辑器状态为 ZIP 文件"
+        >
+          <Save className="h-4 w-4 mr-1" />
+          保存状态
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isImporting}
+          title="从 ZIP 文件导入编辑器状态"
+        >
+          <FolderOpen className="h-4 w-4 mr-1" />
+          {isImporting ? '导入中...' : '加载状态'}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".zip"
+          onChange={handleImportFile}
+          className="hidden"
+        />
         <div className="w-px h-6 bg-border mx-1" />
         <ModInstaller />
       </div>
@@ -137,8 +169,9 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
 
 const featureTabs: { id: FeatureTab; label: string; icon: React.ElementType }[] = [
   { id: 'mapEditor', label: '地图编辑器', icon: MapIcon },
-  { id: 'gameConfig', label: '游戏配置', icon: Settings },
-  { id: 'weaponSkill', label: '武器与技能', icon: Sword },
+   { id: 'gameConfig', label: '游戏配置', icon: Settings },
+   { id: 'localization', label: '多语言模组', icon: Languages },
+   { id: 'weaponSkill', label: '武器与技能', icon: Sword },
 ];
 
 function FeatureTabs() {
@@ -183,6 +216,9 @@ function Sidebar() {
     setLayerVisibility, 
     width, 
     height,
+    mapName,
+    setMapName,
+    mapData,
     selectedTerrain,
     setSelectedTerrain,
     setEditorMode,
@@ -196,7 +232,63 @@ function Sidebar() {
     removeMode,
     setRemoveMode
   } = useMapStore();
+  const { addToast } = useUIStore();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Map File Operation Handlers
+  const handleNewMap = () => {
+    addToast({
+      title: 'New Map',
+      description: 'Creating new map...',
+      type: 'info',
+    });
+  };
+
+  const handleSaveMap = () => {
+    if (!mapData) {
+      addToast({
+        title: '无法保存',
+        description: '地图数据为空，请先加载或编辑地图',
+        type: 'warning',
+      });
+      return;
+    }
+
+    saveMapAsTileMap(
+      width,
+      height,
+      mapData.terrain,
+      mapData.flags,
+      mapName
+    );
+
+    addToast({
+      title: 'Save Map',
+      description: `已导出 ${mapName}_TileMap.xml (${mapData.flags.size} flag types, ${mapData.terrain.size} terrain tiles)`,
+      type: 'success',
+      duration: 3000,
+    });
+  };
+
+  const handleExportBuildings = () => {
+    if (!mapData || mapData.buildings.length === 0) {
+      addToast({
+        title: '无建筑可导出',
+        description: '地图上还没有放置任何建筑',
+        type: 'warning',
+      });
+      return;
+    }
+
+    saveBuildings(mapData.buildings, mapName);
+
+    addToast({
+      title: 'Export Buildings',
+      description: `已导出 ${mapName}_Buildings.xml (${mapData.buildings.length} buildings)`,
+      type: 'success',
+      duration: 3000,
+    });
+  };
 
   if (!sidebarOpen) {
     return (
@@ -356,6 +448,56 @@ function Sidebar() {
 
         {activeTab === 'config' && (
           <div className="space-y-4">
+            {/* Map File Operations */}
+            <div>
+              <h3 className="text-sm font-medium mb-2">Map File Operations</h3>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={handleNewMap}
+                >
+                  <FilePlus className="h-4 w-4 mr-2" />
+                  New Map
+                </Button>
+                <TileMapImportButton className="w-full" />
+                <BuiltinMapButton className="w-full" />
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={handleSaveMap}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Map
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={handleExportBuildings}
+                  title="Export buildings as separate Buildings.xml"
+                >
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Export Buildings
+                </Button>
+              </div>
+            </div>
+
+            <div className="border-t border-border pt-4">
+              <h3 className="text-sm font-medium mb-2">Map Name</h3>
+              <input
+                type="text"
+                value={mapName}
+                onChange={(e) => setMapName(e.target.value)}
+                placeholder="Enter map name..."
+                className="w-full h-9 rounded-md border border-input px-3 bg-background text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Used for exported filenames: {mapName}_TileMap.xml
+              </p>
+            </div>
             <div>
               <h3 className="text-sm font-medium mb-2">Map Settings</h3>
               <div className="space-y-3">
@@ -483,6 +625,10 @@ function WeaponSkillContent() {
   return <WeaponSkillTab />;
 }
 
+function LocalizationContent() {
+  return <LocalizationTab />;
+}
+
 // ============================================================================
 // Main Content Area
 // ============================================================================
@@ -496,6 +642,8 @@ function MainContent() {
         return <MapEditorContent />;
       case 'gameConfig':
         return <GameConfigContent />;
+      case 'localization':
+        return <LocalizationContent />;
       case 'weaponSkill':
         return <WeaponSkillContent />;
       default:
