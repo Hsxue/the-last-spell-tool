@@ -1,9 +1,13 @@
 /**
  * Config Store - Zustand store for game configuration management
  * Manages GameConfig, spawn settings, and configuration editing
+ *
+ * Persistence: State is automatically saved to localStorage via zustand persist middleware.
+ * Map objects are serialized to Records for JSON compatibility.
  */
 
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import type {
   GameConfig,
@@ -17,6 +21,12 @@ import type {
   FogDensityName,
 } from '../types';
 import { CITY_TEMPLATES } from '../types';
+import {
+  mapTupleArrayToRecord,
+  recordToMapTupleArray,
+  mapNumberToRecord,
+  recordToMapNumber,
+} from '../lib/map-serialization';
 
 // ============================================================================
 // Initial State Helpers
@@ -178,11 +188,101 @@ interface ConfigStoreActions {
 }
 
 // ============================================================================
+// Persist Middleware Configuration
+// ============================================================================
+
+/**
+ * Serialize config Map fields to Records for JSON storage.
+ */
+function serializeConfigForPersist(config: GameConfig): Record<string, unknown> {
+  return {
+    mapId: config.mapId,
+    victoryDays: config.victoryDays,
+    difficulty: config.difficulty,
+    enemiesOffset: config.enemiesOffset,
+    maxGlyphPoints: config.maxGlyphPoints,
+    fogId: config.fogId,
+    spawnConfig: {
+      spawnMultipliers: mapNumberToRecord(config.spawnConfig.spawnMultipliers),
+      spawnsPerWaveFormula: config.spawnConfig.spawnsPerWaveFormula,
+      spawnWavesPerDay: mapTupleArrayToRecord(config.spawnConfig.spawnWavesPerDay),
+      spawnDirections: mapTupleArrayToRecord(config.spawnConfig.spawnDirections),
+      elitesPerDay: mapTupleArrayToRecord(config.spawnConfig.elitesPerDay),
+      maxDistancePerDay: mapNumberToRecord(config.spawnConfig.maxDistancePerDay),
+      disallowedEnemies: config.spawnConfig.disallowedEnemies,
+      spawnPointsPerGroup: config.spawnConfig.spawnPointsPerGroup,
+      spawnPointRectWidth: config.spawnConfig.spawnPointRectWidth,
+      spawnPointRectHeight: config.spawnConfig.spawnPointRectHeight,
+      waveDefinitions: config.spawnConfig.waveDefinitions,
+    },
+    corruptionConfig: {
+      corruptionByNight: mapNumberToRecord(config.corruptionConfig.corruptionByNight),
+    },
+    fogConfig: {
+      fogDensities: config.fogConfig.fogDensities,
+      increaseEveryXDays: config.fogConfig.increaseEveryXDays,
+      initialDensityIndex: config.fogConfig.initialDensityIndex,
+      dayExceptions: mapNumberToRecord(config.fogConfig.dayExceptions),
+    },
+    resourceConfig: config.resourceConfig,
+  };
+}
+
+/**
+ * Deserialize Records back to Map fields.
+ */
+function deserializeConfigFromPersist(raw: Record<string, unknown>): GameConfig {
+  const initial = createInitialGameConfig();
+  const d = raw as Record<string, unknown>;
+  const spawnRaw = (d.spawnConfig ?? {}) as Record<string, unknown>;
+  const corruptionRaw = (d.corruptionConfig ?? {}) as Record<string, unknown>;
+  const fogRaw = (d.fogConfig ?? {}) as Record<string, unknown>;
+  const resourceRaw = (d.resourceConfig ?? {}) as Record<string, unknown>;
+
+  return {
+    mapId: (d.mapId as string) ?? initial.mapId,
+    victoryDays: (d.victoryDays as number) ?? initial.victoryDays,
+    difficulty: (d.difficulty as string) ?? initial.difficulty,
+    enemiesOffset: (d.enemiesOffset as number) ?? initial.enemiesOffset,
+    maxGlyphPoints: (d.maxGlyphPoints as number) ?? initial.maxGlyphPoints,
+    fogId: (d.fogId as string) ?? initial.fogId,
+    spawnConfig: {
+      spawnMultipliers: recordToMapNumber(spawnRaw.spawnMultipliers as Record<string, number>),
+      spawnsPerWaveFormula: (spawnRaw.spawnsPerWaveFormula as string) ?? initial.spawnConfig.spawnsPerWaveFormula,
+      spawnWavesPerDay: recordToMapTupleArray(spawnRaw.spawnWavesPerDay as Record<string, [string, number][]>),
+      spawnDirections: recordToMapTupleArray(spawnRaw.spawnDirections as Record<string, [string, number][]>),
+      elitesPerDay: recordToMapTupleArray(spawnRaw.elitesPerDay as Record<string, [number, number][]>),
+      maxDistancePerDay: recordToMapNumber(spawnRaw.maxDistancePerDay as Record<string, number> | undefined),
+      disallowedEnemies: (spawnRaw.disallowedEnemies as string[]) ?? initial.spawnConfig.disallowedEnemies,
+      spawnPointsPerGroup: (spawnRaw.spawnPointsPerGroup as number) ?? initial.spawnConfig.spawnPointsPerGroup,
+      spawnPointRectWidth: (spawnRaw.spawnPointRectWidth as number) ?? initial.spawnConfig.spawnPointRectWidth,
+      spawnPointRectHeight: (spawnRaw.spawnPointRectHeight as number) ?? initial.spawnConfig.spawnPointRectHeight,
+      waveDefinitions: (spawnRaw.waveDefinitions as SpawnWaveDefinition[]) ?? initial.spawnConfig.waveDefinitions,
+    },
+    corruptionConfig: {
+      corruptionByNight: recordToMapNumber(corruptionRaw.corruptionByNight as Record<string, number>),
+    },
+    fogConfig: {
+      fogDensities: (fogRaw.fogDensities as [FogDensityName, number][]) ?? initial.fogConfig.fogDensities,
+      increaseEveryXDays: (fogRaw.increaseEveryXDays as number) ?? initial.fogConfig.increaseEveryXDays,
+      initialDensityIndex: (fogRaw.initialDensityIndex as number) ?? initial.fogConfig.initialDensityIndex,
+      dayExceptions: recordToMapNumber(fogRaw.dayExceptions as Record<string, FogDensityName>),
+    },
+    resourceConfig: {
+      gold: (resourceRaw.gold as number) ?? initial.resourceConfig.gold,
+      materials: (resourceRaw.materials as number) ?? initial.resourceConfig.materials,
+      damnedSouls: (resourceRaw.damnedSouls as number) ?? initial.resourceConfig.damnedSouls,
+    },
+  };
+}
+
+// ============================================================================
 // Store Creation
 // ============================================================================
 
 export const useConfigStore = create<ConfigStoreState & ConfigStoreActions>()(
-  immer((set) => ({
+  persist(
+    immer((set) => ({
     // Initial State
     gameConfig: createInitialGameConfig(),
     ui: createInitialConfigUIState(),
@@ -665,5 +765,44 @@ export const useConfigStore = create<ConfigStoreState & ConfigStoreActions>()(
         state.ui.hasUnsavedChanges = true;
       });
     },
-  }))
+  })),
+  {
+    name: 'config-store',
+    storage: {
+      getItem: async (name: string) => {
+        const str = localStorage.getItem(name);
+        if (!str) return null;
+        try {
+          const parsed = JSON.parse(str);
+          const rawState = parsed.state as Record<string, unknown>;
+          const gameConfig = deserializeConfigFromPersist(rawState.gameConfig as Record<string, unknown>);
+          return {
+            state: {
+              gameConfig,
+              ui: rawState.ui as ConfigUIState,
+            },
+          };
+        } catch {
+          return null;
+        }
+      },
+      setItem: async (name: string, value: unknown) => {
+        const stateObj = value as { state: ConfigStoreState };
+        const serialized = {
+          gameConfig: serializeConfigForPersist(stateObj.state.gameConfig),
+          ui: stateObj.state.ui,
+        };
+        localStorage.setItem(name, JSON.stringify({ state: serialized }));
+      },
+      removeItem: async (name: string) => {
+        localStorage.removeItem(name);
+      },
+    },
+    merge: (persistedState, currentState) => {
+      if (!persistedState) return currentState;
+      return { ...currentState, ...persistedState };
+    },
+    version: 1,
+  }
+)
 );
