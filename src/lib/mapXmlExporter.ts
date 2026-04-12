@@ -1,54 +1,73 @@
 /**
  * Map XML Exporter - Complete export functionality for The Last Spell map data
- * Exports map data in game-compatible XML format
+ * Exports map data in format compatible with LastSpellMapMod tool
+ * 
+ * IMPORTANT: 
+ * - TileMap.xml contains: Width/Height, Grounds (terrain), Flags
+ * - Buildings.xml contains: ONLY buildings (separate file)
+ * - Game does NOT read buildings from TileMap.xml
  */
 
 import type { Building, TerrainType, TileFlag } from '../types/map';
 
 /**
- * Generates XML string for building entries in TileMap format
- * @param buildings - Array of buildings to include in TileMap
- * @returns XML string fragment for Buildings section (without xml declaration)
+ * Computes distance from each terrain tile to the nearest city center
+ * Uses Manhattan distance from map center (default city center)
+ * @param terrain - Map entries with "x,y" -> TerrainType
+ * @param width - Map width
+ * @param height - Map height
+ * @returns Map<"x,y", { distToCity: number; distToMagic: number }>
  */
-function exportBuildingsXmlFragment(buildings: Building[]): string {
-  if (buildings.length === 0) return '';
+function computeTerrainDistances(
+  terrain: Map<string, TerrainType>,
+  width: number,
+  height: number
+): Map<string, { distToCity: number; distToMagic: number }> {
+  const result = new Map<string, { distToCity: number; distToMagic: number }>();
+  
+  // Default city center and magic circle at map center
+  const centerX = Math.floor(width / 2);
+  const centerY = Math.floor(height / 2);
 
-  const lines: string[] = [];
-  lines.push('<Buildings>');
+  terrain.forEach((type, key) => {
+    const [x, y] = key.split(',').map(Number);
+    
+    // Manhattan distance to center
+    const distToCity = Math.max(0, Math.min(
+      Math.abs(x - centerX),
+      Math.abs(y - centerY)
+    ));
+    
+    // Magic circle at same position as city center
+    const distToMagic = distToCity;
 
-  for (const building of buildings) {
-    const healthElement = building.health !== undefined && building.health !== null && building.health >= 0
-      ? `<Health>${building.health}</Health>`
-      : '';
+    result.set(key, { distToCity, distToMagic });
+  });
 
-    lines.push(`  <Building Id="${escapeXml(building.id)}" X="${building.x}" Y="${building.y}">${healthElement}</Building>`);
-  }
-
-  lines.push('</Buildings>');
-  return lines.join('\n');
+  return result;
 }
 
 /**
- * Generates the complete TileMap XML
- * @param width - Map width
- * @param height - Map height
- * @param terrain - Map<string, TerrainType> - terrain data by "x,y" key
- * @param buildings - Array of buildings
- * @param flags - Map<string, Array<[number, number]>> - flags by type
- * @returns Complete TileMap XML string
+ * Generates the complete TileMap XML (Terrain + Flags ONLY)
+ * Buildings are exported separately via exportBuildingsToXml()
+ * 
+ * Format matches LastSpellMapMod ExampleMap_TileMap.txt:
+ * - XML declaration: <?xml version="1.0" encoding="utf-8"?>
+ * - Ground tiles: <TerrainType>X,Y,DistCity,DistMagic</TerrainType>
+ * - Flags: <FlagType>X,Y</FlagType>
+ * - Buildings are NOT included (handled by separate Buildings.xml)
  */
 export function exportTileMap(
   width: number,
   height: number,
   terrain: Map<string, TerrainType>,
-  buildings: Building[],
   flags: Map<string, Array<[number, number]>>
 ): string {
   const xmlParts: string[] = [];
 
-  // XML declaration
-  xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');
-  xmlParts.push(`<TileMap>`);
+  // XML declaration (UTF-8)
+  xmlParts.push('<?xml version="1.0" encoding="utf-8"?>');
+  xmlParts.push('<TileMap>');
 
   // Map dimensions
   xmlParts.push('  <Width>' + width + '</Width>');
@@ -57,32 +76,42 @@ export function exportTileMap(
   // Grounds section - terrain data
   xmlParts.push('  <Grounds>');
 
-  // Group terrain by type
-  const terrainByType: Record<TerrainType, string[]> = {
-    Crater: [],
-    Dirt: [],
-    Stone: [],
-    Empty: [],
-  };
+  if (terrain.size > 0) {
+    // Compute distances for all terrain tiles
+    const distances = computeTerrainDistances(terrain, width, height);
 
-  terrain.forEach((type, key) => {
-    if (terrainByType[type]) {
-      terrainByType[type].push(key);
-    }
-  });
+    // Group terrain by type
+    const terrainByType: Record<string, string[]> = {
+      Crater: [],
+      Dirt: [],
+      Stone: [],
+      Empty: [],
+      // Support additional types from game data
+      Ground: [],
+      CityTile: [],
+      MagicCircle: [],
+    };
 
-  // Output each terrain type
-  for (const type of (['Crater', 'Dirt', 'Stone', 'Empty'] as TerrainType[])) {
-    const coords = terrainByType[type];
-    if (coords.length > 0) {
-      // Sort coordinates for consistent output
-      coords.sort((a, b) => {
-        const [ax, ay] = a.split(',').map(Number);
-        const [bx, by] = b.split(',').map(Number);
-        if (ay !== by) return ay - by; // Sort by Y descending (as in game files)
-        return ax - bx; // Then by X
-      });
-      xmlParts.push(`    <${type}>${coords.join('|')}</${type}>`);
+    terrain.forEach((type, key) => {
+      const dist = distances.get(key) || { distToCity: 0, distToMagic: 0 };
+      const [x, y] = key.split(',').map(Number);
+      const tileStr = `${x},${y},${dist.distToCity},${dist.distToMagic}`;
+      
+      if (terrainByType[type]) {
+        terrainByType[type].push(tileStr);
+      } else {
+        // Handle unknown terrain types
+        terrainByType[type] = [tileStr];
+      }
+    });
+
+    // Output each terrain type (sort keys for consistent output)
+    const sortedTypes = Object.keys(terrainByType).filter(t => terrainByType[t].length > 0).sort();
+    for (const type of sortedTypes) {
+      const tiles = terrainByType[type];
+      if (tiles.length > 0) {
+        xmlParts.push(`    <${type}>${tiles.join('|')}</${type}>`);
+      }
     }
   }
 
@@ -91,30 +120,27 @@ export function exportTileMap(
   // Flags section
   xmlParts.push('  <Flags>');
 
-  // Sort flag types for consistent output
-  const sortedFlagTypes = Array.from(flags.keys()).sort();
-  for (const flagType of sortedFlagTypes) {
-    const positions = flags.get(flagType)!;
-    if (positions.length > 0) {
-      // Sort positions same as terrain
-      const sorted = positions.sort((a, b) => {
-        if (a[1] !== b[1]) return a[1] - b[1];
-        return a[0] - b[0];
-      });
-      const coordStr = sorted.map(p => `${p[0]},${p[1]}`).join('|');
-      xmlParts.push(`    <${flagType}>${coordStr}</${flagType}>`);
+  if (flags.size > 0) {
+    // Sort flag types for consistent output
+    const sortedFlagTypes = Array.from(flags.keys()).sort();
+    for (const flagType of sortedFlagTypes) {
+      const positions = flags.get(flagType)!;
+      if (positions.length > 0) {
+        // Sort positions: Y ascending, X ascending
+        const sorted = [...positions].sort((a, b) => {
+          if (a[1] !== b[1]) return a[1] - b[1];
+          return a[0] - b[0];
+        });
+        const coordStr = sorted.map(p => `${p[0]},${p[1]}`).join('|');
+        xmlParts.push(`    <${flagType}>${coordStr}</${flagType}>`);
+      }
     }
   }
 
   xmlParts.push('  </Flags>');
 
-  // Buildings section (optional - can be separate or included)
-  const buildingsXml = exportBuildingsXmlFragment(buildings);
-  if (buildingsXml) {
-    // Re-indent buildings section
-    const indented = buildingsXml.split('\n').map(line => '  ' + line).join('\n');
-    xmlParts.push(indented);
-  }
+  // NOTE: Buildings are NOT included in TileMap.xml
+  // The game handles buildings separately via Buildings.xml or runtime creation
 
   xmlParts.push('</TileMap>');
 
@@ -123,21 +149,33 @@ export function exportTileMap(
 
 /**
  * Generates separate Buildings XML (standalone file)
- * @param buildings - Array of buildings to export
- * @returns XML string with UTF-8 declaration
+ * Format: <Buildings><Building Id="..." X="..." Y="..." Health="..."/></Buildings>
+ * 
+ * Attributes (NOT child elements):
+ * - Id: Required - Building blueprint ID
+ * - X: Required - X coordinate (anchor point)
+ * - Y: Required - Y coordinate (anchor point)
+ * - Health: Optional - Building health points
  */
 export function exportBuildingsToXml(buildings: Building[]): string {
   const xmlParts: string[] = [];
 
-  xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');
+  xmlParts.push('<?xml version="1.0" encoding="utf-8"?>');
   xmlParts.push('<Buildings>');
 
   for (const building of buildings) {
-    const healthElement = building.health !== undefined && building.health !== null && building.health >= 0
-      ? `<Health>${building.health}</Health>`
-      : '';
+    const attrs = [
+      `Id="${escapeXml(building.id)}"`,
+      `X="${building.x}"`,
+      `Y="${building.y}"`,
+    ];
 
-    xmlParts.push(`  <Building Id="${escapeXml(building.id)}" X="${building.x}" Y="${building.y}">${healthElement}</Building>`);
+    // Add Health attribute only if defined and >= 0
+    if (building.health !== undefined && building.health !== null && building.health >= 0) {
+      attrs.push(`Health="${building.health}"`);
+    }
+
+    xmlParts.push(`  <Building ${attrs.join(' ')} />`);
   }
 
   xmlParts.push('</Buildings>');
@@ -146,14 +184,13 @@ export function exportBuildingsToXml(buildings: Building[]): string {
 }
 
 /**
- * Generates XML string for flags including zone flags with SizeX/SizeY (standalone format)
- * @param flags - Array of flags to export
- * @returns XML string with UTF-8 declaration
+ * Generates XML for flags including zone flags with SizeX/SizeY
+ * This is an alternative format if needed separately
  */
 export function exportFlagsToXml(flags: TileFlag[]): string {
   const xmlParts: string[] = [];
 
-  xmlParts.push('<?xml version="1.0" encoding="UTF-8"?>');
+  xmlParts.push('<?xml version="1.0" encoding="utf-8"?>');
   xmlParts.push('<Flags>');
 
   for (const flag of flags) {
@@ -162,13 +199,11 @@ export function exportFlagsToXml(flags: TileFlag[]): string {
     xmlParts.push(`    <X>${flag.x}</X>`);
     xmlParts.push(`    <Y>${flag.y}</Y>`);
 
-    // Zone flags need SizeX and SizeY
     if (isZoneFlag(flag.flagType)) {
       xmlParts.push('    <SizeX>1</SizeX>');
       xmlParts.push('    <SizeY>1</SizeY>');
     }
 
-    // Include Value if defined
     if (flag.value !== undefined && flag.value !== null) {
       xmlParts.push(`    <Value>${escapeXml(flag.value)}</Value>`);
     }
@@ -183,48 +218,36 @@ export function exportFlagsToXml(flags: TileFlag[]): string {
 
 /**
  * Saves all map data as a single TileMap XML file
- * Includes terrain, flags, and buildings
- * @param width - Map width
- * @param height - Map height
- * @param terrain - Terrain data
- * @param buildings - Buildings data
- * @param flags - Flags data
+ * Includes terrain and flags (buildings are NOT included)
+ * Downloads as {mapName}_TileMap.xml
  */
 export function saveMapAsTileMap(
   width: number,
   height: number,
   terrain: Map<string, TerrainType>,
-  buildings: Building[],
-  flags: Map<string, Array<[number, number]>>
+  flags: Map<string, Array<[number, number]>>,
+  mapName: string = 'CustomMap'
 ): void {
-  const xmlContent = exportTileMap(width, height, terrain, buildings, flags);
-  triggerDownload(xmlContent, 'TileMap.xml');
+  const xmlContent = exportTileMap(width, height, terrain, flags);
+  triggerDownload(xmlContent, `${mapName}_TileMap.xml`);
 }
 
 /**
  * Saves buildings as a separate Buildings XML file
- * @param buildings - Buildings data
+ * Downloads as {mapName}_Buildings.xml
  */
-export function saveBuildings(buildings: Building[]): void {
+export function saveBuildings(buildings: Building[], mapName: string = 'CustomMap'): void {
   const xmlContent = exportBuildingsToXml(buildings);
-  triggerDownload(xmlContent, 'Buildings.xml');
+  triggerDownload(xmlContent, `${mapName}_Buildings.xml`);
 }
 
 /**
- * Triggers browser download with UTF-16 encoding (game format)
- * @param content - XML content to download
- * @param filename - Filename for the download
+ * Triggers browser download with UTF-8 encoding
+ * UTF-8 is used by the Mod tool (File.ReadAllText defaults to system encoding, typically UTF-8)
  */
 export function triggerDownload(content: string, filename: string): void {
-  // UTF-16 BOM + content encoded as UTF-16LE
-  const bom = new Uint8Array([0xFF, 0xFE]); // UTF-16 LE BOM
-  const encoded = new Uint16Array(content.length);
-
-  for (let i = 0; i < content.length; i++) {
-    encoded[i] = content.charCodeAt(i);
-  }
-
-  const blob = new Blob([bom, encoded], { type: 'text/xml;charset=utf-16' });
+  const encoded = new TextEncoder().encode(content);
+  const blob = new Blob([encoded], { type: 'application/xml; charset=utf-8' });
   const url = URL.createObjectURL(blob);
 
   const link = document.createElement('a');
@@ -234,14 +257,11 @@ export function triggerDownload(content: string, filename: string): void {
   link.click();
   document.body.removeChild(link);
 
-  // Cleanup
   URL.revokeObjectURL(url);
 }
 
 /**
  * Escapes special XML characters
- * @param text - Text to escape
- * @returns Escaped text safe for XML
  */
 function escapeXml(text: string): string {
   return text
@@ -254,8 +274,6 @@ function escapeXml(text: string): string {
 
 /**
  * Checks if a flag type is a zone flag
- * @param flagType - The flag type to check
- * @returns True if zone flag, false otherwise
  */
 function isZoneFlag(flagType: string): boolean {
   return flagType.startsWith('Zone_');
