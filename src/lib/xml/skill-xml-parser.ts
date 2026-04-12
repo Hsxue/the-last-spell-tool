@@ -42,10 +42,12 @@ const parserOptions = {
 
 const builderOptions = {
   ignoreAttributes: false,
+  attributeNamePrefix: '@_',
   format: true,
-  indentBy: '  ',
-  suppressEmptyNode: false,
+  indentBy: '   ',
   suppressBooleanAttributes: false,
+  alwaysCreateTextNode: false,
+  suppressEmptyNode: true,
 };
 
 // ============================================================================
@@ -188,10 +190,10 @@ function xmlToSkill(xmlSkill: Record<string, unknown>): SkillDefinition {
     }
     const range = value as Record<string, unknown>;
     return {
-      min: parseNumber(range.Min ?? range.min),
-      max: parseNumber(range.Max ?? range.max),
-      cardinalDirectionOnly: parseBoolean(range.CardinalDirectionOnly ?? range.cardinalDirectionOnly),
-      modifiable: parseBoolean(range.Modifiable ?? range.modifiable),
+      min: parseNumber(range['@_Min'] ?? range.Min ?? range.min),
+      max: parseNumber(range['@_Max'] ?? range.Max ?? range.max),
+      cardinalDirectionOnly: parseBoolean(range['@_CardinalDirectionOnly'] ?? range.CardinalDirectionOnly ?? range.cardinalDirectionOnly),
+      modifiable: parseBoolean(range['@_Modifiable'] ?? range.Modifiable ?? range.modifiable),
     };
   };
 
@@ -240,21 +242,46 @@ function xmlToSkill(xmlSkill: Record<string, unknown>): SkillDefinition {
         },
       };
     }
+    // Handle native format: { Attack: { AttackType, DamageMultiplier, SkillEffects } }
+    const inner = (value as Record<string, unknown>).Attack;
+    if (inner && typeof inner === 'object') {
+      value = inner;
+    }
     const attack = value as Record<string, unknown>;
     const baseDamageObj = attack.BaseDamage as Record<string, unknown> | undefined;
+
+    // Parse SkillEffects for native format
+    const effectsObj = attack.SkillEffects as Record<string, unknown> | undefined;
+    const hasEffect = (name: string): boolean => {
+      if (effectsObj) {
+        const nativeKey = Object.keys(effectsObj).find(
+          k => k.toLowerCase() === name.toLowerCase()
+        );
+        if (nativeKey !== undefined) {
+          const val = effectsObj[nativeKey];
+          return val === '' || val === true || (typeof val === 'object' && val !== null);
+        }
+      }
+      return parseBoolean(
+        attack[name] ??
+        attack[name.charAt(0).toLowerCase() + name.slice(1)] ??
+        false
+      );
+    };
+
     return {
       attackType: (String(attack.AttackType ?? attack.attackType ?? 'Physical') as 'Physical' | 'Magical' | 'Ranged'),
       baseDamage: [
         parseNumber(attack.BaseDamageMin ?? attack.baseDamageMin ?? baseDamageObj?.Min ?? 0),
         parseNumber(attack.BaseDamageMax ?? attack.baseDamageMax ?? baseDamageObj?.Max ?? 0),
       ],
-      damageMultiplier: parseNumber(attack.DamageMultiplier ?? attack.damageMultiplier),
+      damageMultiplier: parseNumber(attack.DamageMultiplier ?? attack.damageMultiplier ?? 1),
       criticalChance: parseNumber(attack.CriticalChance ?? attack.criticalChance),
       effects: {
-        follow: parseBoolean(attack.Follow ?? attack.follow),
-        maneuver: parseBoolean(attack.Maneuver ?? attack.maneuver),
-        multiHit: parseBoolean(attack.MultiHit ?? attack.multiHit),
-        armorPiercing: parseBoolean(attack.ArmorPiercing ?? attack.armorPiercing),
+        follow: hasEffect('Follow'),
+        maneuver: hasEffect('Maneuver'),
+        multiHit: hasEffect('MultiHit'),
+        armorPiercing: hasEffect('ArmorPiercing'),
       },
     };
   };
@@ -302,10 +329,13 @@ function xmlToSkill(xmlSkill: Record<string, unknown>): SkillDefinition {
       result.phase = String(conditions.Phase);
     }
     if (conditions.TargetInRange !== undefined) {
-      result.targetInRange = parseBoolean(conditions.TargetInRange);
+      // Presence = true (native format uses <TargetInRange/>), or explicit boolean value
+      const val = conditions.TargetInRange;
+      result.targetInRange = typeof val === 'string' ? val.length > 0 : parseBoolean(val);
     }
     if (conditions.InWatchtower !== undefined) {
-      result.inWatchtower = parseBoolean(conditions.InWatchtower);
+      const val = conditions.InWatchtower;
+      result.inWatchtower = typeof val === 'string' ? val.length > 0 : parseBoolean(val);
     }
     
     return result;
@@ -313,109 +343,163 @@ function xmlToSkill(xmlSkill: Record<string, unknown>): SkillDefinition {
 
   const skill = xmlSkill as Record<string, unknown>;
 
+  // Detect native format (Id/TemplateId as attributes) vs old format (Id as element)
+  const id = skill['@_Id'] ?? skill.Id ?? skill.id ?? '';
+  const templateId = skill['@_TemplateId'] ?? skill.TemplateId ?? skill.templateId ?? '';
+
+  // Native format: Range (with @_Min/@_Max) | Old format: SkillRange
+  const rangeData = skill.Range ?? skill.SkillRange ?? skill.skillRange;
+
+  // Native format: SkillAction with Attack/Generic wrapper | Old format: AttackAction/GenericAction
+  const actionData = skill.SkillAction ?? skill.AttackAction ?? skill.attackAction;
+  const skillActionObj = skill.SkillAction as Record<string, unknown> | undefined;
+  const genericData = skillActionObj?.Generic ?? skill.GenericAction ?? skill.genericAction;
+
+  // Native format: CastFXs | Old format: CastFX
+  const castFxData = skill.CastFXs ?? skill.CastFX ?? skill.castFx;
+
+  // Native format: Conditions (presence flags) | Old format: Conditions (boolean values)
+  const conditionsData = skill.Conditions ?? skill.conditions;
+
   return {
-    id: String(skill.Id ?? skill.id ?? ''),
+    id: String(id),
     description: String(skill.Description ?? skill.description ?? ''),
     iconPath: String(skill.IconPath ?? skill.iconPath ?? ''),
-    templateId: String(skill.TemplateId ?? skill.templateId ?? ''),
+    templateId: String(templateId),
     actionPointsCost: parseNumber(skill.ActionPointsCost ?? skill.actionPointsCost),
     manaCost: parseNumber(skill.ManaCost ?? skill.manaCost),
     healthCost: parseNumber(skill.HealthCost ?? skill.healthCost),
     usesPerTurnCount: parseNumber(skill.UsesPerTurnCount ?? skill.usesPerTurnCount),
-    skillRange: parseSkillRange(skill.SkillRange ?? skill.skillRange),
+    skillRange: parseSkillRange(rangeData),
     skillTarget: parseSkillTarget(skill.SkillTarget ?? skill.skillTarget),
     areaOfEffect: parseAreaOfEffect(skill.AreaOfEffect ?? skill.areaOfEffect),
-    attackAction: skill.AttackAction ?? skill.attackAction ? parseAttackAction(skill.AttackAction ?? skill.attackAction) : undefined,
-    genericAction: skill.GenericAction ?? skill.genericAction ? parseGenericAction(skill.GenericAction ?? skill.genericAction) : undefined,
-    castFx: parseCastFX(skill.CastFX ?? skill.castFx),
-    conditions: parseConditions(skill.Conditions ?? skill.conditions),
+    attackAction: actionData && (actionData as Record<string, unknown>).Attack ? parseAttackAction(actionData) : (skill.AttackAction ? parseAttackAction(skill.AttackAction) : undefined),
+    genericAction: genericData ? parseGenericAction(genericData) : undefined,
+    castFx: parseCastFX(castFxData),
+    conditions: parseConditions(conditionsData),
     category: (skill.Category ?? skill.category ?? 'Other') as SkillCategory,
   };
 }
 
 /**
- * Convert SkillDefinition to XML data object
+ * Convert SkillDefinition to XML data object (game-native format)
  */
 function skillToXml(skill: SkillDefinition): Record<string, unknown> {
-  const xml: Record<string, unknown> = {
-    Id: skill.id,
-    Description: skill.description,
-    IconPath: skill.iconPath,
-    TemplateId: skill.templateId,
-    ActionPointsCost: skill.actionPointsCost || 0,
-    ManaCost: skill.manaCost || 0,
-    HealthCost: skill.healthCost || 0,
-    UsesPerTurnCount: skill.usesPerTurnCount || 0,
-    Category: skill.category,
-  };
+  const xml: Record<string, unknown> = {};
 
-  // Skill Range - handle undefined
-  xml.SkillRange = {
-    Min: skill.skillRange?.min ?? 0,
-    Max: skill.skillRange?.max ?? 0,
-    CardinalDirectionOnly: skill.skillRange?.cardinalDirectionOnly ?? false,
-    Modifiable: skill.skillRange?.modifiable ?? false,
-  };
+  // Id and TemplateId as attributes
+  xml['@_Id'] = skill.id;
+  if (skill.templateId) {
+    xml['@_TemplateId'] = skill.templateId;
+  }
 
-  // Skill Target - handle undefined
-  xml.SkillTarget = {
-    ValidTargets: { Target: Array.isArray(skill.skillTarget?.validTargets) ? skill.skillTarget.validTargets : [] },
-    AffectedUnits: { Unit: Array.isArray(skill.skillTarget?.affectedUnits) ? skill.skillTarget.affectedUnits : [] },
-  };
+  // Core costs as elements
+  xml.ActionPointsCost = skill.actionPointsCost ?? 1;
 
-  // Area of Effect - handle undefined
-  xml.AreaOfEffect = {
-    OriginX: skill.areaOfEffect?.originX ?? 0,
-    OriginY: skill.areaOfEffect?.originY ?? 0,
-    Pattern: skill.areaOfEffect?.pattern ?? '',
-  };
+  if (skill.manaCost && skill.manaCost > 0) {
+    xml.ManaCost = skill.manaCost;
+  }
+  if (skill.healthCost && skill.healthCost > 0) {
+    xml.HealthCost = skill.healthCost;
+  }
 
-  // Attack Action (if present)
-  if (skill.attackAction) {
-    xml.AttackAction = {
-      AttackType: skill.attackAction.attackType,
-      BaseDamageMin: skill.attackAction.baseDamage?.[0] ?? 0,
-      BaseDamageMax: skill.attackAction.baseDamage?.[1] ?? 0,
-      DamageMultiplier: skill.attackAction.damageMultiplier ?? 1,
-      CriticalChance: skill.attackAction.criticalChance ?? 0,
-      Follow: skill.attackAction.effects?.follow ?? false,
-      Maneuver: skill.attackAction.effects?.maneuver ?? false,
-      MultiHit: skill.attackAction.effects?.multiHit ?? false,
-      ArmorPiercing: skill.attackAction.effects?.armorPiercing ?? false,
+  xml.UsesPerTurnCount = skill.usesPerTurnCount ?? 0;
+
+  // Range with attribute format: <Range Min="1" Max="2" CardinalDirectionOnly="true"/>
+  xml.Range = {
+    '@_Min': skill.skillRange?.min ?? 0,
+    '@_Max': skill.skillRange?.max ?? 0,
+    '@_CardinalDirectionOnly': skill.skillRange?.cardinalDirectionOnly ?? false,
+  };
+  if (skill.skillRange?.modifiable) {
+    (xml.Range as Record<string, unknown>)['@_Modifiable'] = true;
+  }
+
+  // AreaOfEffect with attributes and text content
+  if (skill.areaOfEffect?.pattern) {
+    xml.AreaOfEffect = {
+      '@_OriginX': skill.areaOfEffect.originX ?? 0,
+      '@_OriginY': skill.areaOfEffect.originY ?? 0,
+      '#text': skill.areaOfEffect.pattern,
     };
   }
 
-  // Generic Action (if present)
+  // SkillAction with Attack wrapper: <SkillAction><Attack>...</Attack></SkillAction>
+  if (skill.attackAction) {
+    const effects: Record<string, unknown> = {};
+    if (skill.attackAction.effects) {
+      if (skill.attackAction.effects.follow) {
+        effects.Follow = '';
+      }
+      if (skill.attackAction.effects.maneuver) {
+        effects.Maneuver = '';
+      }
+      if (skill.attackAction.effects.multiHit) {
+        effects.MultiHit = '';
+      }
+      if (skill.attackAction.effects.armorPiercing) {
+        effects.ArmorPiercing = '';
+      }
+    }
+
+    xml.SkillAction = {
+      Attack: {
+        AttackType: skill.attackAction.attackType,
+        DamageMultiplier: skill.attackAction.damageMultiplier ?? 1,
+        SkillEffects: Object.keys(effects).length > 0 ? effects : undefined,
+      },
+    };
+  }
+
   if (skill.genericAction) {
     const params = skill.genericAction.parameters instanceof Map
       ? skill.genericAction.parameters
       : new Map(Object.entries(skill.genericAction.parameters || {}));
-    
-    xml.GenericAction = {
-      ActionType: skill.genericAction.actionType,
-      Parameters: Array.from(params.entries()).map(([key, value]) => ({
-        Parameter: {
-          Key: key,
-          Value: value,
-        },
-      })),
+
+    xml.SkillAction = {
+      Generic: {
+        SkillEffects: Array.from(params.entries()).map(([key, value]) => ({
+          '@_Key': key,
+          '#text': String(value),
+        })),
+      },
     };
   }
 
-  // Cast FX - serialize all fields including empty ones
-  xml.CastFX = {
-    VFX: skill.castFx?.vfx ?? '',
-    Sound: skill.castFx?.sound ?? '',
-    CamShake: skill.castFx?.camShake ?? 0,
-    CasterAnim: skill.castFx?.casterAnim ?? '',
-  };
+  // CastFX
+  if (skill.castFx && (skill.castFx.vfx || skill.castFx.sound || skill.castFx.camShake || skill.castFx.casterAnim)) {
+    const castFx: Record<string, unknown> = {};
+    if (skill.castFx.vfx) {
+      castFx.VisualEffect = { Paths: { Path: skill.castFx.vfx } };
+    }
+    if (skill.castFx.sound) {
+      castFx.SoundEffect = skill.castFx.sound;
+    }
+    if (skill.castFx.camShake && skill.castFx.camShake > 0) {
+      castFx.CamShake = skill.castFx.camShake;
+    }
+    if (skill.castFx.casterAnim) {
+      castFx.CasterAnim = skill.castFx.casterAnim;
+    }
+    xml.CastFXs = castFx;
+  }
 
-  // Conditions - serialize all fields
-  xml.Conditions = {
-    ...(skill.conditions?.phase !== undefined && { Phase: skill.conditions.phase }),
-    ...(skill.conditions?.targetInRange !== undefined && { TargetInRange: skill.conditions.targetInRange }),
-    ...(skill.conditions?.inWatchtower !== undefined && { InWatchtower: skill.conditions.inWatchtower }),
-  };
+  // Conditions - only include when present
+  const conditions: Record<string, unknown> = {};
+  if (skill.conditions) {
+    if (skill.conditions.phase !== undefined) {
+      conditions.Phase = skill.conditions.phase;
+    }
+    if (skill.conditions.targetInRange !== undefined) {
+      conditions.TargetInRange = '';
+    }
+    if (skill.conditions.inWatchtower !== undefined && skill.conditions.inWatchtower) {
+      conditions.InWatchtower = '';
+    }
+  }
+  if (Object.keys(conditions).length > 0) {
+    xml.Conditions = conditions;
+  }
 
   return xml;
 }
@@ -431,15 +515,17 @@ export function parseSkills(xmlString: string): SkillDefinition[] {
   const parser = new XMLParser(parserOptions);
   const parsed = parser.parse(xmlString);
   
-  const skillsData = parsed.Skills ?? parsed.skills;
+  // Support both native game format and old WebDev2 format
+  const skillsData = parsed.SkillDefinitions ?? parsed.Skilldefinitions ?? parsed.Skills ?? parsed.skills;
   
   if (!skillsData) {
     return [];
   }
   
-  const skillsArray = Array.isArray(skillsData.Skill ?? skillsData.skill)
-    ? skillsData.Skill ?? skillsData.skill
-    : [skillsData.Skill ?? skillsData.skill].filter(Boolean);
+  // Native format: SkillDefinition | Old format: Skill
+  const skillsArray = Array.isArray(skillsData.SkillDefinition ?? skillsData.Skill ?? skillsData.skill)
+    ? (skillsData.SkillDefinition ?? skillsData.Skill ?? skillsData.skill)
+    : [skillsData.SkillDefinition ?? skillsData.Skill ?? skillsData.skill].filter(Boolean);
   
   return skillsArray.map((skill: Record<string, unknown>) => xmlToSkill(skill));
 }
@@ -453,29 +539,42 @@ export function parseSkillsFromBuffer(buffer: ArrayBuffer): SkillDefinition[] {
 }
 
 /**
- * Export skills to XML string
+ * Export skills to XML string (native game format)
+ * Note: When using exportSkillsToBuffer(), the encoding is UTF-16 LE with BOM.
+ * The string version uses UTF-8 declaration for direct file saving.
  */
-export function exportSkills(skills: SkillDefinition[]): string {
-  const builder = new XMLBuilder(builderOptions);
+export function exportSkills(skills: SkillDefinition[], encoding: 'utf-8' | 'utf-16' = 'utf-8'): string {
+  const builder = new XMLBuilder({
+    ...builderOptions,
+    suppressEmptyNode: false, // Keep empty strings as <tag></tag>
+  });
   
   const skillsData = {
-    Skills: {
-      Skill: skills.map(skillToXml),
+    '?xml': {
+      '@_version': '1.0',
+      '@_encoding': encoding,
+      '#text': '',
+    },
+    SkillDefinitions: {
+      '@_xmlns:xs': 'http://www.w3.org/2001/XMLSchema-instance',
+      '@_xs:noNamespaceSchemaLocation': 'SkillDefinitions.xsd',
+      SkillDefinition: skills.map(skillToXml),
     },
   };
   
-  const xmlString = builder.build(skillsData);
+  let xmlString = builder.build(skillsData);
   
-  // Add XML declaration
-  const xmlDeclaration = '<?xml version="1.0" encoding="utf-16"?>\n';
-  return xmlDeclaration + xmlString;
+  // Fix XML declaration to be on a single line
+  xmlString = xmlString.replace(/\?xml[^>]*\?[^>]*>/, `<?xml version="1.0" encoding="${encoding}"?>`);
+  
+  return xmlString;
 }
 
 /**
  * Export skills to Uint8Array with UTF-16 LE BOM
  */
 export function exportSkillsToBuffer(skills: SkillDefinition[]): Uint8Array {
-  const xmlString = exportSkills(skills);
+  const xmlString = exportSkills(skills, 'utf-16');
   return encodeToUtf16LeWithBom(xmlString);
 }
 

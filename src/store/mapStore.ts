@@ -103,10 +103,8 @@ const defaultViewport: ViewportState = {
 const defaultLayerVisibility: LayerVisibility = {
   zones: true,
   grid: true,
-  flags: true,
+  flags: false,
   buildings: true,
-  occupied: true,
-  categoryMarkers: true,
 };
 
 // ============================================================================

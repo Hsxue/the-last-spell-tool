@@ -561,13 +561,15 @@ export function MapCanvas({ className }: MapCanvasProps) {
         )}
 
         {/* Building Layer - Static buildings only (pre-rendered for performance) */}
-        <Layer imageSmoothingEnabled={false} listening={false}>
-          <BuildingLayer
-            buildings={layerMapData.buildings}
-            mapWidth={width}
-            mapHeight={height}
-          />
-        </Layer>
+        {layerVisibility.buildings && (
+          <Layer imageSmoothingEnabled={false} listening={false}>
+            <BuildingLayer
+              buildings={layerMapData.buildings}
+              mapWidth={width}
+              mapHeight={height}
+            />
+          </Layer>
+        )}
 
         {/* Building Preview Layer - Dynamic preview (reads from hoveredTile state and selectedBuilding) */}
         {editorMode === 'building' && (

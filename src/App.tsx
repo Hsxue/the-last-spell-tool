@@ -11,12 +11,15 @@ import FlagSidebar from './components/sidebar/FlagSidebar';
 import { ConfigTabs } from './components/config';
 import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
 import { TileMapImportButton } from './components/TileMapImportButton';
+import { BuiltinMapButton } from './components/BuiltinMapSelector';
+import { ModInstaller } from './components/ModInstaller';
 import { BUILDING_BLUEPRINTS } from './data/buildingBlueprints';
 import { useMapStore } from './store/mapStore';
 import { useUIStore } from './store/uiStore';
 import { useXMLMode } from './hooks/useXMLMode';
 import { XMLEditorModal } from './components/XMLEditor/XMLEditorModal';
 import { weaponSchema } from './types/XMLSchemas';
+import { saveMapAsTileMap } from './lib/mapXmlExporter';
 import {
   Menu,
   Map as MapIcon,
@@ -47,6 +50,7 @@ interface HeaderProps {
 
 function Header({ onOpenXMLEditor }: HeaderProps) {
   const { addToast } = useUIStore();
+  const { width, height, mapData } = useMapStore();
 
   const handleNewMap = () => {
     addToast({
@@ -57,10 +61,28 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
   };
 
   const handleSaveMap = () => {
+    if (!mapData) {
+      addToast({
+        title: '无法保存',
+        description: '地图数据为空，请先加载或编辑地图',
+        type: 'warning',
+      });
+      return;
+    }
+
+    saveMapAsTileMap(
+      width,
+      height,
+      mapData.terrain,
+      mapData.buildings,
+      mapData.flags
+    );
+
     addToast({
       title: 'Save Map',
-      description: 'Map saved successfully!',
+      description: `已导出 TileMap.xml (${mapData.buildings.length} buildings, ${mapData.terrain.size} terrain tiles)`,
       type: 'success',
+      duration: 3000,
     });
   };
 
@@ -83,6 +105,7 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
           New
         </Button>
         <TileMapImportButton />
+        <BuiltinMapButton />
         <Button
           variant="default"
           size="sm"
@@ -101,6 +124,8 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
           <FileCode className="h-4 w-4 mr-2" />
           XML 编辑器
         </Button>
+        <div className="w-px h-6 bg-border mx-1" />
+        <ModInstaller />
       </div>
     </header>
   );
@@ -370,7 +395,6 @@ function Sidebar() {
             { key: 'zones', label: 'Zones' },
             { key: 'buildings', label: 'Buildings' },
             { key: 'flags', label: 'Flags' },
-            { key: 'occupied', label: 'Occupied' },
           ].map(({ key, label }) => (
             <label
               key={key}

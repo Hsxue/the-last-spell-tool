@@ -1,7 +1,8 @@
 /**
  * Weapon XML Parser
- * Handles parsing and exporting weapon definitions in the game's XML format
- * with UTF-16 LE BOM encoding for game compatibility
+ * Handles parsing and exporting weapon definitions in the game's XML format.
+ * Export format: UTF-8 encoding, game-native ItemDefinition structure.
+ * Import format: Supports both UTF-16 LE BOM and UTF-8 (backward compatible).
  */
 
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
@@ -33,9 +34,11 @@ const parserOptions = {
 const builderOptions = {
   ignoreAttributes: false,
   format: true,
-  indentBy: '  ',
+  indentBy: '    ',
   suppressEmptyNode: false,
   suppressBooleanAttributes: false,
+  attributesGroupName: '_',
+  preserveOrder: false,
 };
 
 // ============================================================================
@@ -84,9 +87,10 @@ function decodeBuffer(buffer: ArrayBuffer): string {
 }
 
 /**
- * Encode string to UTF-16 LE with BOM
+ * Encode string to UTF-16 LE with BOM (legacy, kept for backward compatibility)
+ * @deprecated Use direct TextEncoder for UTF-8 export
  */
-function encodeToUtf16LeWithBom(xmlString: string): Uint8Array {
+export function encodeToUtf16LeWithBom(xmlString: string): Uint8Array {
   const bom = UTF16_LE_BOM;
   
   // Create UTF-16 LE bytes manually
@@ -128,8 +132,15 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
     // Handle object format { Min: x, Max: y } or { min: x, max: y }
     if (typeof value === 'object' && value !== null) {
       const obj = value as Record<string, unknown>;
-      const min = parseNumber(obj.Min ?? obj.min ?? obj.Min ?? 0);
-      const max = parseNumber(obj.Max ?? obj.max ?? obj.Max ?? 0);
+      // New attribute format: { _: { '@_Min': x, '@_Max': y } }
+      const attrs = obj['_'] as Record<string, unknown> | undefined;
+      if (attrs) {
+        const min = parseNumber(attrs['@_Min'] ?? attrs['@_min'] ?? 0);
+        const max = parseNumber(attrs['@_Max'] ?? attrs['@_max'] ?? 0);
+        return [min, max];
+      }
+      const min = parseNumber(obj.Min ?? obj.min ?? 0);
+      const max = parseNumber(obj.Max ?? obj.max ?? 0);
       return [min, max];
     }
     return [0, 0];
@@ -138,6 +149,17 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
   const parseStringArray = (value: unknown): string[] => {
     if (Array.isArray(value)) {
       return value.map(v => String(v));
+    }
+    // Handle XML object format: { Tag: ['Sword', 'Metal'] } or { Skill: ['Slice', 'Slash'] }
+    // May also have '_' key from attributesGroupName config
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      const obj = value as Record<string, unknown>;
+      // Try common wrapper keys (skip internal '_' key)
+      for (const key of ['Tag', 'Skill', 'tag', 'skill']) {
+        if (Array.isArray(obj[key])) {
+          return (obj[key] as unknown[]).map(v => String(v));
+        }
+      }
     }
     if (typeof value === 'string') {
       return value.split(',').map(s => s.trim()).filter(s => s.length > 0);
@@ -151,11 +173,23 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
       for (const item of value) {
         if (typeof item === 'object' && item !== null) {
           const entry = item as Record<string, unknown>;
-          const keys = Object.keys(entry);
-          if (keys.length >= 2) {
-            const statName = String(entry[keys[0]]);
-            const statValue = parseNumber(entry[keys[1]]);
-            bonuses.set(statName, statValue);
+          // New attribute format: { _: { '@_Stat': 'PhysicalDamage' }, '#text': 5 }
+          const attrs = entry['_'] as Record<string, unknown> | undefined;
+          if (attrs && attrs['@_Stat'] !== undefined) {
+            const statName = String(attrs['@_Stat']);
+            const textValue = entry['#text'];
+            const numValue = textValue !== undefined
+              ? parseNumber(textValue)
+              : (Object.values(entry).find(v => typeof v === 'number') as number | undefined) ?? 0;
+            bonuses.set(statName, numValue);
+          } else {
+            // Old format: { StatName: 'PhysicalDamage', Value: 5 }
+            const keys = Object.keys(entry).filter(k => k !== '_');
+            if (keys.length >= 2) {
+              const statName = String(entry[keys[0]]);
+              const statValue = parseNumber(entry[keys[1]]);
+              bonuses.set(statName, statValue);
+            }
           }
         }
       }
@@ -169,11 +203,20 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
       for (const item of value) {
         if (typeof item === 'object' && item !== null) {
           const levelData = item as Record<string, unknown>;
-          const level = parseNumber(levelData.Level ?? levelData.level ?? -1);
+          
+          // Support both formats:
+          // New: <Level Id="0"> → { _: { '@_Id': 0 }, ... }
+          // Old: <Level>0</Level> → { Level: 0, ... }
+          let level = -1;
+          const attrs = levelData['_'] as Record<string, unknown> | undefined;
+          if (attrs && attrs['@_Id'] !== undefined) {
+            level = parseNumber(attrs['@_Id']);
+          } else {
+            level = parseNumber(levelData.Level ?? levelData.level ?? -1);
+          }
+          
           if (level >= 0) {
             const baseDamageRaw = levelData.BaseDamage ?? levelData.baseDamage;
-            console.log('[parseLevelVariations] level:', level);
-            console.log('[parseLevelVariations] baseDamage raw:', baseDamageRaw);
             
             variations[level] = {
               baseDamage: parseNumberTuple(baseDamageRaw),
@@ -181,8 +224,6 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
               baseStatBonuses: parseStatBonuses(levelData.BaseStatBonuses ?? levelData.baseStatBonuses),
               skills: parseStringArray(levelData.Skills ?? levelData.skills),
             };
-            
-            console.log('[parseLevelVariations] parsed baseDamage:', variations[level].baseDamage);
           }
         }
       }
@@ -191,7 +232,7 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
   };
 
   return {
-    id: String(xmlWeapon.Id ?? xmlWeapon.id ?? ''),
+    id: String((xmlWeapon['_'] as Record<string, unknown> | undefined)?.['@_Id'] ?? xmlWeapon.Id ?? xmlWeapon.id ?? ''),
     category: (xmlWeapon.Category ?? xmlWeapon.category ?? 'MeleeWeapon') as WeaponCategory,
     hands: (xmlWeapon.Hands ?? xmlWeapon.hands ?? 'OneHand') as WeaponHands,
     tags: parseStringArray(xmlWeapon.Tags ?? xmlWeapon.tags),
@@ -200,70 +241,71 @@ function xmlToWeapon(xmlWeapon: Record<string, unknown>): WeaponDefinition {
 }
 
 /**
- * Convert WeaponDefinition to XML data object
+ * Convert WeaponDefinition to XML data object (game-native format)
  */
 function weaponToXml(weapon: WeaponDefinition): Record<string, unknown> {
-  console.log('[weaponToXml] Input weapon:', weapon);
-  console.log('[weaponToXml] levelVariations:', weapon.levelVariations);
-  
   const levelVariationsArray: Record<string, unknown>[] = [];
   
-  // Handle levelVariations as Record<number, WeaponLevel>
   const levelVars = weapon.levelVariations || {};
   
-  Object.entries(levelVars).forEach(([levelStr, data]: [string, any]) => {
+  Object.entries(levelVars).forEach(([levelStr, data]) => {
     const levelNum = parseInt(levelStr, 10);
     if (isNaN(levelNum) || levelNum < 0) return;
     
-    console.log('[weaponToXml] Processing level:', levelNum, 'data:', data);
-    console.log('[weaponToXml] data.baseDamage:', data.baseDamage, 'isArray:', Array.isArray(data.baseDamage));
-    
     // Handle baseStatBonuses as Map or plain object
-    let baseStatBonuses: Array<[string, number]> = [];
+    let baseStatBonuses: Array<Record<string, unknown>> = [];
     if (data.baseStatBonuses instanceof Map) {
-      baseStatBonuses = Array.from(data.baseStatBonuses.entries());
+      baseStatBonuses = Array.from(data.baseStatBonuses.entries()).map(([stat, value]) => ({
+        _: { '@_Stat': stat },
+        '#text': value,
+      }));
     } else if (data.baseStatBonuses && typeof data.baseStatBonuses === 'object') {
-      baseStatBonuses = Object.entries(data.baseStatBonuses).map(([k, v]) => [k, v as number]);
+      baseStatBonuses = Object.entries(data.baseStatBonuses).map(([stat, value]) => ({
+        _: { '@_Stat': stat },
+        '#text': value,
+      }));
     }
     
     // Handle skills array
     const skills = Array.isArray(data.skills) ? data.skills : [];
     
-    // Handle baseDamage tuple - ensure it's always an array
+    // Handle baseDamage tuple
     let baseDamage: [number, number] = [0, 0];
     if (Array.isArray(data.baseDamage)) {
       baseDamage = [data.baseDamage[0] ?? 0, data.baseDamage[1] ?? 0];
     } else if (data.baseDamage && typeof data.baseDamage === 'object') {
-      // Handle { min, max } format
-      baseDamage = [(data.baseDamage as any).min ?? 0, (data.baseDamage as any).max ?? 0];
+      baseDamage = [(data.baseDamage as Record<string, number>).min ?? 0, (data.baseDamage as Record<string, number>).max ?? 0];
     }
     
-    console.log('[weaponToXml] baseDamage after check:', baseDamage);
+    const levelEntry: Record<string, unknown> = {
+      _: { '@_Id': levelNum },
+      BaseDamage: { _: { '@_Min': baseDamage[0], '@_Max': baseDamage[1] } },
+      BasePrice: data.basePrice ?? 0,
+    };
     
-    levelVariationsArray.push({
-      Level: levelNum,
-      BaseDamage: {
-        Min: baseDamage[0],
-        Max: baseDamage[1],
-      },
-      BasePrice: data.basePrice || 0,
-      BaseStatBonuses: baseStatBonuses.map(([statName, value]) => ({
-        StatName: statName,
-        Value: value,
-      })),
-      Skills: skills.length > 0 ? { Skill: skills } : [],
-    });
+    if (baseStatBonuses.length > 0) {
+      levelEntry.BaseStatBonuses = baseStatBonuses;
+    }
+    
+    if (skills.length > 0) {
+      levelEntry.Skills = { Skill: skills };
+    }
+    
+    levelVariationsArray.push(levelEntry);
   });
 
-  console.log('[weaponToXml] levelVariationsArray:', levelVariationsArray);
-
-  return {
-    Id: weapon.id,
+  const itemDef: Record<string, unknown> = {
+    _: { '@_Id': weapon.id },
     Category: weapon.category,
     Hands: weapon.hands,
     Tags: { Tag: Array.isArray(weapon.tags) ? weapon.tags : [] },
-    LevelVariations: levelVariationsArray,
   };
+  
+  if (levelVariationsArray.length > 0) {
+    itemDef.LevelVariations = levelVariationsArray;
+  }
+  
+  return itemDef;
 }
 
 // ============================================================================
@@ -271,14 +313,23 @@ function weaponToXml(weapon: WeaponDefinition): Record<string, unknown> {
 // ============================================================================
 
 /**
- * Parse weapons from XML string
+ * Parse weapons from XML string (supports both old and new formats)
  */
 export function parseWeapons(xmlString: string): WeaponDefinition[] {
   const parser = new XMLParser(parserOptions);
   const parsed = parser.parse(xmlString);
   
-  const weaponsData = parsed.Weapons ?? parsed.weapons;
+  // Support new format: <ItemDefinitions><ItemDefinition>...</ItemDefinition></ItemDefinitions>
+  const itemDefs = parsed.ItemDefinitions ?? parsed.itemDefinitions;
+  if (itemDefs) {
+    const itemsArray = Array.isArray(itemDefs.ItemDefinition ?? itemDefs.itemDefinition)
+      ? itemDefs.ItemDefinition ?? itemDefs.itemDefinition
+      : [itemDefs.ItemDefinition ?? itemDefs.itemDefinition].filter(Boolean);
+    return itemsArray.map((item: Record<string, unknown>) => xmlToWeapon(item));
+  }
   
+  // Support old format (backward compatible): <Weapons><Weapon>...</Weapon></Weapons>
+  const weaponsData = parsed.Weapons ?? parsed.weapons;
   if (!weaponsData) {
     return [];
   }
@@ -299,30 +350,34 @@ export function parseWeaponsFromBuffer(buffer: ArrayBuffer): WeaponDefinition[] 
 }
 
 /**
- * Export weapons to XML string
+ * Export weapons to XML string (game-native format)
  */
 export function exportWeapons(weapons: WeaponDefinition[]): string {
   const builder = new XMLBuilder(builderOptions);
   
   const weaponsData = {
-    Weapons: {
-      Weapon: weapons.map(weaponToXml),
+    ItemDefinitions: {
+      '_': {
+        '@_xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
+        '@_xsi:noNamespaceSchemaLocation': '../ItemDefinitions.xsd',
+      },
+      ItemDefinition: weapons.map(weaponToXml),
     },
   };
   
   const xmlString = builder.build(weaponsData);
   
-  // Add XML declaration
-  const xmlDeclaration = '<?xml version="1.0" encoding="utf-16"?>\n';
+  // Add XML declaration with UTF-8 encoding
+  const xmlDeclaration = '<?xml version="1.0" encoding="utf-8"?>\n';
   return xmlDeclaration + xmlString;
 }
 
 /**
- * Export weapons to Uint8Array with UTF-16 LE BOM
+ * Export weapons to Uint8Array with UTF-8 encoding
  */
 export function exportWeaponsToBuffer(weapons: WeaponDefinition[]): Uint8Array {
   const xmlString = exportWeapons(weapons);
-  return encodeToUtf16LeWithBom(xmlString);
+  return new TextEncoder().encode(xmlString);
 }
 
 /**

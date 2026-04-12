@@ -1,0 +1,65 @@
+[
+  {
+    "id": "TutorialMap",
+    "name": "教程地图",
+    "difficulty": 1,
+    "tileMap": "maps/TutorialMap_TileMap.xml",
+    "buildings": "maps/TutorialMap_Buildings.xml"
+  },
+  {
+    "id": "Lakeburg",
+    "name": "Lakeburg",
+    "difficulty": 2,
+    "tileMap": "maps/Lakeburg_TileMap.xml",
+    "buildings": "maps/Lakeburg_Buildings.xml"
+  },
+  {
+    "id": "Glenwald",
+    "name": "Glenwald",
+    "difficulty": 3,
+    "tileMap": "maps/Glenwald_TileMap.xml",
+    "buildings": "maps/Glenwald_Buildings.xml"
+  },
+  {
+    "id": "Elderlicht",
+    "name": "Elderlicht",
+    "difficulty": 4,
+    "tileMap": "maps/Elderlicht_TileMap.xml",
+    "buildings": "maps/Elderlicht_Buildings.xml"
+  },
+  {
+    "id": "Glintfein",
+    "name": "Glintfein",
+    "difficulty": 5,
+    "tileMap": "maps/Glintfein_TileMap.xml",
+    "buildings": "maps/Glintfein_Buildings.xml"
+  },
+  {
+    "id": "Felderland",
+    "name": "Felderland",
+    "difficulty": 3,
+    "tileMap": "maps/Felderland_TileMap.xml",
+    "buildings": "maps/Felderland_Buildings.xml"
+  },
+  {
+    "id": "GildenbergRedux",
+    "name": "Gildenberg Redux",
+    "difficulty": 3,
+    "tileMap": "maps/GildenbergRedux_TileMap.xml",
+    "buildings": "maps/GildenbergRedux_Buildings.xml"
+  },
+  {
+    "id": "GlenwaldRedux",
+    "name": "Glenwald Redux",
+    "difficulty": 4,
+    "tileMap": "maps/GlenwaldRedux_TileMap.xml",
+    "buildings": "maps/GlenwaldRedux_Buildings.xml"
+  },
+  {
+    "id": "EmptyCity",
+    "name": "空白地图",
+    "difficulty": 0,
+    "tileMap": "maps/EmptyCity_TileMap.xml",
+    "buildings": "maps/EmptyCity_Buildings.xml"
+  }
+]

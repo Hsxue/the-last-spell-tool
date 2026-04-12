@@ -231,10 +231,6 @@ export interface LayerVisibility {
   flags: boolean;
   /** Show building outlines */
   buildings: boolean;
-  /** Show building occupied tiles */
-  occupied: boolean;
-  /** Show building category markers */
-  categoryMarkers: boolean;
 }
 
 // ============================================================================
