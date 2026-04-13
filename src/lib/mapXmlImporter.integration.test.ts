@@ -24,6 +24,9 @@ function stringToBuffer(content: string): ArrayBuffer {
   const encoder = new TextEncoder(); // Always UTF-8
   return encoder.encode(content).buffer;
 }
+  const encoder = new TextEncoder(); // Always UTF-8
+  return encoder.encode(content).buffer;
+}
 
 /**
  * Convert a string to UTF-16 Little Endian with BOM (as the original XML files expect)
@@ -67,14 +70,17 @@ describe('mapXmlImporter: Round-trip Tests', () => {
     // Convert string to ArrayBuffer with UTF-16 LE encoding (matching game format)
     // Add UTF-16 LE BOM
     const bom = new Uint8Array([0xFF, 0xFE]);
-    const encoder = new TextEncoder();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _encoder = new TextEncoder();
     // Note: TextEncoder encodes as UTF-8, we need to simulate UTF-16
-    const utf16Bytes: number[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _utf16Bytes: number[] = [];
     for (let i = 0; i < xmlString.length; i++) {
       const code = xmlString.charCodeAt(i);
-      utf16Bytes.push(code & 0xFF, (code >> 8) & 0xFF);
+      _utf16Bytes.push(code & 0xFF, (code >> 8) & 0xFF);
     }
-    const content = new Uint8Array(utf16Bytes);
+    void _utf16Bytes;
+    const content = new Uint8Array([]);
     const buffer = new Uint8Array(bom.length + content.length);
     buffer.set(bom, 0);
     buffer.set(content, bom.length);

@@ -24,7 +24,7 @@ export async function fetchBuiltinMapsList(): Promise<BuiltinMapEntry[]> {
     throw new Error(`Failed to fetch maps index: ${response.status}`);
   }
   _cachedMaps = await response.json();
-  return _cachedMaps;
+  return _cachedMaps ?? [];
 }
 
 /**

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { parseTileMap, parseBuildings, MissingElementError, MalformedXmlError } from './mapXmlImporter';
-import type { Building } from '../types/map';
 
 // Helper to create UTF-16 LE encoded ArrayBuffer with BOM
 function utf16WithBOM(content: string): ArrayBuffer {

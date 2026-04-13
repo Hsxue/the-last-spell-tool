@@ -76,8 +76,7 @@ export function MapStatusBar() {
   const hoveredFlags = useMapStore((state) => {
     if (!hoveredTile || !state.mapData) return null;
     const key = `${hoveredTile.x},${hoveredTile.y}`;
-    const flags = state.mapData.flags.get(key);
-    return flags ?? null;
+    return state.mapData.flags.get(key) ?? null;
   });
 
   // Build status display text
@@ -104,7 +103,7 @@ export function MapStatusBar() {
       parts.push(`🏗️ ${hoveredBuilding.id} (HP:${hoveredBuilding.health})`);
     }
     if (hoveredFlags && hoveredFlags.length > 0) {
-      parts.push(`🚩 ${hoveredFlags.map((f: string) => FLAG_CONFIG[f]?.marker || f).join(' ')}`);
+      parts.push(`🚩 x${hoveredFlags.length}`);
     }
     return parts.length > 0 ? parts.join(' · ') : null;
   })();

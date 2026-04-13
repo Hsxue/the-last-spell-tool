@@ -92,7 +92,7 @@ export function exportTileMap(
       MagicCircle: [],
     };
 
-    terrain.forEach((type, key) => {
+  terrain.forEach((type, key) => {
       const dist = distances.get(key) || { distToCity: 0, distToMagic: 0 };
       const [x, y] = key.split(',').map(Number);
       const tileStr = `${x},${y},${dist.distToCity},${dist.distToMagic}`;
