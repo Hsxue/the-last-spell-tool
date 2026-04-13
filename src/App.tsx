@@ -644,19 +644,19 @@ function MapEditorContent() {
             <MapCanvas />
           </div>
           {/* Canvas Operation Hints Panel - Right Side */}
-          <div className="w-36 flex flex-col gap-2 border-l bg-background p-3 text-xs">
+          <div className="w-44 flex flex-col gap-2 border-l bg-background p-3 text-xs shrink-0">
             <h4 className="font-medium text-foreground mb-1">操作提示</h4>
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">中键</kbd>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground shrink-0">中键</kbd>
                 <span className="text-muted-foreground">平移画布</span>
               </div>
-              <div className="flex items-center gap-2">
-                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">滚轮</kbd>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground shrink-0">滚轮</kbd>
                 <span className="text-muted-foreground">缩放视图</span>
               </div>
-              <div className="flex items-center gap-2">
-                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">右键</kbd>
+              <div className="flex items-center gap-2 whitespace-nowrap">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground shrink-0">右键</kbd>
                 <span className="text-muted-foreground">查看瓦片</span>
               </div>
             </div>
