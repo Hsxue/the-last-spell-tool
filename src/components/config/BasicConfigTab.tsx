@@ -62,6 +62,9 @@ export const BasicConfigTab: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            快速加载预设城市配置，将同时覆盖地图 ID、胜利天数、难度和迷雾 ID
+          </p>
         </div>
 
         {/* Map ID */}
@@ -75,6 +78,9 @@ export const BasicConfigTab: React.FC = () => {
             data-testid="mapId-input"
             placeholder="输入地图 ID..."
           />
+          <p className="text-xs text-muted-foreground">
+            地图的唯一标识符，用于游戏内引用和存档。命名规范：大写字母开头 + 下划线分隔（如 LakeBurg）
+          </p>
         </div>
 
         {/* Fog ID (Read-only, same as mapId) */}
@@ -106,6 +112,9 @@ export const BasicConfigTab: React.FC = () => {
             data-testid="victoryDays-input"
             placeholder="输入胜利所需天数..."
           />
+          <p className="text-xs text-muted-foreground">
+            玩家需要在夜晚存活的天数。达到此数值后显示胜利画面
+          </p>
         </div>
 
         {/* Difficulty */}
@@ -130,6 +139,9 @@ export const BasicConfigTab: React.FC = () => {
               <SelectItem value="5">难度 5 (最难)</SelectItem>
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            影响敌人数量、精英怪比例和生成频率。难度 1 生成倍率约 0.5x，难度 5 约 2.0x
+          </p>
         </div>
 
         {/* Enemies Offset */}
@@ -143,6 +155,9 @@ export const BasicConfigTab: React.FC = () => {
             data-testid="enemiesOffset-input"
             placeholder="输入敌人偏移值..."
           />
+          <p className="text-xs text-muted-foreground">
+            在每波生成公式中增加的额外敌人数量。公式：基础数量 + (夜晚数 × 倍率 + 偏移值)
+          </p>
         </div>
 
         {/* Max Glyph Points */}
@@ -157,6 +172,9 @@ export const BasicConfigTab: React.FC = () => {
             data-testid="maxGlyphPoints-input"
             placeholder="输入最大符文点数..."
           />
+          <p className="text-xs text-muted-foreground">
+            城市可放置的符文建筑点数上限。每种符文建筑消耗不同点数，超过上限无法再建造
+          </p>
         </div>
       </CardContent>
     </Card>

@@ -86,7 +86,12 @@ export const SpawnConfigTab: React.FC = () => {
       <CardContent className="space-y-6">
         {/* 1. 每晚生成倍率 (Spawn Multipliers) - Table CRUD */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">每晚生成倍率 (Spawn Multipliers)</Label>
+          <div>
+            <Label className="text-base font-semibold">每晚生成倍率 (Spawn Multipliers)</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              为特定夜晚设置敌人数量倍率。默认倍率为 1.0（基准），倍率越高该夜生成的敌人越多。可随夜晚递增增加难度
+            </p>
+          </div>
           <div className="flex gap-2 items-end">
             <div className="flex-1 space-y-1">
               <Label htmlFor="spawn-multiplier-night" className="text-xs">
@@ -178,11 +183,19 @@ export const SpawnConfigTab: React.FC = () => {
             placeholder="输入每波生成公式，例如：60 + Night * Multiplier"
             rows={3}
           />
+          <p className="text-xs text-muted-foreground">
+            数学表达式，计算每波的敌人生成数量。可用变量：<code className="px-1 py-0.5 rounded bg-muted">Night</code>（当前夜晚编号）、<code className="px-1 py-0.5 rounded bg-muted">Multiplier</code>（上方设定的对应倍率）
+          </p>
         </div>
 
         {/* 3. 最大生成距离 (Max Distance Per Day) - Table CRUD */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">最大生成距离 (Max Distance Per Day)</Label>
+          <div>
+            <Label className="text-base font-semibold">最大生成距离 (Max Distance Per Day)</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              控制敌人生成位置距离城市中心的最大范围。单位为瓦片（tiles）。值越大敌人可从更远处生成
+            </p>
+          </div>
           <div className="flex gap-2 items-end">
             <div className="flex-1 space-y-1">
               <Label htmlFor="max-distance-night" className="text-xs">
@@ -263,7 +276,12 @@ export const SpawnConfigTab: React.FC = () => {
 
         {/* 4. 禁止敌人 (Disallowed Enemies) - Input + add/remove list */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">禁止敌人 (Disallowed Enemies)</Label>
+          <div>
+            <Label className="text-base font-semibold">禁止敌人 (Disallowed Enemies)</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              禁止在该地图生成的敌人类型。用于创建无 Boss 地图或移除特定怪物类型
+            </p>
+          </div>
           <div className="flex gap-2 items-end">
             <div className="flex-1 space-y-1">
               <Label htmlFor="disallowed-enemy-input" className="text-xs">
@@ -329,6 +347,9 @@ export const SpawnConfigTab: React.FC = () => {
             data-testid="spawn-points-per-group-input"
             placeholder="输入每组生成点数..."
           />
+          <p className="text-xs text-muted-foreground">
+            每波敌人生成时分组的点数。系统将敌人分配到生成点组中，该值控制每组分配的生成点数量
+          </p>
         </div>
 
         {/* 6. 生成区域宽度 (Spawn Point Rect Width) */}
@@ -345,6 +366,9 @@ export const SpawnConfigTab: React.FC = () => {
             data-testid="spawn-rect-width-input"
             placeholder="输入生成区域宽度..."
           />
+          <p className="text-xs text-muted-foreground">
+            生成点矩形区域的宽度（瓦片数）。敌人将在该宽度的矩形区域内生成
+          </p>
         </div>
 
         {/* 7. 生成区域高度 (Spawn Point Rect Height) */}
@@ -361,6 +385,9 @@ export const SpawnConfigTab: React.FC = () => {
             data-testid="spawn-rect-height-input"
             placeholder="输入生成区域高度..."
           />
+          <p className="text-xs text-muted-foreground">
+            生成点矩形区域的高度（瓦片数）。与宽度配合控制生成区域的大小
+          </p>
         </div>
       </CardContent>
     </Card>

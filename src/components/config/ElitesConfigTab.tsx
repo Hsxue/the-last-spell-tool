@@ -63,9 +63,14 @@ export const ElitesConfigTab: React.FC = () => {
         {/* Night-based Elite Configuration */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label className="text-base font-semibold">
-              每晚精英配置 (Elites Per Day)
-            </Label>
+            <div>
+              <Label className="text-base font-semibold">
+                每晚精英配置 (Elites Per Day)
+              </Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                精英怪是强化版敌人，拥有更多生命值和属性。Tier 越高精英怪越强，数量越多难度越大
+              </p>
+            </div>
             <div className="flex items-center gap-2">
               <Label htmlFor="elite-night-select" className="text-sm">
                 选择夜晚：
@@ -96,9 +101,9 @@ export const ElitesConfigTab: React.FC = () => {
                   <SelectValue placeholder="选择等级" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Tier 1</SelectItem>
-                  <SelectItem value="2">Tier 2</SelectItem>
-                  <SelectItem value="3">Tier 3</SelectItem>
+                  <SelectItem value="1">Tier 1 — 低级精英（少量额外属性）</SelectItem>
+                  <SelectItem value="2">Tier 2 — 中级精英（明显强化）</SelectItem>
+                  <SelectItem value="3">Tier 3 — 高级精英（大幅强化 + 额外词条）</SelectItem>
                 </SelectContent>
               </Select>
             </div>

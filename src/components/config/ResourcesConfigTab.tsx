@@ -32,6 +32,9 @@ export const ResourcesConfigTab: React.FC = () => {
             data-testid="gold-input"
             placeholder="输入初始金币数量..."
           />
+          <p className="text-xs text-muted-foreground">
+            游戏开始时玩家拥有的金币数量。用于建造建筑和购买物品。原版 TutorialMap 约 0，LakeBurg 约 0
+          </p>
         </div>
 
         {/* Initial Materials */}
@@ -46,6 +49,9 @@ export const ResourcesConfigTab: React.FC = () => {
             data-testid="materials-input"
             placeholder="输入初始材料数量..."
           />
+          <p className="text-xs text-muted-foreground">
+            建造建筑所需的资源。每种建筑消耗不同数量的材料，初始值越高玩家开局越轻松
+          </p>
         </div>
 
         {/* Initial Damned Souls */}
@@ -60,6 +66,9 @@ export const ResourcesConfigTab: React.FC = () => {
             data-testid="damnedSouls-input"
             placeholder="输入初始诅咒灵魂数量..."
           />
+          <p className="text-xs text-muted-foreground">
+            特殊资源，用于解锁符文和强力建筑。通常为 0，仅在特殊地图中使用
+          </p>
         </div>
       </CardContent>
     </Card>

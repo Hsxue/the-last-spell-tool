@@ -81,6 +81,9 @@ export const WavesConfigTab: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            为特定夜晚配置波次。每夜可有多个候选波次，将根据权重组合作为实际生成的波次
+          </p>
         </div>
 
         {/* Add Wave Form */}
@@ -132,6 +135,9 @@ export const WavesConfigTab: React.FC = () => {
           <Label className="text-base font-semibold">
             第 {selectedNight} 夜波次配置 (Night {selectedNight} Waves)
           </Label>
+          <p className="text-xs text-muted-foreground">
+            权重 = 相对概率。例如波次 A 权重 2.0、波次 B 权重 1.0，则 A 出现的概率是 B 的两倍
+          </p>
           <Table data-testid="waves-table">
             <TableHeader>
               <TableRow>

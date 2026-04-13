@@ -312,6 +312,9 @@ export const WaveDefinitionsTab: React.FC = () => {
                     }
                     data-testid="wave-spawn-multiplier-input"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    该波次内的敌人数量乘数。1.0 为基准，越大敌人越多
+                  </p>
                 </div>
               </div>
 
@@ -338,6 +341,11 @@ export const WaveDefinitionsTab: React.FC = () => {
                   </div>
                 )}
               </div>
+              {editForm.isBossWave && (
+                <p className="text-xs text-muted-foreground">
+                  Boss 波次将在该波次最后生成指定 Boss。Boss ID 需与游戏内 Boss 定义一致
+                </p>
+              )}
 
               {/* Infinite wave checkbox */}
               <div className="flex items-center gap-2" data-testid="wave-is-infinite-checkbox">
@@ -348,6 +356,9 @@ export const WaveDefinitionsTab: React.FC = () => {
                 />
                 <Label htmlFor="wave-is-infinite">无限波次</Label>
               </div>
+              <p className="text-xs text-muted-foreground">
+                无限波次会在所有普通波次完成后持续生成敌人，直到玩家胜利。用于延长游戏时长
+              </p>
 
               {/* Enemy types table */}
               <div className="space-y-3">
@@ -395,7 +406,7 @@ export const WaveDefinitionsTab: React.FC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>EnemyId</TableHead>
-                      <TableHead>Weight</TableHead>
+                      <TableHead>Weight (相对概率)</TableHead>
                       <TableHead className="w-20">操作</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -472,6 +483,9 @@ export const WaveDefinitionsTab: React.FC = () => {
                     添加
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Tier 代表敌人等级（1=低级/3=高级）。乘数越高，该等级敌人在波次中出现的概率越大
+                </p>
                 <Table data-testid="wave-tier-distribution-table">
                   <TableHeader>
                     <TableRow>
@@ -555,6 +569,9 @@ export const WaveDefinitionsTab: React.FC = () => {
                     添加
                   </Button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  回合权重控制敌人在不同回合的生成概率。Turn 1=第一回合，权重越高该回合生成敌人越多
+                </p>
                 <Table data-testid="wave-time-distribution-table">
                   <TableHeader>
                     <TableRow>

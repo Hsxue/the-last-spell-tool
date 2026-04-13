@@ -97,6 +97,9 @@ export const DirectionsConfigTab: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
+          <p className="text-xs text-muted-foreground">
+            为特定夜晚配置敌人生成方向。方向控制敌人从哪个方位进入战场（如四角、一侧等）
+          </p>
         </div>
 
         {/* Add Direction Form */}

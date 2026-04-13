@@ -42,7 +42,13 @@ export const CorruptionConfigTab: React.FC = () => {
       <CardContent className="space-y-6">
         {/* Entry Form */}
         <div className="space-y-4 p-4 bg-muted rounded-md">
-          <h3 className="font-medium">添加新夜晚 (Add New Night)</h3>
+          <div>
+            <h3 className="font-medium">添加新夜晚 (Add New Night)</h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              腐化系统在特定夜晚达到指定腐化值时触发环境变化（如更浓的迷雾、更强的敌人）。
+              腐化值通常在 0-100 范围内，值越高腐化效果越强
+            </p>
+          </div>
           
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2 flex-1 min-w-[200px]">

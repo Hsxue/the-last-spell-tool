@@ -40,8 +40,13 @@ import {
   Sword,
   FileCode,
   Languages,
-  HelpCircle,
 } from 'lucide-react';
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from './components/ui/tooltip';
 import type { SidebarTab, FeatureTab } from './types/map';
 import { useState, useRef, useCallback } from 'react';
 
@@ -384,33 +389,42 @@ function Sidebar() {
               <h3 className="text-sm font-medium mb-2">Terrain Types</h3>
               <div className="grid grid-cols-2 gap-2">
                 {['Dirt', 'Stone', 'Crater', 'Empty'].map((terrain) => (
-                  <Button
-                    key={terrain}
-                    variant={selectedTerrain === terrain ? "default" : "outline"}
-                    size="sm"
-                    className="justify-start"
-                    onClick={() => {
-                      setSelectedTerrain(terrain as 'Dirt' | 'Stone' | 'Crater' | 'Empty');
-                      setEditorMode('terrain');
-                    }}
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full mr-2"
-                      style={{
-                        backgroundColor:
-                          terrain === 'Dirt'
-                            ? '#228B22'
-                            : terrain === 'Stone'
-                            ? '#808080'
-                            : terrain === 'Crater'
-                            ? '#8B4513'
-                            : 'transparent',
-                        border:
-                          terrain === 'Empty' ? '1px solid currentColor' : 'none',
-                      }}
-                    />
-                    {terrain}
-                  </Button>
+                  <Tooltip key={terrain}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={selectedTerrain === terrain ? "default" : "outline"}
+                        size="sm"
+                        className="justify-start"
+                        onClick={() => {
+                          setSelectedTerrain(terrain as 'Dirt' | 'Stone' | 'Crater' | 'Empty');
+                          setEditorMode('terrain');
+                        }}
+                      >
+                        <span
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{
+                            backgroundColor:
+                              terrain === 'Dirt'
+                                ? '#228B22'
+                                : terrain === 'Stone'
+                                ? '#808080'
+                                : terrain === 'Crater'
+                                ? '#8B4513'
+                                : 'transparent',
+                            border:
+                              terrain === 'Empty' ? '1px solid currentColor' : 'none',
+                          }}
+                        />
+                        {terrain}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p>{terrain === 'Dirt' ? '草地地形 - 基础可通行地形'
+                        : terrain === 'Stone' ? '石头地形 - 障碍物基底地形'
+                        : terrain === 'Crater' ? '弹坑地形 - 被摧毁后的坑洼'
+                        : '空地 - 清除当前格所有地形'}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
               </div>
             </div>
@@ -535,29 +549,40 @@ function Sidebar() {
       <div className="border-t border-border p-4">
         <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
           <Layers className="h-4 w-4" />
-          Layers
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-help">Layers</span>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              <p className="text-xs">切换各图层的显示/隐藏</p>
+            </TooltipContent>
+          </Tooltip>
         </h3>
         <div className="space-y-2">
           {[
-            { key: 'grid', label: 'Grid' },
-            { key: 'zones', label: 'Zones' },
-            { key: 'buildings', label: 'Buildings' },
-            { key: 'flags', label: 'Flags' },
-          ].map(({ key, label }) => (
-            <label
-              key={key}
-              className="flex items-center gap-2 text-sm cursor-pointer"
-            >
-              <input
-                type="checkbox"
-                checked={layerVisibility[key as keyof typeof layerVisibility]}
-                onChange={(e) =>
-                  setLayerVisibility(key as keyof typeof layerVisibility, e.target.checked)
-                }
-                className="rounded border-border"
-              />
-              {label}
-            </label>
+            { key: 'grid' as const, label: 'Grid', desc: '网格线叠加层' },
+            { key: 'zones' as const, label: 'Zones', desc: '生成区域标记 (粉色/蓝色/绿色)' },
+            { key: 'buildings' as const, label: 'Buildings', desc: '建筑放置层' },
+            { key: 'flags' as const, label: 'Flags', desc: '旗帜标记层 (Boss点/出生点/祭坛等)' },
+          ].map(({ key, label, desc }) => (
+            <Tooltip key={key}>
+              <TooltipTrigger asChild>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={layerVisibility[key as keyof typeof layerVisibility]}
+                    onChange={(e) =>
+                      setLayerVisibility(key as keyof typeof layerVisibility, e.target.checked)
+                    }
+                    className="rounded border-border"
+                  />
+                  {label}
+                </label>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p className="text-xs">{desc}</p>
+              </TooltipContent>
+            </Tooltip>
           ))}
         </div>
       </div>
@@ -737,22 +762,24 @@ function App() {
   });
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
-      <Header onOpenXMLEditor={openXMLMode} />
-      <FeatureTabs />
-      <div className="flex-1 overflow-hidden">
-        <MainContent />
+    <TooltipProvider delayDuration={200}>
+      <div className="flex flex-col h-screen bg-background text-foreground">
+        <Header onOpenXMLEditor={openXMLMode} />
+        <FeatureTabs />
+        <div className="flex-1 overflow-hidden">
+          <MainContent />
+        </div>
+        <ToastDisplay />
+        <XMLEditorModal
+          isOpen={isXMLMode}
+          onClose={closeXMLMode}
+          value={xmlContent}
+          onApply={handleApply}
+          language="xml"
+          title="XML Editor - Weapon Configuration"
+        />
       </div>
-      <ToastDisplay />
-      <XMLEditorModal
-        isOpen={isXMLMode}
-        onClose={closeXMLMode}
-        value={xmlContent}
-        onApply={handleApply}
-        language="xml"
-        title="XML Editor - Weapon Configuration"
-      />
-    </div>
+    </TooltipProvider>
   );
 }
 
