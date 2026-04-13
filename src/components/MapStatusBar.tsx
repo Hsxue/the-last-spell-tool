@@ -110,7 +110,7 @@ export function MapStatusBar() {
   })();
 
   return (
-    <div className="flex items-center gap-4 px-4 py-2 bg-background border-t border-border text-sm">
+    <div className="flex items-center gap-4 px-4 py-3 bg-background border-t border-border text-sm">
       {/* Current tool / mode */}
       <div className="flex items-center gap-2 min-w-[160px]">
         <span className="text-muted-foreground">工具:</span>
@@ -171,15 +171,6 @@ export function MapStatusBar() {
 
       {/* Spacer to push everything left */}
       <div className="flex-1" />
-
-      {/* Quick hint */}
-      <div className="text-xs text-muted-foreground">
-        <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">中键</kbd> 平移
-        {' · '}
-        <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">滚轮</kbd> 缩放
-        {' · '}
-        <kbd className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-mono">右键</kbd> 查看瓦片
-      </div>
     </div>
   );
 }
