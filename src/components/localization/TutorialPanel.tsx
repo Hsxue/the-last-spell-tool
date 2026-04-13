@@ -3,12 +3,8 @@
  * Shows instructions on how to use the localization editor and create language mods.
  */
 
-import { useState } from 'react';
 import { ScrollArea } from '../ui/scroll-area';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import {
-  ChevronDown,
-  ChevronUp,
   FolderTree,
   Globe,
   Lightbulb,
@@ -17,14 +13,109 @@ import {
 
 const TUTORIAL_SECTIONS = [
   {
+    id: 'reference',
+    icon: FolderTree,
+    title: '📂 文件位置速查',
+    content: (
+      <div className="space-y-2">
+        <table className="w-full text-[10px] border-collapse">
+          <thead>
+            <tr className="border-b border-muted text-foreground">
+              <th className="text-left py-1 font-medium">类型</th>
+              <th className="text-left py-1 font-medium">存放路径</th>
+            </tr>
+          </thead>
+          <tbody className="text-muted-foreground">
+            <tr className="border-b border-muted">
+              <td className="py-1 font-mono text-foreground">地图</td>
+              <td className="py-1"><code>plugins/LastSpellMapMod/Maps/</code></td>
+            </tr>
+            <tr className="border-b border-muted">
+              <td className="py-1 font-mono text-foreground">技能</td>
+              <td className="py-1"><code>plugins/LastSpellMapMod/Skills/</code></td>
+            </tr>
+            <tr className="border-b border-muted">
+              <td className="py-1 font-mono text-foreground">武器</td>
+              <td className="py-1"><code>plugins/LastSpellMapMod/Items/</code></td>
+            </tr>
+            <tr className="border-b border-muted">
+              <td className="py-1 font-mono text-foreground">翻译</td>
+              <td className="py-1"><code>任一插件/Localization/</code></td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="text-[10px] text-muted-foreground">
+          所有路径均相对于 <code className="bg-muted px-0.5 rounded">BepInEx\</code> 文件夹。
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'install',
+    icon: Package,
+    title: '📦 安装步骤（重要）',
+    content: (
+      <div className="space-y-2 text-sm text-muted-foreground">
+        <p>请按照以下步骤将翻译文件放入游戏：</p>
+        
+        <h4 className="text-xs font-semibold text-foreground mt-2">1. 找到游戏目录</h4>
+        <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
+          <li>打开 <strong>Steam</strong>，在库中找到 <em>The Last Spell</em>。</li>
+          <li>右键点击游戏 → 管理 → <strong>浏览本地文件</strong>。</li>
+          <li>这将打开游戏安装位置（例如：</li>
+          <code className="block px-1.5 py-1 rounded bg-muted text-[10px] mt-1 break-all">
+            D:\SteamLibrary\steamapps\common\The Last Spell
+          </code>
+        </ul>
+
+        <h4 className="text-xs font-semibold text-foreground mt-2">2. 找到插件文件夹</h4>
+        <p className="text-xs">翻译文件可以放在以下任意位置：</p>
+        <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
+          <li><code className="px-1 py-0.5 rounded bg-muted text-[10px]">BepInEx\plugins\任意Mod文件夹\</code>（本地手动安装的 Mod）</li>
+          <li><code className="px-1 py-0.5 rounded bg-muted text-[10px]">steamapps\workshop\content\1597230\&lt;ModID&gt;\</code>（Steam 创意工坊 Mod）</li>
+        </ul>
+
+        <h4 className="text-xs font-semibold text-foreground mt-2">3. 放入翻译文件</h4>
+        <p className="text-xs">在选中的 Mod 文件夹下，创建名为 <strong>Localization</strong> 的文件夹。</p>
+        <p className="text-xs">将你从本工具导出的 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">.txt</code> 文件移动进去。</p>
+        <p className="text-xs mt-1 text-[10px] text-muted-foreground">* 对于 Steam 创意工坊 Mod，你需要找到该 Mod 在本地的工作目录（可通过 Steam 创意工坊页面 → 属性 → 本地文件获取路径）。</p>
+        
+        <pre className="whitespace-pre text-[11px] bg-muted p-3 rounded-md overflow-x-auto leading-snug mt-2 text-left font-mono">
+{`本地 BepInEx:
+游戏目录/
+├── BepInEx/
+│   └── plugins/
+│       └── 你的Mod文件夹/   ← 创建 Localization 文件夹
+│           └── Italiano.txt ← 放入翻译文件
+
+Steam 创意工坊:
+游戏目录/
+├── steamapps/
+│   └── workshop/
+│       └── content/
+│           └── 1597230/     ← The Last Spell AppID
+│               └── <某ModID>/ ← 已订阅的创意工坊Mod
+│                   └── Localization/
+│                       └── Italiano.txt`}
+        </pre>
+
+        <div className="mt-2 p-2 rounded-md bg-yellow-500/10 border border-yellow-500/20">
+          <p className="text-[10px] text-yellow-600">
+            <strong>注意：</strong>文件夹名称大小写必须完全一致（Localization）。
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
     id: 'overview',
     icon: Globe,
-    title: '本地化模组简介',
+    title: '💡 本地化简介',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
         <p>
           The Last Spell 使用 CSV 格式的文本文件管理多语言翻译。游戏内置 11
-          种语言（英文、法文、简体中文、繁体中文、日文、俄文、乌克兰文、德文、西班牙文、葡萄牙文、韩文）。
+          种语言（英文、法文、简体中文、繁体中文、日文等）。
         </p>
         <p>
           本编辑器帮你创建自定义本地化模组，可以为游戏添加新语言（如意大利语），或修改现有翻译。
@@ -34,64 +125,9 @@ const TUTORIAL_SECTIONS = [
     ),
   },
   {
-    id: 'structure',
-    icon: FolderTree,
-    title: '文件存放位置',
-    content: (
-      <div className="space-y-2 text-sm text-muted-foreground">
-        <p>将导出的翻译文件放到 LastSpellMapMod 的 <code className="px-1 py-0.5 rounded bg-muted text-xs">Localization/</code> 目录下：</p>
-        <pre className="whitespace-pre font-mono text-xs bg-muted p-2 rounded-md overflow-x-auto leading-5">
-{`The Last Spell/
-└── BepInEx/
-    └── plugins/
-        └── LastSpellMapMod/
-            ├── dll/...                  # 模组核心程序
-            ├── maps/...                 # 地图文件
-            └── Localization/            ← 你的翻译文件放这里
-                ├── Italiano.txt         ← 导出的意大利语
-                ├── Nederlands.txt       ← 导出的荷兰语
-                └── 简体中文.txt         ← 导出的中文`}
-        </pre>
-        <p className="text-xs mt-1">
-          <strong>注意：</strong>如果 <code className="px-1 py-0.5 rounded bg-muted text-xs">Localization/</code> 文件夹不存在，请手动创建。
-        </p>
-      </div>
-    ),
-  },
-  {
-    id: 'export',
-    icon: Package,
-    title: '从编辑器导出并安装',
-    content: (
-      <div className="space-y-2 text-sm text-muted-foreground">
-        <h4 className="text-xs font-semibold text-foreground">1. 点击"导出"按钮</h4>
-        <p className="text-xs">
-          在编辑器顶部点击 <strong>导出</strong>，输入语言名称（如 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">Italiano.txt</code>）。
-          文件将自动下载。
-        </p>
-
-        <h4 className="text-xs font-semibold text-foreground mt-2">2. 放置文件</h4>
-        <p className="text-xs">
-          将下载好的 `.txt` 文件移动到游戏的 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">BepInEx/plugins/LastSpellMapMod/Localization/</code> 目录。
-        </p>
-
-        <h4 className="text-xs font-semibold text-foreground mt-2">3. 启动游戏</h4>
-        <p className="text-xs">
-          重启游戏，进入设置 → 语言选项，你添加的新语言应该会出现在列表中（后缀可能带有 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">[CUSTOM]</code>）。
-        </p>
-        
-        <div className="mt-2 p-2 rounded-md bg-green-500/10 border border-green-500/20">
-          <p className="text-[10px] text-green-600">
-            <strong>提示：</strong>你可以放多个 `.txt` 文件，游戏会自动加载所有语言。无需重启游戏，只需重新加载地图或保存即可生效。
-          </p>
-        </div>
-      </div>
-    ),
-  },
-  {
     id: 'tips',
     icon: Lightbulb,
-    title: '格式与技巧',
+    title: '📝 格式与技巧',
     content: (
       <div className="space-y-2 text-sm text-muted-foreground">
         <h4 className="text-xs font-semibold text-foreground">文件命名规则</h4>
@@ -102,14 +138,14 @@ const TUTORIAL_SECTIONS = [
 
         <h4 className="text-xs font-semibold text-foreground mt-2">CSV 格式</h4>
         <ul className="list-disc list-inside space-y-1 ml-1 text-xs">
-          <li>首列为空，第二列为 Key（如 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">,ItemName_Excalibur,Excalibur</code>）</li>
-          <li>以 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">#</code> 开头的行为注释</li>
+          <li>首列为空，第二列为 Key（见示例）</li>
+          <li>以 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">#</code> 开头的行为注释，不会被加载</li>
           <li>支持 TextMeshPro 标签（如 <code className="px-1 py-0.5 rounded bg-muted text-[10px]">&lt;b&gt;加粗&lt;/b&gt;</code>）</li>
         </ul>
 
         <h4 className="text-xs font-semibold text-foreground mt-2">更新翻译</h4>
         <p className="text-xs">
-          修改 `.txt` 文件后，只需保存即可，无需重启编辑器。如果游戏内未生效，尝试在地图上保存一次或切换菜单界面。
+          修改 `.txt` 文件后，只需保存即可。如果游戏内未生效，尝试在地图上保存一次或切换菜单界面。
         </p>
       </div>
     ),
@@ -117,35 +153,27 @@ const TUTORIAL_SECTIONS = [
 ];
 
 export function TutorialPanel() {
-  const [expanded, setExpanded] = useState<string>('overview');
-
   return (
     <div className="border rounded-md bg-card">
-      <ScrollArea className="h-48">
+      <ScrollArea className="h-full">
         <div className="p-3">
           <h3 className="text-sm font-medium text-foreground mb-2 flex items-center gap-1">
             <Lightbulb className="h-4 w-4 text-yellow-500" />
             使用教程
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {TUTORIAL_SECTIONS.map((section) => {
               const Icon = section.icon;
-              const isOpen = expanded === section.id;
               return (
-                <Collapsible key={section.id} open={isOpen} onOpenChange={() => setExpanded(isOpen ? '' : section.id)}>
-                  <CollapsibleTrigger
-                    className="w-full justify-between text-left px-2 py-1.5 cursor-pointer text-muted-foreground hover:text-foreground bg-transparent border-none"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Icon className="h-4 w-4" />
-                      <span className="text-xs font-medium">{section.title}</span>
-                    </span>
-                    {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent className="pl-6 pr-2 pb-2 text-xs">
+                <div key={section.id}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    <span className="text-xs font-medium">{section.title}</span>
+                  </div>
+                  <div className="pl-6 pr-2 pb-2 text-xs">
                     {section.content}
-                  </CollapsibleContent>
-                </Collapsible>
+                  </div>
+                </div>
               );
             })}
           </div>

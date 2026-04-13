@@ -1,8 +1,0 @@
-,Key,Italiano
-# Example Localization File for The Last Spell
-# Format: CSV with leading comma (matches Loc_TLS format)
-# First line must be header: ,Key,<LanguageName>
-# Lines starting with # are comments (ignored by game)
-# Text supports TextMeshPro markup: <b>Bold</b>, <color=red>Red</color>
-#EndTurnButton_Quit,Esci dal Giro
-BuildingName_MagicCircle

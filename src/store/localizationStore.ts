@@ -16,7 +16,6 @@ interface LocalizationActions {
   setEntries: (entries: TranslationEntry[]) => void;
   setSelectedKey: (key: string) => void;
   setSearchQuery: (query: string) => void;
-  toggleTutorial: () => void;
   updateTranslation: (rowIndex: number, lang: BuiltinLanguage, value: string) => void;
   addEntry: (key: string) => void;
   deleteEntry: (index: number) => void;
@@ -28,7 +27,6 @@ const initialState: LocalizationState = {
   entries: [],
   selectedKey: '',
   searchQuery: '',
-  showTutorial: true,
 };
 
 export const useLocalizationStore = create<LocalizationState & LocalizationActions>()(
@@ -50,11 +48,6 @@ export const useLocalizationStore = create<LocalizationState & LocalizationActio
         setSearchQuery: (query) =>
           set((state) => {
             state.searchQuery = query;
-          }),
-
-        toggleTutorial: () =>
-          set((state) => {
-            state.showTutorial = !state.showTutorial;
           }),
 
         updateTranslation: (rowIndex, lang, value) =>

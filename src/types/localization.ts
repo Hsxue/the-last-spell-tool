@@ -31,6 +31,4 @@ export interface LocalizationState {
   selectedKey: string;
   /** Search filter */
   searchQuery: string;
-  /** Whether the tutorial is expanded */
-  showTutorial: boolean;
 }
