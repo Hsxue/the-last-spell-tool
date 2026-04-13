@@ -123,7 +123,7 @@ export function MapStatusBar() {
       {/* Zoom level */}
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground">缩放:</span>
-        <span className="font-mono">{viewport.zoom}x</span>
+        <span className="font-mono">{viewport.zoom.toFixed(2)}x</span>
       </div>
 
       {/* Divider */}

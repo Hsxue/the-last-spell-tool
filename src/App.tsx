@@ -606,8 +606,8 @@ function Toolbar() {
       >
         <ZoomIn className="h-4 w-4" />
       </Button>
-      <span className="text-sm tabular-nums min-w-[3ch] text-center">
-        {viewport.zoom}px
+      <span className="text-sm tabular-nums min-w-[8ch] text-center font-mono">
+        {viewport.zoom.toFixed(2)}x
       </span>
       <Button
         variant="ghost"
