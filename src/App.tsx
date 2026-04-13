@@ -637,29 +637,28 @@ function MapEditorContent() {
   return (
     <div className="flex-1 flex overflow-hidden h-full">
       <Sidebar />
-      <div className="flex-1 relative flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full">
         <Toolbar />
-        <div className="relative flex-1">
-          <MapCanvas />
-          {/* Floating Canvas Hints - Bottom Right */}
-          <div className="absolute bottom-4 right-4 flex flex-col gap-1.5 rounded-lg border bg-muted/50 p-3 backdrop-blur-sm shadow-sm">
-            <div className="flex items-center gap-2 text-xs">
-              <kbd className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground shadow-sm">
-                中键
-              </kbd>
-              <span className="text-muted-foreground">平移画布</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <kbd className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground shadow-sm">
-                滚轮
-              </kbd>
-              <span className="text-muted-foreground">缩放视图</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs">
-              <kbd className="rounded bg-background px-1.5 py-0.5 font-mono text-foreground shadow-sm">
-                右键
-              </kbd>
-              <span className="text-muted-foreground">查看瓦片</span>
+        <div className="flex flex-1 overflow-hidden">
+          <div className="relative flex-1">
+            <MapCanvas />
+          </div>
+          {/* Canvas Operation Hints Panel - Right Side */}
+          <div className="w-36 flex flex-col gap-2 border-l bg-background p-3 text-xs">
+            <h4 className="font-medium text-foreground mb-1">操作提示</h4>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">中键</kbd>
+                <span className="text-muted-foreground">平移画布</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">滚轮</kbd>
+                <span className="text-muted-foreground">缩放视图</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">右键</kbd>
+                <span className="text-muted-foreground">查看瓦片</span>
+              </div>
             </div>
           </div>
         </div>
