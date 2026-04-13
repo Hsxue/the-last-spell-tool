@@ -11,6 +11,8 @@ import FlagSidebar from './components/sidebar/FlagSidebar';
 import { ConfigTabs } from './components/config';
 import { WeaponSkillTab } from './components/weapon-skill/WeaponSkillTab';
 import { LocalizationTab } from './components/localization/LocalizationTab';
+import { LocalizationTutorialDialog } from './components/localization/LocalizationTutorialDialog';
+import { FeatureNotesDialog } from './components/localization/FeatureNotesDialog';
 import { TileMapImportButton } from './components/TileMapImportButton';
 import { BuiltinMapButton } from './components/BuiltinMapSelector';
 import { ModInstaller } from './components/ModInstaller';
@@ -38,6 +40,7 @@ import {
   Sword,
   FileCode,
   Languages,
+  HelpCircle,
 } from 'lucide-react';
 import type { SidebarTab, FeatureTab } from './types/map';
 import { useState, useRef, useCallback } from 'react';
@@ -115,7 +118,7 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
       <div className="flex items-center gap-4 h-full">
         <div className="flex items-center gap-2 h-full">
           <MapIcon className="h-6 w-6 text-primary" />
-          <h1 className="text-lg font-semibold">TileMap Editor</h1>
+          <h1 className="text-lg font-semibold whitespace-nowrap">TileMap Editor</h1>
         </div>
       </div>
 
@@ -156,6 +159,9 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
           onChange={handleImportFile}
           className="hidden"
         />
+        <div className="w-px h-6 bg-border mx-1" />
+        <FeatureNotesDialog />
+        <LocalizationTutorialDialog />
         <div className="w-px h-6 bg-border mx-1" />
         <ModInstaller />
       </div>
