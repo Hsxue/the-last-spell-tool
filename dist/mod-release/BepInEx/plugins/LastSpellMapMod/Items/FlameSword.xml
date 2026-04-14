@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  示例武器：单手火焰剑
-  将此文件放入 Items 文件夹后，通过 WebDev2 的「武器与技能」Tab 导入到游戏。
+  ArtId 说明：
+  - 不指定 ArtId 时，游戏默认使用该武器的 Id (FlameSword) 去查找匹配的美术资源。
+  - 指定 ArtId 后（如下例使用 Sword0），将强制复用原版武器 Sword0 的图标、模型和粒子特效。
+  - 这是一种快速复用大量原版美术资源的简便方式，无需自行导入图片模型。
 -->
 <ItemDefinition Id="FlameSword">
     <Category>MeleeWeapon</Category>
+    <ArtId>Sword0</ArtId>
     <Tags>
         <Tag>Sword</Tag>
         <Tag>Fire</Tag>
