@@ -1,0 +1,27 @@
+<ItemDefinition Id="TestMeleeSword">
+    <Category>MeleeWeapon</Category>
+    <Hands>OneHand</Hands>
+    <LevelVariations>
+        <Level Id="0">
+            <BaseDamage Min="5" Max="8"/>
+            <BasePrice>50</BasePrice>
+            <Skills>
+                <Skill>TestFireBlast</Skill>
+            </Skills>
+        </Level>
+        <Level Id="1">
+            <BaseDamage Min="8" Max="12"/>
+            <BasePrice>100</BasePrice>
+            <Skills>
+                <Skill>TestFireBlast</Skill>
+            </Skills>
+        </Level>
+        <Level Id="2">
+            <BaseDamage Min="12" Max="18"/>
+            <BasePrice>200</BasePrice>
+            <Skills>
+                <Skill>TestFireBlast</Skill>
+            </Skills>
+        </Level>
+    </LevelVariations>
+</ItemDefinition>
