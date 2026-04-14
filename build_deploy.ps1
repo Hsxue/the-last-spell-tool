@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 
 # ---- Configuration ----
 $REMOTE_USER  = "root"
-$REMOTE_HOST  = "8.138.26.11"
+$REMOTE_HOST  = "xxxx"
 $REMOTE_PORT  = "22"
 $REMOTE_PATH  = "/var/www/webdev2"
 $NGINX_CONF   = "/etc/nginx/conf.d/webdev2.conf"
