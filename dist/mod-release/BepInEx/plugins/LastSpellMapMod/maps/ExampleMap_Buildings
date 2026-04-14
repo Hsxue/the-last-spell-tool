@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Buildings>
+    <Building Id="Barricade" X="12" Y="15">
+        <Health>100</Health>
+    </Building>
+    <Building Id="Barricade" X="17" Y="15">
+        <Health>100</Health>
+    </Building>
+    <Building Id="Barricade" X="15" Y="12">
+        <Health>100</Health>
+    </Building>
+    <Building Id="Barricade" X="15" Y="17">
+        <Health>100</Health>
+    </Building>
+    <Building Id="House" X="13" Y="13">
+        <Health>200</Health>
+    </Building>
+    <Building Id="House" X="16" Y="13">
+        <Health>200</Health>
+    </Building>
+    <Building Id="House" X="13" Y="16">
+        <Health>200</Health>
+    </Building>
+    <Building Id="House" X="16" Y="16">
+        <Health>200</Health>
+    </Building>
+</Buildings>

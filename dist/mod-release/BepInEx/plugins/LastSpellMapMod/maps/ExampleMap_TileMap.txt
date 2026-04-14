@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Example custom map for The Last Spell Map Mod -->
+<!-- This format matches the game's TileMap XML format exactly -->
+<!-- Width and Height are required. Grounds and Flags are optional but recommended -->
+<TileMap>
+    <!-- Map dimensions (REQUIRED by game) -->
+    <Width>30</Width>
+    <Height>30</Height>
+    
+    <!-- Ground tiles: Format is X,Y|DistanceToCity|DistanceToMagicCircle -->
+    <!-- DistanceToCity: 0 = city tile, higher = further from city -->
+    <!-- DistanceToMagicCircle: 0 = at magic circle, higher = further -->
+    <Grounds>
+        <!-- City center (safe zone) - distance 0,0 -->
+        <CityTile>15,15|0|0</CityTile>
+        <CityTile>14,15|1|0</CityTile>
+        <CityTile>16,15|1|0</CityTile>
+        <CityTile>15,14|1|0</CityTile>
+        <CityTile>15,16|1|0</CityTile>
+        
+        <!-- Magic circle (victory point) - same position as city center -->
+        <MagicCircle>15,15|0|0</MagicCircle>
+        
+        <!-- Dirt paths near city center - distance 1,1 -->
+        <Dirt>14,14|1|1</Dirt>
+        <Dirt>16,14|1|1</Dirt>
+        <Dirt>14,16|1|1</Dirt>
+        <Dirt>16,16|1|1</Dirt>
+        <Dirt>15,13|1|1</Dirt>
+        <Dirt>15,17|1|1</Dirt>
+        <Dirt>13,15|1|1</Dirt>
+        <Dirt>17,15|1|1</Dirt>
+        
+        <!-- Surrounding grass/dirt - distance 2,2 (further from city) -->
+        <Dirt>10,10|2|2</Dirt>
+        <Dirt>11,10|2|2</Dirt>
+        <Dirt>12,10|2|2</Dirt>
+        <Dirt>10,11|2|2</Dirt>
+        <Dirt>10,12|2|2</Dirt>
+        <Dirt>10,13|2|2</Dirt>
+        <Dirt>10,14|2|2</Dirt>
+        <Dirt>10,15|2|2</Dirt>
+        <Dirt>10,16|2|2</Dirt>
+        <Dirt>10,17|2|2</Dirt>
+        <Dirt>10,18|2|2</Dirt>
+        <Dirt>10,19|2|2</Dirt>
+        <Dirt>19,10|2|2</Dirt>
+        <Dirt>19,11|2|2</Dirt>
+        <Dirt>19,12|2|2</Dirt>
+        <Dirt>19,13|2|2</Dirt>
+        <Dirt>19,14|2|2</Dirt>
+        <Dirt>19,15|2|2</Dirt>
+        <Dirt>19,16|2|2</Dirt>
+        <Dirt>19,17|2|2</Dirt>
+        <Dirt>19,18|2|2</Dirt>
+        <Dirt>19,19|2|2</Dirt>
+        
+        <!-- Stone patches (obstacles) -->
+        <Stone>5,5|3|3</Stone>
+        <Stone>6,5|3|3</Stone>
+        <Stone>5,6|3|3</Stone>
+        <Stone>24,24|3|3</Stone>
+        <Stone>24,23|3|3</Stone>
+        <Stone>23,24|3|3</Stone>
+    </Grounds>
+    
+    <!-- Flags: Format is X,Y (just coordinates, no pipes) -->
+    <Flags>
+        <!-- Enemy spawn points - enemies will spawn here at night -->
+        <EnemyMagnet>5,15</EnemyMagnet>
+        <EnemyMagnet>15,5</EnemyMagnet>
+        <EnemyMagnet>24,15</EnemyMagnet>
+        <EnemyMagnet>15,24</EnemyMagnet>
+        <EnemyMagnet>10,20</EnemyMagnet>
+        <EnemyMagnet>20,10</EnemyMagnet>
+        <EnemyMagnet>20,20</EnemyMagnet>
+        <EnemyMagnet>10,10</EnemyMagnet>
+        
+        <!-- Boss spawn (optional) -->
+        <SpawnerCocoon>22,22</SpawnerCocoon>
+    </Flags>
+    
+    <!-- NOTE: Buildings are NOT specified in TileMap XML! -->
+    <!-- The game handles buildings separately via BuildingManager -->
+    <!-- Pre-placed buildings can be created via ModBuildingCreator at runtime -->
+</TileMap>
