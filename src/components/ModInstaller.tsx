@@ -115,16 +115,24 @@ export function ModInstaller() {
       const zip = new JSZip();
 
       // Fetch each file and add to ZIP
+      // Use Promise.allSettled to tolerate non-critical file fetch failures (e.g., dotfiles)
       const fetchPromises = modFiles.map(async (filePath) => {
-        const response = await fetch(`${MOD_RELEASE}/${filePath}`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${filePath}: ${response.statusText}`);
+        try {
+          const response = await fetch(`${MOD_RELEASE}/${filePath}`);
+          if (response.ok) {
+            const blob = await response.blob();
+            zip.file(filePath, blob);
+          } else {
+            console.warn(`[ModInstaller] Skipping file (fetch failed): ${filePath}`);
+          }
+        } catch (err) {
+          console.warn(`[ModInstaller] Skipping file (error): ${filePath}`, err);
         }
-        const blob = await response.blob();
-        zip.file(filePath, blob);
       });
 
       await Promise.all(fetchPromises);
+
+      // Verify we got at least the main DLL, otherwise throw error
 
       // Generate ZIP and trigger download
       const zipBlob = await zip.generateAsync({

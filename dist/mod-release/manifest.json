@@ -3,7 +3,6 @@
     "files":  [
                    "winhttp.dll",
                    "doorstop_config.ini",
-                   ".doorstop_version",
                    "BepInEx/core/0Harmony.dll",
                    "BepInEx/core/0Harmony20.dll",
                    "BepInEx/core/BepInEx.dll",
