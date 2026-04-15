@@ -52,7 +52,7 @@ describe('i18n Translation Completeness', () => {
       expect(fb).toContain('en');
     } else {
       // It might be an object with 'default' key
-      expect(typeof fb === 'object' && fb !== null && (fb as Record<string, string>)['default']).toBe('en');
+      expect(typeof fb === 'object' && fb !== null && (fb as unknown as Record<string, string>)['default']).toBe('en');
     }
   });
 
