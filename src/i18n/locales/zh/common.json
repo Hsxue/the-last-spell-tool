@@ -318,7 +318,14 @@
   "builtinMap": {
     "label": "内置地图",
     "groupLabel": "游戏内置地图",
-    "difficulty": "难度",
+    "difficulty": {
+      "0": "自由模式",
+      "1": "★",
+      "2": "★★",
+      "3": "★★★",
+      "4": "★★★★",
+      "5": "★★★★★"
+    },
     "loading": "加载中...",
     "loadSuccess": "地图加载成功",
     "loadSuccessDesc": "已加载 地图",
@@ -347,8 +354,21 @@
     "webdevNote": "使用 WebDev2 创建的文件",
     "webdevNoteSuffix1": "、",
     "webdevNoteSuffix2": "。",
-    "webdevNoteSuffix3": "本地化文件放入",
-    "webdevNoteSuffix4": ""
+    "webdevNoteSuffix3": " 目录，游戏中即时生效。",
+    "webdevNoteSuffix4": "",
+    "phasePrefix": "第",
+    "phaseSuffix": "阶段：",
+    "stepExtractPrefix": "将下载的",
+    "stepExtractSuffix": "解压至游戏根目录",
+    "stepExtractSameLevel": "与",
+    "stepExtractMerge": "同级)，确保文件覆盖合并",
+    "stepExtractIncluded": "压缩包已包含 BepInEx 6.0.0-pre.1 框架和 LastSpellMapMod 插件。",
+    "stepLaunchDesc": "通过 Steam 启动游戏。检查",
+    "stepLaunchCheck1": "首行显示",
+    "stepLaunchAnd": "并且有",
+    "stepLaunchCheck2": "在城市选择界面应能看到 Example Map 和 LakeBurg 选项。",
+    "unknownError": "未知错误",
+    "webdevNoteSuffix5": " 目录。"
   },
   "tileMapImport": {
     "loadMap": "加载地图",

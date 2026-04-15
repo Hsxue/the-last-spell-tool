@@ -146,7 +146,14 @@
   "builtinMap": {
     "label": "Built-in Maps",
     "groupLabel": "Game Built-in Maps",
-    "difficulty": "Difficulty",
+    "difficulty": {
+      "0": "Free Play",
+      "1": "★",
+      "2": "★★",
+      "3": "★★★",
+      "4": "★★★★",
+      "5": "★★★★★"
+    },
     "loading": "Loading...",
     "loadSuccess": "Map loaded successfully",
     "loadSuccessDesc": "Loaded name widthxheight count buildings",
@@ -347,8 +354,21 @@
     "webdevNote": "Maps/weapons/skills created with WebDev2 can be placed in",
     "webdevNoteSuffix1": ", ",
     "webdevNoteSuffix2": " directories after export.",
-    "webdevNoteSuffix3": "Place localization CSV files in",
-    "webdevNoteSuffix4": " directory."
+    "webdevNoteSuffix3": " directory.",
+    "webdevNoteSuffix4": " directory.",
+    "phasePrefix": "Phase",
+    "phaseSuffix": ":",
+    "stepExtractPrefix": "Extract downloaded",
+    "stepExtractSuffix": "to game root directory",
+    "stepExtractSameLevel": "same level as",
+    "stepExtractMerge": "ensure file overwrite/merge",
+    "stepExtractIncluded": "Package includes BepInEx 6.0.0-pre.1 framework and LastSpellMapMod plugin.",
+    "stepLaunchDesc": "Launch game via Steam. Check",
+    "stepLaunchCheck1": "first line shows",
+    "stepLaunchAnd": "and",
+    "stepLaunchCheck2": "City selection should show Example Map and LakeBurg options.",
+    "unknownError": "Unknown error",
+    "webdevNoteSuffix5": "directory."
   },
   "tileMapImport": {
     "loadMap": "Load Map",

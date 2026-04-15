@@ -19,12 +19,12 @@ import {
 } from '@/data/builtinMaps';
 
 const DIFFICULTY_LABELS: Record<number, string> = {
-  0: '自由模式',
-  1: '★',
-  2: '★★',
-  3: '★★★',
-  4: '★★★★',
-  5: '★★★★★',
+  0: 'builtinMap.difficulty.0',
+  1: 'builtinMap.difficulty.1',
+  2: 'builtinMap.difficulty.2',
+  3: 'builtinMap.difficulty.3',
+  4: 'builtinMap.difficulty.4',
+  5: 'builtinMap.difficulty.5',
 };
 
 interface BuiltinMapSelectorProps {
@@ -121,7 +121,7 @@ export function BuiltinMapButton({ className }: BuiltinMapSelectorProps) {
               <div className="flex items-center justify-between w-full gap-4">
                 <span>{map.name}</span>
                 <span className="text-muted-foreground text-xs">
-                  {DIFFICULTY_LABELS[map.difficulty] ?? `${t('builtinMap.difficulty')} ${map.difficulty}`}
+                   {t(DIFFICULTY_LABELS[map.difficulty], `Lv.${map.difficulty}`)}
                 </span>
               </div>
             </SelectItem>
