@@ -1,172 +1,88 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useConfigStore } from '@/store/configStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 export const WavesConfigTab: React.FC = () => {
+  const { t } = useTranslation('common');
   const { gameConfig, addSpawnWave, removeSpawnWave } = useConfigStore();
-
   const spawnConfig = gameConfig.spawnConfig;
   const spawnWavesPerDay = spawnConfig?.spawnWavesPerDay ?? new Map();
 
-  // State for night selector
   const [selectedNight, setSelectedNight] = useState<string>('1');
-
-  // State for adding new wave
   const [newWaveId, setNewWaveId] = useState<string>('');
   const [newWeight, setNewWeight] = useState<string>('');
 
-  // Generate night options (1-20)
   const nightOptions = Array.from({ length: 20 }, (_, i) => i + 1);
-
-  // Get waves for selected night
   const selectedNightNum = parseInt(selectedNight);
   const currentWaves = spawnWavesPerDay.get(selectedNightNum) || [];
 
   const handleAddSpawnWave = () => {
     const waveId = newWaveId.trim();
     const weight = parseFloat(newWeight);
-    if (waveId && !isNaN(weight)) {
-      addSpawnWave(selectedNightNum, waveId, weight);
-      setNewWaveId('');
-      setNewWeight('');
-    }
+    if (waveId && !isNaN(weight)) { addSpawnWave(selectedNightNum, waveId, weight); setNewWaveId(''); setNewWeight(''); }
   };
 
-  const handleRemoveSpawnWave = (waveId: string) => {
-    removeSpawnWave(selectedNightNum, waveId);
-  };
+  const handleRemoveSpawnWave = (waveId: string) => { removeSpawnWave(selectedNightNum, waveId); };
 
-  const handleKeyPress = (e: React.KeyboardEvent, handler: () => void) => {
-    if (e.key === 'Enter') {
-      handler();
-    }
-  };
+  const handleKeyPress = (e: React.KeyboardEvent, handler: () => void) => { if (e.key === 'Enter') handler(); };
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>敌人波次 (Enemy Waves)</CardTitle>
-      </CardHeader>
+      <CardHeader><CardTitle>{t('configTab.waves.title')}</CardTitle></CardHeader>
       <CardContent className="space-y-6">
-        {/* Night Selector */}
         <div className="space-y-2">
-          <Label htmlFor="night-selector">选择夜晚 (Select Night)</Label>
+          <Label htmlFor="night-selector">{t('configTab.waves.selectNight')}</Label>
           <Select value={selectedNight} onValueChange={setSelectedNight}>
-            <SelectTrigger id="night-selector" data-testid="night-selector">
-              <SelectValue placeholder="选择夜晚" />
-            </SelectTrigger>
+            <SelectTrigger id="night-selector" data-testid="night-selector"><SelectValue placeholder={t('configTab.waves.selectNightPlaceholder')} /></SelectTrigger>
             <SelectContent>
               {nightOptions.map((night) => (
-                <SelectItem key={night} value={night.toString()} data-testid={`night-option-${night}`}>
-                  第 {night} 夜 (Night {night})
-                </SelectItem>
+                <SelectItem key={night} value={night.toString()} data-testid={`night-option-${night}`}>{t('configTab.waves.nightOption', { night })}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">
-            为特定夜晚配置波次。每夜可有多个候选波次，将根据权重组合作为实际生成的波次
-          </p>
+          <p className="text-xs text-muted-foreground">{t('configTab.waves.nightDesc')}</p>
         </div>
-
-        {/* Add Wave Form */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">添加波次 (Add Wave)</Label>
+          <Label className="text-base font-semibold">{t('configTab.waves.addWave')}</Label>
           <div className="flex gap-2 items-end">
             <div className="flex-1 space-y-1">
-              <Label htmlFor="wave-id-input" className="text-xs">
-                波次 ID (Wave ID)
-              </Label>
-              <Input
-                id="wave-id-input"
-                type="text"
-                value={newWaveId}
-                onChange={(e) => setNewWaveId(e.target.value)}
-                onKeyPress={(e) => handleKeyPress(e, handleAddSpawnWave)}
-                data-testid="wave-id-input"
-                placeholder="输入波次 ID"
-              />
+              <Label htmlFor="wave-id-input" className="text-xs">{t('configTab.waves.waveId')}</Label>
+              <Input id="wave-id-input" type="text" value={newWaveId} onChange={(e) => setNewWaveId(e.target.value)} onKeyPress={(e) => handleKeyPress(e, handleAddSpawnWave)} data-testid="wave-id-input" placeholder={t('configTab.waves.waveIdPlaceholder')} />
             </div>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="wave-weight-input" className="text-xs">
-                权重 (Weight)
-              </Label>
-              <Input
-                id="wave-weight-input"
-                type="number"
-                step="0.1"
-                min={0}
-                value={newWeight}
-                onChange={(e) => setNewWeight(e.target.value)}
-                onKeyPress={(e) => handleKeyPress(e, handleAddSpawnWave)}
-                data-testid="wave-weight-input"
-                placeholder="权重值"
-              />
+              <Label htmlFor="wave-weight-input" className="text-xs">{t('configTab.waves.weight')}</Label>
+              <Input id="wave-weight-input" type="number" step="0.1" min={0} value={newWeight} onChange={(e) => setNewWeight(e.target.value)} onKeyPress={(e) => handleKeyPress(e, handleAddSpawnWave)} data-testid="wave-weight-input" placeholder={t('configTab.waves.weightPlaceholder')} />
             </div>
-            <Button
-              onClick={handleAddSpawnWave}
-              data-testid="wave-add-button"
-              type="button"
-            >
-              添加
-            </Button>
+            <Button onClick={handleAddSpawnWave} data-testid="wave-add-button" type="button">{t('configTab.waves.add')}</Button>
           </div>
         </div>
-
-        {/* Waves Table */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">
-            第 {selectedNight} 夜波次配置 (Night {selectedNight} Waves)
-          </Label>
-          <p className="text-xs text-muted-foreground">
-            权重 = 相对概率。例如波次 A 权重 2.0、波次 B 权重 1.0，则 A 出现的概率是 B 的两倍
-          </p>
+          <Label className="text-base font-semibold">{t('configTab.waves.nightWavesTitle', { night: selectedNight })}</Label>
+          <p className="text-xs text-muted-foreground">{t('configTab.waves.weightDesc')}</p>
           <Table data-testid="waves-table">
             <TableHeader>
               <TableRow>
-                <TableHead>波次 ID (Wave ID)</TableHead>
-                <TableHead>权重 (Weight)</TableHead>
-                <TableHead className="w-20">操作</TableHead>
+                <TableHead>{t('configTab.waves.tableWaveId')}</TableHead>
+                <TableHead>{t('configTab.waves.tableWeight')}</TableHead>
+                <TableHead className="w-20">{t('configTab.waves.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentWaves.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center text-muted-foreground">
-                    暂无波次，请添加
-                  </TableCell>
-                </TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground">{t('configTab.waves.noData')}</TableCell></TableRow>
               ) : (
                 currentWaves.map(([waveId, weight]) => (
                   <TableRow key={waveId} data-testid={`wave-row-${waveId}`}>
                     <TableCell>{waveId}</TableCell>
                     <TableCell>{weight}</TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveSpawnWave(waveId)}
-                        data-testid={`wave-remove-${waveId}`}
-                      >
-                        移除
-                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleRemoveSpawnWave(waveId)} data-testid={`wave-remove-${waveId}`}>{t('configTab.waves.remove')}</Button>
                     </TableCell>
                   </TableRow>
                 ))

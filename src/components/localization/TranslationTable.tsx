@@ -1,10 +1,11 @@
-/**
+﻿/**
  * Localization Table Component
  * Tree view: each translation key is a parent node, expanding to show all language translations.
  * One language per row for easy readability.
  */
 
 import { useState, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocalizationStore } from '../../store/localizationStore';
 import { BUILTIN_LANGUAGES, type BuiltinLanguage } from '../../types/localization';
 import { Button } from '../ui/button';
@@ -16,6 +17,7 @@ import { xml } from '@codemirror/lang-xml';
 import { oneDark } from '@codemirror/theme-one-dark';
 
 export function TranslationTable() {
+  const { t } = useTranslation('common');
   const {
     entries,
     selectedKey,
@@ -42,7 +44,7 @@ export function TranslationTable() {
     return entries.filter(
       (e) =>
         e.key.toLowerCase().includes(q) ||
-        Object.values(e.translations as Record<string, string>).some((t: string) => t.toLowerCase().includes(q))
+        Object.values(e.translations as Record<string, string>).some((tv: string) => tv.toLowerCase().includes(q))
     );
   }, [entries, searchQuery]);
 
@@ -144,7 +146,7 @@ export function TranslationTable() {
       'Українська': 'bg-blue-50 text-blue-600',
       'Deutsch': 'bg-yellow-100 text-yellow-800',
       'Español': 'bg-orange-100 text-orange-700',
-      'Português (Brasil)': 'bg-green-100 text-green-700',
+      'Portugu\u{00EA}s \(Brasil\)': 'bg-green-100 text-green-700',
       '한국어': 'bg-teal-100 text-teal-700',
     };
     const baseColors = 'px-1.5 py-0.5 rounded text-[10px] font-semibold transition-colors shrink-0';
@@ -158,7 +160,7 @@ export function TranslationTable() {
         <div className="relative flex-1">
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="搜索 Key 或翻译文本..."
+            placeholder={t('translationTable.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 h-8 text-xs"
@@ -168,18 +170,18 @@ export function TranslationTable() {
         <div className="flex items-center gap-1">
           <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => fileInputRef.current?.click()}>
             <Upload className="h-3.5 w-3.5 mr-1" />
-            导入
+            {t('translationTable.importBtn')}
           </Button>
           <input ref={fileInputRef} type="file" accept=".csv,.txt" className="hidden" onChange={handleImport} />
 
           <Button variant="outline" size="sm" className="h-8 px-2" onClick={handleExport}>
             <Download className="h-3.5 w-3.5 mr-1" />
-            导出
+            {t('translationTable.exportBtn')}
           </Button>
 
           <Button variant="ghost" size="sm" className="h-8 px-2" onClick={toggleAll}>
             {isAllExpanded ? <ChevronDown className="h-3.5 w-3.5 mr-1" /> : <ChevronRight className="h-3.5 w-3.5 mr-1" />}
-            {isAllExpanded ? '收起' : '全部展开'}
+            {isAllExpanded ? t('translationTable.collapseAll') : t('translationTable.expandAll')}
           </Button>
         </div>
       </div>
@@ -187,7 +189,7 @@ export function TranslationTable() {
       {/* Add new key bar */}
       <div className="flex items-center gap-2 p-2 border-b bg-muted/30">
         <Input
-          placeholder="输入新的 Key (如 ItemName_MySword)"
+          placeholder={t('translationTable.addKeyPlaceholder')}
           value={newKey}
           onChange={(e) => setNewKey(e.target.value)}
           className="h-7 text-xs"
@@ -201,20 +203,26 @@ export function TranslationTable() {
           if (newKey.trim()) { addEntry(newKey.trim()); setNewKey(''); }
         }}>
           <Plus className="h-3.5 w-3.5 mr-1" />
-          添加
+          {t('translationTable.addBtn')}
         </Button>
         <span className="text-xs text-muted-foreground tabular-nums">
-          共 {entries.length} 条
+          {t('translationTable.entriesCountPrefix')} {entries.length} {t('translationTable.noData').split(' ')[0] || '条'}
         </span>
       </div>
 
       {/* Tree Table */}
       <div className="flex-1 overflow-auto">
-        {filteredEntries.length === 0 && (
+        {filteredEntries.length === 0 && entries.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Languages className="h-8 w-8 mb-2 opacity-50" />
-            <p className="text-sm">暂无翻译数据</p>
-            <p className="text-xs mt-1">导入 CSV 文件或手动添加 Key 开始编辑</p>
+            <p className="text-sm">{t('translationTable.noData')}</p>
+            <p className="text-xs mt-1">{t('translationTable.noDataHint')}</p>
+          </div>
+        )}
+        {filteredEntries.length === 0 && entries.length > 0 && (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <Search className="h-8 w-8 mb-2 opacity-50" />
+            <p className="text-sm">{t('translationTable.noData')}</p>
           </div>
         )}
 
@@ -300,10 +308,10 @@ export function TranslationTable() {
                                 </div>
                                 <Button size="sm" className="h-6 px-2 text-[10px]" onClick={saveEdit}>
                                   <Check className="h-3 w-3 mr-1" />
-                                  保存
+                                  {t('translationTable.saveBtn')}
                                 </Button>
                                 <Button variant="ghost" size="sm" className="h-6 px-2 text-[10px]" onClick={() => setEditingCell(null)}>
-                                  取消
+                                  {t('translationTable.cancelBtn')}
                                 </Button>
                               </div>
                             ) : (
@@ -314,7 +322,7 @@ export function TranslationTable() {
                                 {translation ? (
                                   <span className="text-foreground">{translation}</span>
                                 ) : (
-                                  <span className="text-muted-foreground/50 italic">— 未翻译 —</span>
+                                  <span className="text-muted-foreground/50 italic">{t('translationTable.untranslated')}</span>
                                 )}
                               </div>
                             )}
@@ -336,15 +344,15 @@ export function TranslationTable() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <File className="h-4 w-4" />
-              导出翻译文件
+              {t('translationTable.exportTitle')}
             </DialogTitle>
             <DialogDescription>
-              导出为游戏本地化 .txt 文件（CSV 格式）。文件名即语言名称。
+              {t('translationTable.exportDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">文件名（含扩展名）</label>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">{t('translationTable.exportLabel')}</label>
               <Input
                 value={exportFileName}
                 onChange={(e) => setExportFileName(e.target.value)}
@@ -355,11 +363,11 @@ export function TranslationTable() {
             </div>
             <div className="flex justify-end gap-2">
               <Button variant="outline" size="sm" className="h-7" onClick={() => setShowExportDialog(false)}>
-                取消
+                {t('translationTable.exportCancel')}
               </Button>
               <Button size="sm" className="h-7" onClick={confirmExport}>
                 <Download className="h-3.5 w-3.5 mr-1" />
-                导出
+                {t('translationTable.exportConfirm')}
               </Button>
             </div>
           </div>
@@ -368,3 +376,5 @@ export function TranslationTable() {
     </div>
   );
 }
+
+

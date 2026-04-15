@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+﻿import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FolderOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useMapStore } from '@/store/mapStore';
@@ -11,6 +12,7 @@ interface TileMapImportButtonProps {
 }
 
 export function TileMapImportButton({ className }: TileMapImportButtonProps) {
+  const { t } = useTranslation('common');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const setMapData = useMapStore((state) => state.setMapData);
@@ -37,12 +39,12 @@ export function TileMapImportButton({ className }: TileMapImportButtonProps) {
 
         if (file.name.endsWith('TileMap.xml') || file.name.includes('TileMap')) {
           tileMapData = parseTileMap(arrayBuffer);
-          
+
           // Auto-load corresponding Buildings file if it exists
           // e.g., "Glenwald_TileMap.xml" -> "Glenwald_Buildings.xml"
           const baseName = file.name.replace('_TileMap.xml', '');
           const buildingsFileName = `${baseName}_Buildings.xml`;
-          
+
           // Look for buildings file in the same selection
           for (const otherFile of files) {
             if (otherFile.name === buildingsFileName) {
@@ -60,7 +62,7 @@ export function TileMapImportButton({ className }: TileMapImportButtonProps) {
       }
 
       if (!tileMapData) {
-        throw new Error('No valid TileMap file found. Please select a TileMap.xml file.');
+        throw new Error(t('tileMapImport.noTilemap'));
       }
 
       // Merge buildings data into tile map data if available
@@ -73,15 +75,19 @@ export function TileMapImportButton({ className }: TileMapImportButtonProps) {
 
       setMapData(tileMapData);
       addToast({
-        title: 'Map Loaded',
-        description: `Successfully loaded map (${tileMapData.width}x${tileMapData.height}) with ${tileMapData.buildings.length} buildings`,
+        title: t('tileMapImport.mapLoaded'),
+        description: t('tileMapImport.mapLoadedDesc', {
+          width: tileMapData.width,
+          height: tileMapData.height,
+          count: tileMapData.buildings.length,
+        }),
         type: 'success',
         duration: 3000,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : t('tileMapImport.unknownError');
       addToast({
-        title: 'Failed to Load Map',
+        title: t('tileMapImport.loadFailed'),
         description: errorMessage,
         type: 'error',
         duration: 5000,
@@ -105,7 +111,7 @@ export function TileMapImportButton({ className }: TileMapImportButtonProps) {
         className={className}
       >
         <FolderOpen className="h-4 w-4 mr-2" />
-        {isLoading ? 'Loading...' : 'Load Map'}
+        {isLoading ? t('tileMapImport.loading') : t('tileMapImport.loadMap')}
       </Button>
       <input
         ref={fileInputRef}
@@ -114,7 +120,7 @@ export function TileMapImportButton({ className }: TileMapImportButtonProps) {
         multiple
         onChange={handleFileChange}
         className="hidden"
-        aria-label="Select TileMap and Buildings XML files"
+        aria-label={t('tileMapImport.ariaLabel')}
       />
     </>
   );

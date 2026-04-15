@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Map as MapIcon, Loader2 } from 'lucide-react';
 import {
   Select,
@@ -31,6 +32,7 @@ interface BuiltinMapSelectorProps {
 }
 
 export function BuiltinMapButton({ className }: BuiltinMapSelectorProps) {
+  const { t } = useTranslation('common');
   const [maps, setMaps] = useState<BuiltinMapEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const setMapData = useMapStore((state) => state.setMapData);
@@ -54,35 +56,40 @@ export function BuiltinMapButton({ className }: BuiltinMapSelectorProps) {
       ]);
 
       if (tileMapResult.status !== 'fulfilled') {
-        throw new Error('TileMap load failed');
+        throw new Error(t('builtinMap.tilemapFailed'));
       }
 
       const tileMapData = parseTileMap(tileMapResult.value);
 
-      let buildingsData: any[] = [];
+      let buildingsData: Record<string, unknown>[] = [];
       if (buildingsResult.status === 'fulfilled') {
         try {
-          buildingsData = parseBuildings(buildingsResult.value);
+          buildingsData = parseBuildings(buildingsResult.value) as unknown as Record<string, unknown>[];
         } catch { /* empty */ }
       }
 
       const mergedData = {
         ...tileMapData,
         buildings: buildingsData.length > 0 ? buildingsData : tileMapData.buildings,
-      };
+      } as any;
 
       setMapData(mergedData);
       addToast({
-        title: '地图加载成功',
-        description: '已加载 "' + mapEntry.name + '" (' + mergedData.width + 'x' + mergedData.height + ', ' + mergedData.buildings.length + ' 建筑)',
+        title: t('builtinMap.loadSuccess'),
+        description: t('builtinMap.loadSuccessDesc', {
+          name: mapEntry.name,
+          width: mergedData.width,
+          height: mergedData.height,
+          count: mergedData.buildings.length,
+        }),
         type: 'success',
         duration: 3000,
       });
     } catch (error) {
-      const msg = error instanceof Error ? error.message : '未知错误';
+      const msg = error instanceof Error ? error.message : t('builtinMap.unknownError');
       addToast({
-        title: '加载失败',
-        description: '无法加载 ' + mapEntry.name + ': ' + msg,
+        title: t('builtinMap.loadFailed'),
+        description: t('builtinMap.loadFailedDesc', { name: mapEntry.name, msg }),
         type: 'error',
         duration: 5000,
       });
@@ -97,24 +104,24 @@ export function BuiltinMapButton({ className }: BuiltinMapSelectorProps) {
         {isLoading ? (
           <span className="flex items-center gap-1">
             <Loader2 className="h-3 w-3 animate-spin" />
-            加载中...
+            {t('builtinMap.loading')}
           </span>
         ) : (
           <span className="flex items-center gap-1.5">
             <MapIcon className="h-3.5 w-3.5" />
-            内置地图
+            {t('builtinMap.label')}
           </span>
         )}
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          <SelectLabel>游戏内置地图</SelectLabel>
+          <SelectLabel>{t('builtinMap.groupLabel')}</SelectLabel>
           {maps.map((map) => (
             <SelectItem key={map.id} value={map.id}>
               <div className="flex items-center justify-between w-full gap-4">
                 <span>{map.name}</span>
                 <span className="text-muted-foreground text-xs">
-                  {DIFFICULTY_LABELS[map.difficulty] ?? '难度 ' + map.difficulty}
+                  {DIFFICULTY_LABELS[map.difficulty] ?? `${t('builtinMap.difficulty')} ${map.difficulty}`}
                 </span>
               </div>
             </SelectItem>

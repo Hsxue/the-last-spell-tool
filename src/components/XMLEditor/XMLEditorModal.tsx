@@ -1,9 +1,10 @@
-/**
+﻿/**
  * XMLEditorModal - Modal component for editing XML/JSON content with CodeMirror 6
  * Provides syntax highlighting, formatting, and keyboard shortcuts
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import CodeMirror from '@uiw/react-codemirror';
 import { xml } from '@codemirror/lang-xml';
 import { json } from '@codemirror/lang-json';
@@ -50,13 +51,16 @@ export function XMLEditorModal({
   language = 'xml',
   onApply,
   readOnly = false,
-  title = 'Code Editor',
+  title,
 }: XMLEditorModalProps) {
+  const { t } = useTranslation('common');
   const [editorValue, setEditorValue] = useState(value);
   const [cursorPosition, setCursorPosition] = useState({ line: 1, column: 1 });
   const [error, setError] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<ValidationResult>({ valid: true });
   const debouncedValidate = useCallback(createDebouncedValidator(500), []);
+
+  const displayTitle = title ?? t('xmlEditorModal.defaultTitle');
 
   // Validate content on change with debounce
   useEffect(() => {
@@ -90,7 +94,7 @@ export function XMLEditorModal({
         setEditorValue(formatted);
         onChange?.(formatted);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Format error');
+        setError(err instanceof Error ? err.message : t('xmlEditorModal.formatError'));
       }
     };
 
@@ -101,7 +105,7 @@ export function XMLEditorModal({
       window.removeEventListener('editor-apply', handleApply);
       window.removeEventListener('editor-format', handleFormat);
     };
-  }, [isOpen, editorValue, language, onApply, onChange, onClose]);
+  }, [isOpen, editorValue, language, onApply, onChange, onClose, t]);
 
   // Handle Escape key
   useEffect(() => {
@@ -121,15 +125,15 @@ export function XMLEditorModal({
   const extensions = useCallback(
     () => [
       language === 'json' ? json() : xml(),
-      
+
       linter((view) => {
         if (!validationResult.valid && validationResult.error) {
-          const error = validationResult.error;
+          const parseError = validationResult.error;
           const diagnostic: Diagnostic = {
             from: 0,
             to: view.state.doc.length,
             severity: 'error',
-            message: error.message,
+            message: parseError.message,
           };
           return [diagnostic];
         }
@@ -173,7 +177,7 @@ export function XMLEditorModal({
       setEditorValue(formatted);
       onChange?.(formatted);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Format error');
+      setError(err instanceof Error ? err.message : t('xmlEditorModal.formatError'));
     }
   };
 
@@ -183,7 +187,7 @@ export function XMLEditorModal({
         {/* Header */}
         <DialogHeader className="px-6 py-4 border-b border-border">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-semibold">{title}</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{displayTitle}</DialogTitle>
             <div className="flex items-center gap-2">
               <span className="text-xs text-muted-foreground px-2 py-1 bg-muted rounded">
                 {language.toUpperCase()}
@@ -236,35 +240,37 @@ export function XMLEditorModal({
 
         {/* Toolbar */}
         <div className="px-6 py-3 border-t border-border bg-muted/20">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleFormat}
-                disabled={readOnly}
-                title="Format (Ctrl+Shift+F)"
-              >
-                Format
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={handleApply}
-                disabled={readOnly || !validationResult.valid}
-                title={!validationResult.valid ? 'Fix syntax errors before applying' : 'Apply (Ctrl+S)'}
-              >
-                Apply
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCancel}
-                title="Cancel (Escape)"
-              >
-                Cancel
-              </Button>
-            </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleFormat}
+              disabled={readOnly}
+              title={t('xmlEditorModal.formatTitle')}
+            >
+              {t('xmlEditorModal.formatBtn')}
+            </Button>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={handleApply}
+              disabled={readOnly || !validationResult.valid}
+              title={
+                !validationResult.valid
+                  ? t('xmlEditorModal.applyTitleInvalid')
+                  : t('xmlEditorModal.applyTitleValid')
+              }
+            >
+              {t('xmlEditorModal.applyBtn')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              title={t('xmlEditorModal.cancelTitle')}
+            >
+              {t('xmlEditorModal.cancelBtn')}
+            </Button>
           </div>
         </div>
 
@@ -273,22 +279,26 @@ export function XMLEditorModal({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <span>
-                Line {cursorPosition.line}, Col {cursorPosition.column}
+                {t('xmlEditorModal.statusLine')} {cursorPosition.line}, {t('xmlEditorModal.statusCol')} {cursorPosition.column}
               </span>
               <span className="text-muted-foreground/50">|</span>
-              <span>Language: {language.toUpperCase()}</span>
+              <span>
+                {t('xmlEditorModal.statusLang')}: {language.toUpperCase()}
+              </span>
               <span className="text-muted-foreground/50">|</span>
               <span className={validationResult.valid ? 'text-green-600' : 'text-destructive'}>
-                {validationResult.valid ? '✓ Valid' : `✗ ${validationResult.error?.message}`}
+                {validationResult.valid
+                  ? t('xmlEditorModal.statusValid')
+                  : `${t('xmlEditorModal.statusInvalid')} ${validationResult.error?.message}`}
               </span>
             </div>
             <div className="flex items-center gap-4">
               <span>
-                {editorValue.length} characters
+                {editorValue.length} {t('xmlEditorModal.statusChars')}
               </span>
               <span className="text-muted-foreground/50">|</span>
               <span>
-                {editorValue.split('\n').length} lines
+                {editorValue.split('\n').length} {t('xmlEditorModal.statusLines')}
               </span>
             </div>
           </div>
