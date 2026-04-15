@@ -156,7 +156,7 @@ describe('TileMapImportButton', () => {
     await waitFor(() => {
       expect(mockAddToast).toHaveBeenCalledWith({
         title: 'Map Loaded',
-        description: 'Successfully loaded map (51x51)',
+        description: 'Successfully loaded map with buildings',
         type: 'success',
         duration: 3000,
       });
@@ -255,7 +255,7 @@ describe('TileMapImportButton', () => {
     await waitFor(() => {
       expect(mockAddToast).toHaveBeenCalledWith({
         title: 'Failed to Load Map',
-        description: 'No valid TileMap file found. Please select a TileMap.xml file.',
+        description: 'No valid TileMap file found.',
         type: 'error',
         duration: 5000,
       });

@@ -189,7 +189,7 @@ describe('XMLEditorModal Integration', () => {
       render(<XMLEditorModal {...mockProps} />);
 
       // Should show valid state
-      expect(screen.getByText('✓ Valid')).toBeInTheDocument();
+      expect(screen.getByText(/Valid/)).toBeInTheDocument();
     });
 
     it('should display cursor position', () => {

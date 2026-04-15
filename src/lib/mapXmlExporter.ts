@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Map XML Exporter - Complete export functionality for The Last Spell map data
  * Exports map data in format compatible with LastSpellMapMod tool
  * 
@@ -29,7 +29,7 @@ function computeTerrainDistances(
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
 
-  terrain.forEach((type, key) => {
+  terrain.forEach((_type, key) => {
     const [x, y] = key.split(',').map(Number);
     
     // Manhattan distance to center

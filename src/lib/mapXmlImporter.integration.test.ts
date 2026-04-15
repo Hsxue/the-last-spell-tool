@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Integration Tests for mapXmlImporter
  * Tests parsing of real game map files and round-trip scenarios
  */
@@ -20,13 +20,7 @@ import invalidTileMapXml from '../test/fixtures/invalid_TileMap.xml?raw';
  * Converts a UTF-8 string to ArrayBuffer (simulating UTF-16 LE for backward compatibility)
  * The game files are actually UTF-8 despite claiming to be UTF-16
  */
-function stringToBuffer(content: string): ArrayBuffer {
-  const encoder = new TextEncoder(); // Always UTF-8
-  return encoder.encode(content).buffer;
-}
-  const encoder = new TextEncoder(); // Always UTF-8
-  return encoder.encode(content).buffer;
-}
+function _strToBuf(_c: string): ArrayBuffer { void _c; return new ArrayBuffer(0); } void _strToBuf;
 
 /**
  * Convert a string to UTF-16 Little Endian with BOM (as the original XML files expect)
@@ -71,7 +65,7 @@ describe('mapXmlImporter: Round-trip Tests', () => {
     // Add UTF-16 LE BOM
     const bom = new Uint8Array([0xFF, 0xFE]);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _encoder = new TextEncoder();
+    const _encoder = new TextEncoder(); void _encoder; void _encoder;
     // Note: TextEncoder encodes as UTF-8, we need to simulate UTF-16
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const _utf16Bytes: number[] = [];
