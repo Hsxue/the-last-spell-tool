@@ -4,8 +4,8 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMapStore, selectTerrainAt } from '../store/mapStore';
-import { FLAG_CONFIG } from './sidebar/FlagSidebar';
 
 // ============================================================================
 // Types
@@ -20,12 +20,12 @@ interface MouseCoordinates {
   tileY: number;
 }
 
-// Editor mode display names
+// Editor mode display names (use translation keys)
 const MODE_LABELS: Record<string, string> = {
-  terrain: '画笔',
-  eraser: '橡皮擦',
-  building: '建筑',
-  flag: '旗帜',
+  terrain: 'statusBar.mode.terrain',
+  eraser: 'statusBar.mode.eraser',
+  building: 'statusBar.mode.building',
+  flag: 'statusBar.mode.flag',
 };
 
 // ============================================================================
@@ -33,6 +33,7 @@ const MODE_LABELS: Record<string, string> = {
 // ============================================================================
 
 export function MapStatusBar() {
+  const { t } = useTranslation('common');
   const hoveredTile = useMapStore((state) => state.hoveredTile);
   const terrain = useMapStore(
     hoveredTile ? selectTerrainAt(hoveredTile.x, hoveredTile.y) : () => 'Empty'
@@ -81,18 +82,19 @@ export function MapStatusBar() {
 
   // Build status display text
   const statusText = (() => {
+    const modeLabel = MODE_LABELS[editorMode] ? t(MODE_LABELS[editorMode]) : editorMode;
     if (isRemoving) {
-      return `🗑️ 删除模式 · ${MODE_LABELS[editorMode] || editorMode}`;
+      return `🗑️ ${t('statusBar.deleteMode')} · ${modeLabel}`;
     }
     switch (editorMode) {
       case 'terrain':
-        return `🖌️ ${MODE_LABELS[editorMode]} · 大小 ${brushSize}`;
+        return `🖌️ ${modeLabel} · ${t('statusBar.size')} ${brushSize}`;
       case 'building':
-        return selectedBuilding ? `🔨 ${selectedBuilding}` : '🔨 请选择建筑';
+        return selectedBuilding ? `🔨 ${selectedBuilding}` : `🔨 ${t('statusBar.selectBuilding')}`;
       case 'flag':
-        return selectedFlag ? `🚩 ${selectedFlag}` : '🚩 请选择旗帜';
+        return selectedFlag ? `🚩 ${selectedFlag}` : `🚩 ${t('statusBar.selectFlag')}`;
       default:
-        return MODE_LABELS[editorMode] || editorMode;
+        return modeLabel;
     }
   })();
 
@@ -112,7 +114,7 @@ export function MapStatusBar() {
     <div className="flex items-center gap-4 px-4 py-3 bg-background border-t border-border text-sm">
       {/* Current tool / mode */}
       <div className="flex items-center gap-2 min-w-[160px]">
-        <span className="text-muted-foreground">工具:</span>
+        <span className="text-muted-foreground">{t('statusBar.tool')}:</span>
         <span className="font-medium text-primary">{statusText}</span>
       </div>
 
@@ -121,7 +123,7 @@ export function MapStatusBar() {
 
       {/* Zoom level */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">缩放:</span>
+        <span className="text-muted-foreground">{t('statusBar.zoom')}:</span>
         <span className="font-mono">{viewport.zoom.toFixed(2)}x</span>
       </div>
 
@@ -130,7 +132,7 @@ export function MapStatusBar() {
 
       {/* Screen coordinates */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">Screen:</span>
+        <span className="text-muted-foreground">{t('statusBar.screen')}:</span>
         <span className="font-mono">
           {coords.screenX}, {coords.screenY}
         </span>
@@ -141,7 +143,7 @@ export function MapStatusBar() {
 
       {/* Tile coordinates */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">Tile:</span>
+        <span className="text-muted-foreground">{t('statusBar.tile')}:</span>
         <span className="font-mono">
           {hoveredTile ? `${hoveredTile.x}, ${hoveredTile.y}` : '--, --'}
         </span>
@@ -152,7 +154,7 @@ export function MapStatusBar() {
 
       {/* Terrain type */}
       <div className="flex items-center gap-2">
-        <span className="text-muted-foreground">Terrain:</span>
+        <span className="text-muted-foreground">{t('statusBar.terrain')}:</span>
         <span className="font-medium">
           {hoveredTile ? terrain : '--'}
         </span>

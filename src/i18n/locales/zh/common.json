@@ -99,5 +99,35 @@
   },
   "xmlEditor": {
     "title": "XML 编辑器 - 武器配置"
+  },
+  "statusBar": {
+    "tool": "工具",
+    "zoom": "缩放",
+    "screen": "屏幕坐标",
+    "tile": "瓦片",
+    "terrain": "地形",
+    "deleteMode": "删除模式",
+    "size": "大小",
+    "selectBuilding": "请选择建筑",
+    "selectFlag": "请选择旗帜",
+    "mode": {
+      "terrain": "画笔",
+      "eraser": "橡皮擦",
+      "building": "建筑",
+      "flag": "旗帜"
+    }
+  },
+  "canvas": {
+    "terrain": "地形",
+    "buildings": "建筑",
+    "flags": "标记"
+  },
+  "contextMenu": {
+    "tile": "瓦片 ({x}, {y})",
+    "copyCoords": "复制坐标",
+    "centerCamera": "居中视图",
+    "notSet": "未设置",
+    "none": "无",
+    "buildingAnchor": "建筑锚点"
   }
 }

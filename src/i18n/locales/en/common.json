@@ -99,5 +99,35 @@
   },
   "xmlEditor": {
     "title": "XML Editor - Weapon Configuration"
+  },
+  "statusBar": {
+    "tool": "Tool",
+    "zoom": "Zoom",
+    "screen": "Screen",
+    "tile": "Tile",
+    "terrain": "Terrain",
+    "deleteMode": "Delete Mode",
+    "size": "Size",
+    "selectBuilding": "Select Building",
+    "selectFlag": "Select Flag",
+    "mode": {
+      "terrain": "Brush",
+      "eraser": "Eraser",
+      "building": "Building",
+      "flag": "Flag"
+    }
+  },
+  "canvas": {
+    "terrain": "Terrain",
+    "buildings": "Buildings",
+    "flags": "Flags"
+  },
+  "contextMenu": {
+    "tile": "Tile ({x}, {y})",
+    "copyCoords": "Copy Coordinates",
+    "centerCamera": "Center Camera",
+    "notSet": "Not Set",
+    "none": "None",
+    "buildingAnchor": "Building Anchor"
   }
 }

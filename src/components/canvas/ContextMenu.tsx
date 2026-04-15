@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import type { MapData, TerrainType, Building } from '../../types/map';
 import { BUILDING_BLUEPRINTS } from '../../data/buildingBlueprints';
@@ -19,12 +20,12 @@ interface ContextMenuProps {
   onClose: () => void;
 }
 
-// Terrain type display names and colors
-const TERRAIN_INFO: Record<TerrainType, { name: string; color: string; bgColor: string }> = {
-  Crater: { name: '火山口', color: '#8B4513', bgColor: '#F5E6D3' },
-  Dirt: { name: '草地', color: '#228B22', bgColor: '#E8F5E9' },
-  Stone: { name: '石头', color: '#808080', bgColor: '#E8E8E8' },
-  Empty: { name: '空地', color: '#666666', bgColor: '#F5F5F5' },
+// Terrain type display colors (names come from t() translation)
+const TERRAIN_COLORS: Record<TerrainType, { color: string; bgColor: string }> = {
+  Crater: { color: '#8B4513', bgColor: '#F5E6D3' },
+  Dirt: { color: '#228B22', bgColor: '#E8F5E9' },
+  Stone: { color: '#808080', bgColor: '#E8E8E8' },
+  Empty: { color: '#666666', bgColor: '#F5F5F5' },
 };
 
 // Get all tiles occupied by a building
@@ -54,6 +55,7 @@ function isTileInBuilding(tileX: number, tileY: number, building: Building): boo
 }
 
 export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, mapData, onClose }: ContextMenuProps) {
+  const { t } = useTranslation('common');
   const [position, setPosition] = useState({ x: screenX, y: screenY });
 
   // Calculate tile information
@@ -151,7 +153,7 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
     onClose();
   };
 
-  const terrainData = tileInfo?.terrain ? TERRAIN_INFO[tileInfo.terrain] : null;
+  const terrainData = tileInfo?.terrain ? TERRAIN_COLORS[tileInfo.terrain] : null;
 
   return createPortal(
     <div
@@ -162,11 +164,11 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
       {/* Header - Coordinates */}
       <div className="px-3 py-2 border-b border-border">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold">Tile ({tileX}, {tileY})</span>
+          <span className="text-sm font-semibold">{t('contextMenu.tile', { x: tileX, y: tileY })}</span>
           <button
             onClick={handleCopyCoordinates}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            title="复制坐标"
+            title={t('contextMenu.copyCoords')}
           >
             📋
           </button>
@@ -180,22 +182,22 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
       <div className="px-3 py-2 space-y-2">
         {/* Terrain Layer */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-12">地形</span>
-          {terrainData ? (
+          <span className="text-xs font-medium text-muted-foreground w-12">{t('canvas.terrain')}</span>
+          {terrainData && tileInfo?.terrain ? (
             <span
               className="text-xs px-2 py-0.5 rounded-full font-medium"
               style={{ color: terrainData.color, backgroundColor: terrainData.bgColor }}
             >
-              {terrainData.name}
+              {t(`terrain.${tileInfo.terrain.toLowerCase()}`)}
             </span>
           ) : (
-            <span className="text-xs text-muted-foreground italic">未设置</span>
+            <span className="text-xs text-muted-foreground italic">{t('contextMenu.notSet')}</span>
           )}
         </div>
 
         {/* Building Layer */}
         <div className="flex items-start gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-12 pt-0.5">建筑</span>
+          <span className="text-xs font-medium text-muted-foreground w-12 pt-0.5">{t('canvas.buildings')}</span>
           {tileInfo?.buildings && tileInfo.buildings.length > 0 ? (
             <div className="flex flex-col gap-1">
               {tileInfo.buildings.map((building, index) => (
@@ -205,7 +207,7 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
                       {building.id}
                     </span>
                     {building.isPrimary && (
-                      <span className="text-[10px] text-primary" title="建筑锚点">
+                      <span className="text-[10px] text-primary" title={t('contextMenu.buildingAnchor')}>
                         ★
                       </span>
                     )}
@@ -219,13 +221,13 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
               ))}
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground italic">无</span>
+            <span className="text-xs text-muted-foreground italic">{t('contextMenu.none')}</span>
           )}
         </div>
 
         {/* Flags Layer */}
         <div className="flex items-start gap-2">
-          <span className="text-xs font-medium text-muted-foreground w-12 pt-0.5">标记</span>
+          <span className="text-xs font-medium text-muted-foreground w-12 pt-0.5">{t('canvas.flags')}</span>
           {tileInfo?.flags && tileInfo.flags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {tileInfo.flags.map((flag) => (
@@ -238,7 +240,7 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
               ))}
             </div>
           ) : (
-            <span className="text-xs text-muted-foreground italic">无</span>
+            <span className="text-xs text-muted-foreground italic">{t('contextMenu.none')}</span>
           )}
         </div>
       </div>
@@ -250,7 +252,7 @@ export function ContextMenu({ tileX, tileY, worldX, worldY, screenX, screenY, ma
           className="w-full flex items-center justify-center gap-2 px-3 py-1.5 text-xs bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
           <span>🎯</span>
-          <span>Center Camera</span>
+          <span>{t('contextMenu.centerCamera')}</span>
         </button>
       </div>
     </div>,
