@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "title": "TileMap Editor",
+    "xmlEditor": "XML Editor",
+    "saveState": "Save State",
+    "loadState": "Load State",
+    "loading": "Loading...",
+    "openXmlEditor": "Open XML Editor",
+    "exportStateTooltip": "Export all editor state as ZIP file",
+    "importStateTooltip": "Import editor state from ZIP file",
+    "exportSuccess": "Export Successful",
+    "exportSuccessDesc": "Editor state saved as ZIP file",
+    "exportFailed": "Export Failed",
+    "importSuccess": "Import Successful",
+    "importSuccessDesc": "Restored {count} module states",
+    "importFailed": "Import Failed",
+    "importFailedDesc": "Unrecognized ZIP file",
+    "modInstaller": "Mod Installer",
+    "featureNotes": "Feature Notes",
+    "localizationTutorial": "Localization Tutorial"
+  },
+  "tabs": {
+    "mapEditor": "Map Editor",
+    "gameConfig": "Game Config",
+    "localization": "Localization",
+    "weaponSkill": "Weapons & Skills"
+  },
+  "sidebar": {
+    "tools": "Tools",
+    "terrain": "Terrain",
+    "buildings": "Buildings",
+    "flags": "Flags",
+    "config": "Config"
+  },
+  "terrain": {
+    "dirt": "Dirt",
+    "stone": "Stone",
+    "crater": "Crater",
+    "empty": "Empty",
+    "dirtDesc": "Grass terrain - Base passable terrain",
+    "stoneDesc": "Stone terrain - Obstacle base terrain",
+    "craterDesc": "Crater terrain - Destroyed坑洼",
+    "emptyDesc": "Empty - Clear all terrain in this tile"
+  },
+  "config": {
+    "mapFileOps": "Map File Operations",
+    "newMap": "New Map",
+    "saveMap": "Save Map",
+    "exportBuildings": "Export Buildings",
+    "exportBuildingsTooltip": "Export buildings as separate Buildings.xml",
+    "newMapDesc": "Creating new map...",
+    "mapName": "Map Name",
+    "mapSettings": "Map Settings",
+    "width": "Width",
+    "height": "Height",
+    "mapNamePlaceholder": "Enter map name...",
+    "filenameHint": "Used for exported filenames: {name}_TileMap.xml",
+    "cannotSave": "Cannot Save",
+    "cannotSaveDesc": "Map data is empty. Please load or edit the map first",
+    "noBuildings": "No Buildings to Export",
+    "noBuildingsDesc": "No buildings have been placed on the map yet",
+    "saveSuccess": "Save Map",
+    "saveSuccessDesc": "Exported {name}_TileMap.xml ({flags} flag types, {terrain} terrain tiles)",
+    "exportBuildingsSuccess": "Export Buildings",
+    "exportBuildingsSuccessDesc": "Exported {name}_Buildings.xml ({count} buildings)"
+  },
+  "layers": {
+    "title": "Layers",
+    "tooltip": "Toggle layer visibility",
+    "grid": "Grid",
+    "zones": "Zones",
+    "buildings": "Buildings",
+    "flags": "Flags",
+    "gridDesc": "Grid overlay lines",
+    "zonesDesc": "Spawn zone markers (pink/blue/green)",
+    "buildingsDesc": "Building placement layer",
+    "flagsDesc": "Flag markers (Boss points/spawn points/altars, etc.)"
+  },
+  "toolbar": {
+    "resetView": "Reset View",
+    "brushSize": "Brush Size"
+  },
+  "hints": {
+    "title": "操作提示",
+    "title_en": "Operation Hints",
+    "middleClick": "中键",
+    "middleClick_en": "Middle Click",
+    "scroll": "滚轮",
+    "scroll_en": "Scroll",
+    "rightClick": "右键",
+    "rightClick_en": "Right Click",
+    "panCanvas": "平移画布",
+    "zoomView": "缩放视图",
+    "viewTile": "查看瓦片"
+  },
+  "language": {
+    "english": "English",
+    "chinese": "中文"
+  },
+  "xmlEditor": {
+    "title": "XML Editor - Weapon Configuration"
+  }
+}

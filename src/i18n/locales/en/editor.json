@@ -1,0 +1,11 @@
+{
+  "config": {
+    "title": "Game Configuration"
+  },
+  "weapon": {
+    "title": "Weapon & Skill Editor"
+  },
+  "localization": {
+    "title": "Localization Manager"
+  }
+}

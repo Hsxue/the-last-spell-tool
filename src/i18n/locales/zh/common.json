@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "title": "TileMap 编辑器",
+    "xmlEditor": "XML 编辑器",
+    "saveState": "保存状态",
+    "loadState": "加载状态",
+    "loading": "导入中...",
+    "openXmlEditor": "打开 XML 编辑器",
+    "exportStateTooltip": "导出所有编辑器状态为 ZIP 文件",
+    "importStateTooltip": "从 ZIP 文件导入编辑器状态",
+    "exportSuccess": "导出成功",
+    "exportSuccessDesc": "编辑器状态已保存为 ZIP 文件",
+    "exportFailed": "导出失败",
+    "importSuccess": "导入成功",
+    "importSuccessDesc": "已恢复 {count} 个模块状态",
+    "importFailed": "导入失败",
+    "importFailedDesc": "无法识别的 ZIP 文件",
+    "modInstaller": "模组安装器",
+    "featureNotes": "功能说明",
+    "localizationTutorial": "本地化教程"
+  },
+  "tabs": {
+    "mapEditor": "地图编辑器",
+    "gameConfig": "游戏配置",
+    "localization": "多语言模组",
+    "weaponSkill": "武器与技能"
+  },
+  "sidebar": {
+    "tools": "工具",
+    "terrain": "地形",
+    "buildings": "建筑",
+    "flags": "标记",
+    "config": "配置"
+  },
+  "terrain": {
+    "dirt": "草地",
+    "stone": "石头",
+    "crater": "弹坑",
+    "empty": "清空",
+    "dirtDesc": "草地地形 - 基础可通行地形",
+    "stoneDesc": "石头地形 - 障碍物基底地形",
+    "craterDesc": "弹坑地形 - 被摧毁后的坑洼",
+    "emptyDesc": "空地 - 清除当前格所有地形"
+  },
+  "config": {
+    "mapFileOps": "地图文件操作",
+    "newMap": "新建地图",
+    "saveMap": "保存地图",
+    "exportBuildings": "导出建筑",
+    "exportBuildingsTooltip": "将建筑导出为单独的 Buildings.xml",
+    "newMapDesc": "正在创建新地图...",
+    "mapName": "地图名称",
+    "mapSettings": "地图设置",
+    "width": "宽度",
+    "height": "高度",
+    "mapNamePlaceholder": "输入地图名称...",
+    "filenameHint": "用于导出的文件名：{name}_TileMap.xml",
+    "cannotSave": "无法保存",
+    "cannotSaveDesc": "地图数据为空，请先加载或编辑地图",
+    "noBuildings": "无建筑可导出",
+    "noBuildingsDesc": "地图上还没有放置任何建筑",
+    "saveSuccess": "保存地图",
+    "saveSuccessDesc": "已导出 {name}_TileMap.xml（{flags} 种标记，{terrain} 块地形）",
+    "exportBuildingsSuccess": "导出建筑",
+    "exportBuildingsSuccessDesc": "已导出 {name}_Buildings.xml（{count} 个建筑）"
+  },
+  "layers": {
+    "title": "图层",
+    "tooltip": "切换各图层的显示/隐藏",
+    "grid": "网格",
+    "zones": "区域",
+    "buildings": "建筑",
+    "flags": "标记",
+    "gridDesc": "网格线叠加层",
+    "zonesDesc": "生成区域标记（粉色/蓝色/绿色）",
+    "buildingsDesc": "建筑放置层",
+    "flagsDesc": "旗帜标记层（Boss点/出生点/祭坛等）"
+  },
+  "toolbar": {
+    "resetView": "重置视图",
+    "brushSize": "画笔大小"
+  },
+  "hints": {
+    "title": "操作提示",
+    "title_en": "Operation Hints",
+    "middleClick": "中键",
+    "middleClick_en": "Middle Click",
+    "scroll": "滚轮",
+    "scroll_en": "Scroll",
+    "rightClick": "右键",
+    "rightClick_en": "Right Click",
+    "panCanvas": "平移画布",
+    "zoomView": "缩放视图",
+    "viewTile": "查看瓦片"
+  },
+  "language": {
+    "english": "English",
+    "chinese": "中文"
+  },
+  "xmlEditor": {
+    "title": "XML 编辑器 - 武器配置"
+  }
+}
