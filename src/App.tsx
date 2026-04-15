@@ -48,7 +48,9 @@ import {
   TooltipContent,
 } from './components/ui/tooltip';
 import type { SidebarTab, FeatureTab } from './types/map';
+import { useTranslation } from 'react-i18next';
 import { useState, useRef, useCallback } from 'react';
+import { LanguageSwitcher } from './components/ui/LanguageSwitcher';
 
 // ============================================================================
 // Header Component
@@ -59,6 +61,7 @@ interface HeaderProps {
 }
 
 function Header({ onOpenXMLEditor }: HeaderProps) {
+  const { t } = useTranslation('common');
   const addToast = useUIStore((state) => state.addToast);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -68,18 +71,18 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
     try {
       await exportAllStoresToZip();
       addToast({
-        title: '导出成功',
-        description: '编辑器状态已保存为 ZIP 文件',
+        title: t('nav.exportSuccess'),
+        description: t('nav.exportSuccessDesc'),
         type: 'success',
       });
     } catch (e) {
       addToast({
-        title: '导出失败',
+        title: t('nav.exportFailed'),
         description: (e as Error).message,
         type: 'error',
       });
     }
-  }, [addToast]);
+  }, [addToast, t]);
 
   const handleImportFile = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,21 +95,21 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
 
       if (report.success) {
         addToast({
-          title: '导入成功',
-          description: `已恢复 ${report.storesImported.length} 个模块状态`,
+          title: t('nav.importSuccess'),
+          description: t('nav.importSuccessDesc', { count: report.storesImported.length }),
           type: 'success',
         });
         window.location.reload();
       } else {
         addToast({
-          title: '导入失败',
-          description: report.errors[0] ?? '无法识别的 ZIP 文件',
+          title: t('nav.importFailed'),
+          description: report.errors[0] ?? t('nav.importFailedDesc'),
           type: 'error',
         });
       }
     } catch (e) {
       addToast({
-        title: '导入失败',
+        title: t('nav.importFailed'),
         description: (e as Error).message,
         type: 'error',
       });
@@ -116,14 +119,14 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
         fileInputRef.current.value = '';
       }
     }
-  }, [addToast]);
+  }, [addToast, t]);
 
   return (
     <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 sticky top-0 z-50">
       <div className="flex items-center gap-4 h-full">
         <div className="flex items-center gap-2 h-full">
           <MapIcon className="h-6 w-6 text-primary" />
-          <h1 className="text-lg font-semibold whitespace-nowrap">TileMap Editor</h1>
+          <h1 className="text-lg font-semibold whitespace-nowrap">{t('nav.title')}</h1>
         </div>
       </div>
 
@@ -132,30 +135,30 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
           variant="outline"
           size="sm"
           onClick={onOpenXMLEditor}
-          title="Open XML Editor"
+          title={t('nav.openXmlEditor')}
         >
           <FileCode className="h-4 w-4 mr-2" />
-          XML 编辑器
+          {t('nav.xmlEditor')}
         </Button>
         <div className="w-px h-6 bg-border mx-1" />
         <Button
           variant="outline"
           size="sm"
           onClick={handleExportAll}
-          title="导出所有编辑器状态为 ZIP 文件"
+          title={t('nav.exportStateTooltip')}
         >
           <Save className="h-4 w-4 mr-1" />
-          保存状态
+          {t('nav.saveState')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => fileInputRef.current?.click()}
           disabled={isImporting}
-          title="从 ZIP 文件导入编辑器状态"
+          title={t('nav.importStateTooltip')}
         >
           <FolderOpen className="h-4 w-4 mr-1" />
-          {isImporting ? '导入中...' : '加载状态'}
+          {isImporting ? t('nav.loading') : t('nav.loadState')}
         </Button>
         <input
           ref={fileInputRef}
@@ -169,6 +172,7 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
         <LocalizationTutorialDialog />
         <div className="w-px h-6 bg-border mx-1" />
         <ModInstaller />
+        <LanguageSwitcher />
       </div>
     </header>
   );
@@ -178,18 +182,26 @@ function Header({ onOpenXMLEditor }: HeaderProps) {
 // Feature Tabs Component
 // ============================================================================
 
-const featureTabs: { id: FeatureTab; label: string; icon: React.ElementType }[] = [
-  { id: 'mapEditor', label: '地图编辑器', icon: MapIcon },
-   { id: 'gameConfig', label: '游戏配置', icon: Settings },
-   { id: 'localization', label: '多语言模组', icon: Languages },
-   { id: 'weaponSkill', label: '武器与技能', icon: Sword },
+const featureTabsConfig: { id: FeatureTab; icon: React.ElementType }[] = [
+  { id: 'mapEditor', icon: MapIcon },
+   { id: 'gameConfig', icon: Settings },
+   { id: 'localization', icon: Languages },
+   { id: 'weaponSkill', icon: Sword },
 ];
 
+const featureTabLabels: Record<FeatureTab, string> = {
+  mapEditor: 'tabs.mapEditor',
+  gameConfig: 'tabs.gameConfig',
+  localization: 'tabs.localization',
+  weaponSkill: 'tabs.weaponSkill',
+};
+
 function FeatureTabs() {
+  const { t } = useTranslation('common');
   const { activeFeatureTab, setActiveFeatureTab } = useUIStore();
   return (
     <div className="h-12 border-b border-border bg-background flex items-center px-4 gap-2 sticky top-14 z-40">
-      {featureTabs.map((tab) => (
+      {featureTabsConfig.map((tab) => (
         <button 
           key={tab.id} 
           onClick={() => setActiveFeatureTab(tab.id)}
@@ -200,7 +212,7 @@ function FeatureTabs() {
           }`}
         >
           <tab.icon className="h-4 w-4" />
-          {tab.label}
+          {t(featureTabLabels[tab.id])}
         </button>
       ))}
     </div>
@@ -211,14 +223,23 @@ function FeatureTabs() {
 // Sidebar Component
 // ============================================================================
 
-const tabs: { id: SidebarTab; label: string; icon: React.ElementType }[] = [
-  { id: 'terrain', label: 'Terrain', icon: Mountain },
-  { id: 'building', label: 'Buildings', icon: Building2 },
-  { id: 'flag', label: 'Flags', icon: Flag },
-  { id: 'config', label: 'Config', icon: Settings },
+const sidebarTabsConfig: { id: SidebarTab; icon: React.ElementType }[] = [
+  { id: 'terrain', icon: Mountain },
+  { id: 'building', icon: Building2 },
+  { id: 'flag', icon: Flag },
+  { id: 'config', icon: Settings },
 ];
 
+const sidebarTabLabels: Record<SidebarTab, string> = {
+  terrain: 'sidebar.terrain',
+  building: 'sidebar.buildings',
+  flag: 'sidebar.flags',
+  config: 'sidebar.config',
+  map: 'sidebar.tools',
+};
+
 function Sidebar() {
+  const { t } = useTranslation('common');
   const { activeTab, setActiveTab } = useUIStore();
   const { 
     brushSize, 
@@ -249,8 +270,8 @@ function Sidebar() {
   // Map File Operation Handlers
   const handleNewMap = () => {
     addToast({
-      title: 'New Map',
-      description: 'Creating new map...',
+      title: t('config.newMap'),
+      description: t('config.newMapDesc'),
       type: 'info',
     });
   };
@@ -258,8 +279,8 @@ function Sidebar() {
   const handleSaveMap = () => {
     if (!mapData) {
       addToast({
-        title: '无法保存',
-        description: '地图数据为空，请先加载或编辑地图',
+        title: t('config.cannotSave'),
+        description: t('config.cannotSaveDesc'),
         type: 'warning',
       });
       return;
@@ -274,8 +295,8 @@ function Sidebar() {
     );
 
     addToast({
-      title: 'Save Map',
-      description: `已导出 ${mapName}_TileMap.xml (${mapData.flags.size} flag types, ${mapData.terrain.size} terrain tiles)`,
+      title: t('config.saveSuccess'),
+      description: t('config.saveSuccessDesc', { name: mapName, flags: mapData.flags.size, terrain: mapData.terrain.size }),
       type: 'success',
       duration: 3000,
     });
@@ -284,8 +305,8 @@ function Sidebar() {
   const handleExportBuildings = () => {
     if (!mapData || mapData.buildings.length === 0) {
       addToast({
-        title: '无建筑可导出',
-        description: '地图上还没有放置任何建筑',
+        title: t('config.noBuildings'),
+        description: t('config.noBuildingsDesc'),
         type: 'warning',
       });
       return;
@@ -294,8 +315,8 @@ function Sidebar() {
     saveBuildings(mapData.buildings, mapName);
 
     addToast({
-      title: 'Export Buildings',
-      description: `已导出 ${mapName}_Buildings.xml (${mapData.buildings.length} buildings)`,
+      title: t('config.exportBuildingsSuccess'),
+      description: t('config.exportBuildingsSuccessDesc', { name: mapName, count: mapData.buildings.length }),
       type: 'success',
       duration: 3000,
     });
@@ -312,7 +333,7 @@ function Sidebar() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        {tabs.map((tab) => (
+        {sidebarTabsConfig.map((tab) => (
           <Button
             key={tab.id}
             variant={activeTab === tab.id ? 'secondary' : 'ghost'}
@@ -331,7 +352,7 @@ function Sidebar() {
     <aside className="w-72 border-r border-border bg-card flex flex-col h-full">
       {/* Sidebar Header */}
       <div className="h-12 border-b border-border flex items-center justify-between px-3">
-        <span className="font-medium">Tools</span>
+        <span className="font-medium">{t('sidebar.tools')}</span>
         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)}>
           <Menu className="h-5 w-5" />
         </Button>
@@ -339,7 +360,7 @@ function Sidebar() {
 
       {/* Tabs */}
       <div className="flex border-b border-border">
-        {tabs.map((tab) => (
+        {sidebarTabsConfig.map((tab) => (
           <button
             key={tab.id}
             onClick={() => {
@@ -362,7 +383,7 @@ function Sidebar() {
             }`}
           >
             <tab.icon className="h-4 w-4" />
-            <span>{tab.label}</span>
+            <span>{t(sidebarTabLabels[tab.id])}</span>
           </button>
         ))}
       </div>
@@ -372,7 +393,7 @@ function Sidebar() {
         {activeTab === 'terrain' && (
           <div className="space-y-4">
             <div>
-              <h3 className="text-sm font-medium mb-2">Brush Size</h3>
+              <h3 className="text-sm font-medium mb-2">{t('toolbar.brushSize')}</h3>
               <div className="flex items-center gap-2">
                 <input
                   type="range"
@@ -386,9 +407,9 @@ function Sidebar() {
               </div>
             </div>
             <div>
-              <h3 className="text-sm font-medium mb-2">Terrain Types</h3>
+              <h3 className="text-sm font-medium mb-2">{t('sidebar.terrain')}</h3>
               <div className="grid grid-cols-2 gap-2">
-                {['Dirt', 'Stone', 'Crater', 'Empty'].map((terrain) => (
+                {(['Dirt', 'Stone', 'Crater', 'Empty'] as const).map((terrain) => (
                   <Tooltip key={terrain}>
                     <TooltipTrigger asChild>
                       <Button
@@ -415,14 +436,11 @@ function Sidebar() {
                               terrain === 'Empty' ? '1px solid currentColor' : 'none',
                           }}
                         />
-                        {terrain}
+                        {t(`terrain.${terrain.toLowerCase()}`)}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent side="right">
-                      <p>{terrain === 'Dirt' ? '草地地形 - 基础可通行地形'
-                        : terrain === 'Stone' ? '石头地形 - 障碍物基底地形'
-                        : terrain === 'Crater' ? '弹坑地形 - 被摧毁后的坑洼'
-                        : '空地 - 清除当前格所有地形'}</p>
+                      <p>{t(`terrain.${terrain.toLowerCase()}Desc`)}</p>
                     </TooltipContent>
                   </Tooltip>
                 ))}
@@ -470,7 +488,7 @@ function Sidebar() {
           <div className="space-y-4">
             {/* Map File Operations */}
             <div>
-              <h3 className="text-sm font-medium mb-2">Map File Operations</h3>
+              <h3 className="text-sm font-medium mb-2">{t('config.mapFileOps')}</h3>
               <div className="space-y-2">
                 <Button
                   variant="outline"
@@ -479,7 +497,7 @@ function Sidebar() {
                   onClick={handleNewMap}
                 >
                   <FilePlus className="h-4 w-4 mr-2" />
-                  New Map
+                  {t('config.newMap')}
                 </Button>
                 <TileMapImportButton className="w-full" />
                 <BuiltinMapButton className="w-full" />
@@ -490,39 +508,39 @@ function Sidebar() {
                   onClick={handleSaveMap}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Map
+                  {t('config.saveMap')}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className="w-full justify-start"
                   onClick={handleExportBuildings}
-                  title="Export buildings as separate Buildings.xml"
+                  title={t('config.exportBuildingsTooltip')}
                 >
                   <Building2 className="h-4 w-4 mr-2" />
-                  Export Buildings
+                  {t('config.exportBuildings')}
                 </Button>
               </div>
             </div>
 
             <div className="border-t border-border pt-4">
-              <h3 className="text-sm font-medium mb-2">Map Name</h3>
+              <h3 className="text-sm font-medium mb-2">{t('config.mapName')}</h3>
               <input
                 type="text"
                 value={mapName}
                 onChange={(e) => setMapName(e.target.value)}
-                placeholder="Enter map name..."
+                placeholder={t('config.mapNamePlaceholder')}
                 className="w-full h-9 rounded-md border border-input px-3 bg-background text-sm"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Used for exported filenames: {mapName}_TileMap.xml
+                {t('config.filenameHint', { name: mapName })}
               </p>
             </div>
             <div>
-              <h3 className="text-sm font-medium mb-2">Map Settings</h3>
+              <h3 className="text-sm font-medium mb-2">{t('config.mapSettings')}</h3>
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm w-16">Width:</span>
+                  <span className="text-sm w-16">{t('config.width')}:</span>
                   <input
                     type="number"
                     value={width}
@@ -531,7 +549,7 @@ function Sidebar() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm w-16">Height:</span>
+                  <span className="text-sm w-16">{t('config.height')}:</span>
                   <input
                     type="number"
                     value={height}
@@ -551,19 +569,19 @@ function Sidebar() {
           <Layers className="h-4 w-4" />
           <Tooltip>
             <TooltipTrigger asChild>
-              <span className="cursor-help">Layers</span>
+              <span className="cursor-help">{t('layers.title')}</span>
             </TooltipTrigger>
             <TooltipContent side="top">
-              <p className="text-xs">切换各图层的显示/隐藏</p>
+              <p className="text-xs">{t('layers.tooltip')}</p>
             </TooltipContent>
           </Tooltip>
         </h3>
         <div className="space-y-2">
           {[
-            { key: 'grid' as const, label: 'Grid', desc: '网格线叠加层' },
-            { key: 'zones' as const, label: 'Zones', desc: '生成区域标记 (粉色/蓝色/绿色)' },
-            { key: 'buildings' as const, label: 'Buildings', desc: '建筑放置层' },
-            { key: 'flags' as const, label: 'Flags', desc: '旗帜标记层 (Boss点/出生点/祭坛等)' },
+            { key: 'grid' as const, label: 'layers.grid', desc: 'layers.gridDesc' },
+            { key: 'zones' as const, label: 'layers.zones', desc: 'layers.zonesDesc' },
+            { key: 'buildings' as const, label: 'layers.buildings', desc: 'layers.buildingsDesc' },
+            { key: 'flags' as const, label: 'layers.flags', desc: 'layers.flagsDesc' },
           ].map(({ key, label, desc }) => (
             <Tooltip key={key}>
               <TooltipTrigger asChild>
@@ -576,11 +594,11 @@ function Sidebar() {
                     }
                     className="rounded border-border"
                   />
-                  {label}
+                  {t(label)}
                 </label>
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p className="text-xs">{desc}</p>
+                <p className="text-xs">{t(desc)}</p>
               </TooltipContent>
             </Tooltip>
           ))}
@@ -595,6 +613,7 @@ function Sidebar() {
 // ============================================================================
 
 function Toolbar() {
+  const { t } = useTranslation('common');
   const { viewport, setViewport } = useMapStore();
 
   return (
@@ -621,7 +640,7 @@ function Toolbar() {
         variant="ghost"
         size="icon"
         onClick={() => setViewport({ offsetX: 0, offsetY: 0 })}
-        title="Reset View"
+        title={t('toolbar.resetView')}
       >
         <MapIcon className="h-4 w-4" />
       </Button>
@@ -634,6 +653,7 @@ function Toolbar() {
 // ============================================================================
 
 function MapEditorContent() {
+  const { t } = useTranslation('common');
   return (
     <div className="flex-1 flex overflow-hidden h-full">
       <Sidebar />
@@ -646,19 +666,19 @@ function MapEditorContent() {
           
           {/* Operation Hints - Canvas Overlay (Bottom Right) */}
           <div className="absolute bottom-4 right-4 flex flex-col gap-2 rounded-lg border bg-card p-3 text-xs shadow-lg backdrop-blur-sm bg-card/95">
-            <h4 className="font-medium text-foreground text-center mb-1">操作提示</h4>
+            <h4 className="font-medium text-foreground text-center mb-1">{t('hints.title')}</h4>
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2 justify-center whitespace-nowrap">
-                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">中键</kbd>
-                <span className="text-muted-foreground">平移画布</span>
+                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">{t('hints.middleClick')}</kbd>
+                <span className="text-muted-foreground">{t('hints.panCanvas')}</span>
               </div>
               <div className="flex items-center gap-2 justify-center whitespace-nowrap">
-                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">滚轮</kbd>
-                <span className="text-muted-foreground">缩放视图</span>
+                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">{t('hints.scroll')}</kbd>
+                <span className="text-muted-foreground">{t('hints.zoomView')}</span>
               </div>
               <div className="flex items-center gap-2 justify-center whitespace-nowrap">
-                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">右键</kbd>
-                <span className="text-muted-foreground">查看瓦片</span>
+                <kbd className="rounded bg-muted px-2 py-0.5 font-mono text-foreground shrink-0">{t('hints.rightClick')}</kbd>
+                <span className="text-muted-foreground">{t('hints.viewTile')}</span>
               </div>
             </div>
           </div>
@@ -759,6 +779,7 @@ function ToastDisplay() {
 // ============================================================================
 
 function App() {
+  const { t } = useTranslation('common');
   // Test data for XML Editor
   const [testWeapon, setTestWeapon] = useState({
     id: 1,
@@ -797,7 +818,7 @@ function App() {
           value={xmlContent}
           onApply={handleApply}
           language="xml"
-          title="XML Editor - Weapon Configuration"
+          title={t('xmlEditor.title')}
         />
       </div>
     </TooltipProvider>
