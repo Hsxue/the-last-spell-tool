@@ -6,6 +6,13 @@ type SkillCategory = 'MeleeWeapons' | 'RangeWeapons' | 'MagicWeapons' | 'General
 
 interface Skill { id: string; category: string; }
 
+const CATEGORY_TRANSLATION_KEYS: Record<SkillCategory, string> = {
+  MeleeWeapons: 'weapon.treeView.meleeWeaponSkill',
+  RangeWeapons: 'weapon.treeView.rangeWeaponSkill',
+  MagicWeapons: 'weapon.treeView.magicWeaponSkill',
+  General: 'weapon.treeView.generalSkill',
+};
+
 export function SkillTreeView() {
   const { t } = useTranslation('common');
   const skills = useWeaponSkillStore((state: any) => state.skills);
@@ -39,7 +46,7 @@ export function SkillTreeView() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m9 18 6-6-6-6"/></svg>
                   )}
                 </button>
-                <span className="text-sm font-medium">{category}</span>
+                <span className="text-sm font-medium">{t(CATEGORY_TRANSLATION_KEYS[category])}</span>
               </div>
               {isExpanded && (
                 <div className="py-2 px-2">

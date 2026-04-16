@@ -141,6 +141,14 @@
       "resources": "Resources",
       "waveDefinitions": "Wave Definitions",
       "directions": "Directions"
+    },
+    "basic": {
+      "difficulty1": "Difficulty 1",
+      "difficulty2": "Difficulty 2",
+      "difficulty3": "Difficulty 3",
+      "difficulty4": "Difficulty 4",
+      "difficulty5": "Difficulty 5",
+      "templateItem": "{{name}} ({{days}} days / Diff {{difficulty}})"
     }
   },
   "builtinMap": {
@@ -208,7 +216,14 @@
     },
     "treeView": {
       "noWeapons": "No weapons",
-      "noSkills": "No skills"
+      "noSkills": "No skills",
+      "meleeWeapon": "Melee Weapon",
+      "rangeWeapon": "Range Weapon",
+      "magicWeapon": "Magic Weapon",
+      "meleeWeaponSkill": "Melee Weapon Skill",
+      "rangeWeaponSkill": "Range Weapon Skill",
+      "magicWeaponSkill": "Magic Weapon Skill",
+      "generalSkill": "General Skill"
     },
     "xml": {
       "weaponTitle": "Weapon Edit - {{id}} - XML Mode",
@@ -275,7 +290,11 @@
       "conditions": "Conditions",
       "phase": "Phase",
       "targetInRange": "Target must be in range",
-      "inWatchtower": "Must be in Watchtower"
+      "inWatchtower": "Must be in Watchtower",
+      "follow": "Follow",
+      "maneuver": "Maneuver",
+      "multiHit": "Multi-Hit",
+      "armorPiercing": "Armor Piercing"
     },
     "configTab": {
       "title": "Game Config",
@@ -332,6 +351,10 @@
       "usesPerTurn": "Uses/Turn",
       "min": "Min",
       "max": "Max"
+    },
+    "tabs": {
+      "weapons": "Weapons",
+      "skills": "Skills"
     }
   },
   "modInstaller": {

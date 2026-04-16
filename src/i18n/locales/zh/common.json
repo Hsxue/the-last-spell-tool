@@ -141,6 +141,14 @@
       "resources": "资源",
       "waveDefinitions": "波次定义",
       "directions": "方向"
+    },
+    "basic": {
+      "difficulty1": "难度 1",
+      "difficulty2": "难度 2",
+      "difficulty3": "难度 3",
+      "difficulty4": "难度 4",
+      "difficulty5": "难度 5",
+      "templateItem": "{{name}} ({{days}} 天 / 难度 {{difficulty}})"
     }
   },
   "weapon": {
@@ -189,7 +197,14 @@
     },
     "treeView": {
       "noWeapons": "暂无武器",
-      "noSkills": "暂无技能"
+      "noSkills": "暂无技能",
+      "meleeWeapon": "近战武器",
+      "rangeWeapon": "远程武器",
+      "magicWeapon": "魔法武器",
+      "meleeWeaponSkill": "近战武器技能",
+      "rangeWeaponSkill": "远程武器技能",
+      "magicWeaponSkill": "魔法武器技能",
+      "generalSkill": "通用技能"
     },
     "xml": {
       "weaponTitle": "武器编辑 - {{id}} - XML 模式",
@@ -256,7 +271,11 @@
       "conditions": "条件",
       "phase": "阶段",
       "targetInRange": "目标必须在范围内",
-      "inWatchtower": "必须在瞭望塔内"
+      "inWatchtower": "必须在瞭望塔内",
+      "follow": "跟随",
+      "maneuver": "机动",
+      "multiHit": "多段攻击",
+      "armorPiercing": "破甲"
     },
     "configTab": {
       "title": "游戏配置",
@@ -313,6 +332,10 @@
       "usesPerTurn": "每回合使用次数",
       "min": "最小",
       "max": "最大"
+    },
+    "tabs": {
+      "weapons": "武器",
+      "skills": "技能"
     }
   },
   "builtinMap": {

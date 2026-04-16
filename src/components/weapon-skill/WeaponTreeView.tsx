@@ -8,6 +8,12 @@ interface Weapon { id: string; category: string; }
 
 interface WeaponSkillState { weapons: Weapon[]; selectedWeaponId: string | null; setSelectedWeapon: (id: string) => void; }
 
+const CATEGORY_TRANSLATION_KEYS: Record<WeaponCategory, string> = {
+  MeleeWeapon: 'weapon.treeView.meleeWeapon',
+  RangeWeapon: 'weapon.treeView.rangeWeapon',
+  MagicWeapon: 'weapon.treeView.magicWeapon',
+};
+
 export function WeaponTreeView() {
   const { t } = useTranslation('common');
   const weapons = useWeaponSkillStore((state: WeaponSkillState) => state.weapons);
@@ -41,7 +47,7 @@ export function WeaponTreeView() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                   )}
                 </button>
-                <span className="text-sm font-medium">{category}</span>
+                <span className="text-sm font-medium">{t(CATEGORY_TRANSLATION_KEYS[category])}</span>
               </div>
               {isExpanded && (
                 <div className="py-2 px-2">

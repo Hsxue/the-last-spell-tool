@@ -52,10 +52,10 @@ export function SkillEffectForms({ skill, onChange }: SkillEffectFormsProps) {
             </div>
             <div className="space-y-1">
               <label className="block text-xs text-gray-500">{t('weapon.skillEffects.effectFlags')}</label>
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.follow || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, follow: e.target.checked } } })} /> Follow</label>
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.maneuver || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, maneuver: e.target.checked } } })} /> Maneuver</label>
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.multiHit || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, multiHit: e.target.checked } } })} /> MultiHit</label>
-              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.armorPiercing || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, armorPiercing: e.target.checked } } })} /> ArmorPiercing</label>
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.follow || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, follow: e.target.checked } } })} /> {t('weapon.skillEffects.follow')}</label>
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.maneuver || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, maneuver: e.target.checked } } })} /> {t('weapon.skillEffects.maneuver')}</label>
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.multiHit || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, multiHit: e.target.checked } } })} /> {t('weapon.skillEffects.multiHit')}</label>
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={skill.attackAction?.effects?.armorPiercing || false} onChange={(e) => onChange({ attackAction: { ...skill.attackAction, effects: { ...skill.attackAction?.effects, armorPiercing: e.target.checked } } })} /> {t('weapon.skillEffects.armorPiercing')}</label>
             </div>
           </div>
         )}
