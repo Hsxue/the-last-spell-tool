@@ -231,7 +231,9 @@
       "tableWaveId": "波次",
       "tableWeight": "权重",
       "noData": "暂无波次数据",
-      "addWave": "为第{waveId}夜添加波次"
+      "addWave": "为第{waveId}夜添加波次",
+      "nightOption": "第 {{night}} 夜",
+      "nightWavesTitle": "第 {{night}} 夜波次"
     },
     "elites": {
       "title": "精英配置",
@@ -297,7 +299,16 @@
       "exceptionDensityPlaceholder": "0.0 - 1.0",
       "noExceptions": "未配置例外",
       "addException": "添加例外",
-      "delete": "删除"
+      "delete": "删除",
+      "fogDensity": {
+        "VeryThin": "非常稀薄",
+        "Thin": "稀薄",
+        "Average": "中等",
+        "Dense": "浓密",
+        "VeryDense": "非常浓密"
+      },
+      "densityLabel": "密度 {{index}}",
+      "exceptionDayLabel": "第 {{day}} 夜"
     },
     "resources": {
       "title": "资源配置",
@@ -806,5 +817,20 @@
     "tipRichTextEnd": "",
     "tipUpdate": "更新翻译",
     "tipUpdateDesc": ""
+  },
+  "directions": {
+    "nightOption": "第 {{night}} 夜",
+    "nightDirectionsTitle": "第 {{night}} 夜方向"
+  },
+  "elites": {
+    "nightOption": "第 {{night}} 夜",
+    "nightElitesTitle": "第 {{night}} 夜精英"
+  },
+  "spawn": {
+    "nightOption": "第 {{night}} 夜",
+    "spawnRulesTitle": "第 {{night}} 夜生成规则"
+  },
+  "corruption": {
+    "nightLabel": "第 {{night}} 夜"
   }
 }

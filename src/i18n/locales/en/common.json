@@ -231,7 +231,9 @@
       "tableWaveId": "Wave",
       "tableWeight": "Weight",
       "noData": "No wave data",
-      "addWave": "Add Wave to Night {waveId}"
+      "addWave": "Add Wave to Night {waveId}",
+      "nightOption": "Night {{night}}",
+      "nightWavesTitle": "Night {{night}} Waves"
     },
     "elites": {
       "title": "Elite Configuration",
@@ -297,7 +299,16 @@
       "exceptionDensityPlaceholder": "0.0 - 1.0",
       "noExceptions": "No exceptions configured",
       "addException": "Add Exception",
-      "delete": "Delete"
+      "delete": "Delete",
+      "fogDensity": {
+        "VeryThin": "Very Thin",
+        "Thin": "Thin",
+        "Average": "Average",
+        "Dense": "Dense",
+        "VeryDense": "Very Dense"
+      },
+      "densityLabel": "Density {{index}}",
+      "exceptionDayLabel": "Day {{day}}"
     },
     "resources": {
       "title": "Resources Configuration",
@@ -806,5 +817,20 @@
     "tipRichTextEnd": "",
     "tipUpdate": "Update translations",
     "tipUpdateDesc": ""
+  },
+  "directions": {
+    "nightOption": "Night {{night}}",
+    "nightDirectionsTitle": "Night {{night}} Directions"
+  },
+  "elites": {
+    "nightOption": "Night {{night}}",
+    "nightElitesTitle": "Night {{night}} Elites"
+  },
+  "spawn": {
+    "nightOption": "Night {{night}}",
+    "spawnRulesTitle": "Night {{night}} Spawn Rules"
+  },
+  "corruption": {
+    "nightLabel": "Night {{night}}"
   }
 }
