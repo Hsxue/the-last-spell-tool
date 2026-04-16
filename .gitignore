@@ -3,3 +3,6 @@ nginx.conf
 deploy-config.local.sh
 node_modules
 dist
+LastSpellModPack.zip
+maps/
+mod-release/
